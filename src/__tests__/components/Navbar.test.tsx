@@ -38,6 +38,7 @@ describe('Navbar component', () => {
     const { getByText, queryByText } = render(<Navbar />)
 
     expect(queryByText('Riwayat')).toBeNull()
+    expect(getByText('Tambahkan Analisis')).toBeInTheDocument()
     expect(getByText('Login')).toBeInTheDocument()
   })
 
@@ -63,10 +64,12 @@ describe('Navbar component', () => {
     localStorage.setItem('isLoggedIn', 'true')
     localStorage.setItem('userData', JSON.stringify(sampleUserData))
 
-    const { getByRole } = render(<Navbar />)
+    const { getByRole, getByText } = render(<Navbar />)
 
     const dropdownButton = getByRole('button', { name: /John Doe/i })
     fireEvent.click(dropdownButton)
+
+    expect(getByText('Sign out')).toBeInTheDocument()
   })
 
   test('renders Analisis Publik button when user is logged in and is_staff', () => {

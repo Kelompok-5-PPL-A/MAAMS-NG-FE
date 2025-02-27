@@ -112,6 +112,11 @@ const Navbar = () => {
                       <ul className="py-2 text-sm text-black">
                         {/* Dropdown menu */}
                       </ul>
+                      <div className='py-1'>
+                        <a href='#' className='block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 '>
+                          Sign out
+                        </a>
+                      </div>
                     </div>
                   )}
                 </li>
@@ -154,6 +159,15 @@ const Navbar = () => {
             </button>
             <div className={`w-full md:flex md:w-auto ${isMenuOpen ? 'block' : 'hidden'}`} id='navbar-dropdown'>
               <ul className='flex flex-col font-bold md:items-center md:justify-center p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-white md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-[#FBC707]'>
+                <li>
+                  <a
+                    href='/validator'
+                    className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-white text-gray-900 md:hover:bg-gray-100 md:border-0 md:p-2 md:rounded-xl'
+                  >
+                    Tambahkan Analisis
+                    <div className='hidden md:flex bg-[#FBC707] rounded-full px-2'>+</div>
+                  </a>
+                </li>
                 <li className='w-full md:flex md:w-auto md:items-center md:justify-end'>
                   <a
                     href='/login'
