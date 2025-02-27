@@ -1,5 +1,22 @@
 import React from 'react'
 
+const DeveloperList = ({ developers }: { developers: string[] }) => {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-2 gap-x-4">
+      <div>
+        {developers.slice(0, 7).map((developer, index) => (
+          <div key={index}>{developer}</div>
+        ))}
+      </div>
+      <div>
+        {developers.slice(7).map((developer, index) => (
+          <div key={index}>{developer}</div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 const Footer = () => {
   const developers = [
     'Muhammad Hilal Darul Fauzan',
@@ -19,16 +36,17 @@ const Footer = () => {
   ]
 
   return (
-    <footer className="bg-gray-800 text-white py-6">
-      <div className="container mx-auto text-center">
-        <img src="/icons/maams-footer.svg" alt="MAAMS Logo" className="mx-auto mb-4" />
-        <p className="text-xl">Developed by:</p>
-        {developers.map((developer, index) => (
-          <p key={index} className="text-sm">{developer}</p>
-        ))}
-        <p className="mt-4 text-lg">
-          <strong>Researcher:</strong> Ari Harsono
-        </p>
+    <footer className="bg-black flex flex-col lg:flex-row justify-between p-16">
+      <img src="/icons/maams-footer.svg" className="max-w-48" alt="MAAMS Logo" />
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-32 justify-between text-white mt-8 lg:mt-0">
+        <div>
+          <div className="font-bold mb-4">Researcher</div>
+          <div>Ari Harsono</div>
+        </div>
+        <div>
+          <div className="font-bold mb-4">Developers</div>
+          <DeveloperList developers={developers} />
+        </div>
       </div>
     </footer>
   )

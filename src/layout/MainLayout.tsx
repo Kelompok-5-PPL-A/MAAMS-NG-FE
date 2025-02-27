@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react'
+import Footer from '../components/footer/footer'
 import Head from 'next/head'
 
 type MainLayoutProps = {
@@ -20,6 +21,7 @@ const MainLayout = ({ children, marginOverride = 'm-10' }: MainLayoutProps) => {
         <link rel='icon' href='/icons/meta-icon.svg' />
       </Head>
       <div className={`min-h-screen ${marginOverride}`}>{children}</div>
+      <Footer />
     </div>
   )
 }
