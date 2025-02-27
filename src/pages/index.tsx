@@ -1,9 +1,13 @@
 import React from 'react'
+import FAQ from '../components/faq'
 import HeaderIntro from '../components/headerIntro'
 
 const Index = () => {
   return (
-    <HeaderIntro />
+    <>
+      <HeaderIntro />
+      <FAQ />
+    </>
   )
 }
 

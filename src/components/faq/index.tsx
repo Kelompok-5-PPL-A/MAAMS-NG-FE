@@ -1,48 +1,83 @@
 import React, { useState } from 'react'
 
-const FAQ = () => {
-  const [openQuestions, setOpenQuestions] = useState<string[]>([])
+interface FAQItem {
+  question: string
+  answer: string
+}
 
-  const faqData = [
+const FAQ: React.FC = () => {
+  const [activeIndices, setActiveIndices] = useState<number[]>([])
+
+  const faqData: FAQItem[] = [
     {
       question: 'Apa itu MAAMS?',
       answer:
-        'Dengan menggunakan algoritma analisis, MAAMS akan memeriksa dan mengonfirmasi sebab-sebab utama dan akar permasalahan dari setiap gangguan belajar yang mungkin terjadi. Membantu guru dan orang tua untuk mengintervensi dan memberikan bantuan lebih awal sebelum gangguan belajar menghambat keberhasilan akademis.',
+        'Aplikasi ini berfokus pada <strong>validasi sebab-sebab masalah</strong> yang dimasukkan oleh pengguna. ' +
+        'Dengan menggunakan algoritma analisis, MAAMS akan memeriksa dan mengonfirmasi sebab-sebab ' +
+        'yang mungkin mendasari masalah tersebut. Melalui proses ini, MAAMS membantu pengguna ' +
+        'untuk menemukan <strong>akar dari masalah</strong> dengan lebih tepat.'
     },
     {
       question: 'Apa perbedaan Pribadi dan Pengawasan?',
       answer:
-        'Answer 2',
+        'Perbedaan antara <strong>Pribadi</strong> dan <strong>Pengawasan</strong> adalah mode Pribadi hanya memungkinkan pengguna itu sendiri ' +
+        'yang dapat melihat dan mengedit informasi, sedangkan mode Pengawasan ' +
+        'memungkinkan pengawas atau administrator untuk mengakses dan memantau data tersebut. ' +
+        'Dalam konteks MAAMS, mode Pribadi memastikan privasi data pengguna, sedangkan mode ' +
+        'Pengawasan memungkinkan pengawasan untuk memastikan proses validasi berjalan dengan baik.'
     },
     {
       question: 'Mengapa MAAMS itu penting?',
       answer:
-        'Answer 3.',
-    },
+        'MAAMS penting karena aplikasi ini membantu dalam mengidentifikasi dan memvalidasi ' +
+        '<strong>akar masalah</strong> dengan lebih akurat. Dengan demikian, pengguna dapat mengambil langkah-langkah ' +
+        'yang tepat untuk mengatasi masalah tersebut. Selain itu, fitur pengawasan dalam MAAMS ' +
+        'memastikan integritas data dan proses validasi, sehingga meningkatkan kualitas dan ' +
+        'keandalan hasil analisis.'
+    }
   ]
 
-  const toggleAnswer = (question: string) => {
-    setOpenQuestions((prevState) => {
-      if (prevState.includes(question)) {
-        return prevState.filter((q) => q !== question)
-      } else {
-        return [...prevState, question]
-      }
-    })
-  }  
+  const toggleAnswer = (index: number) => {
+    setActiveIndices((prevIndices) =>
+      prevIndices.includes(index) ? prevIndices.filter((i) => i !== index) : [...prevIndices, index]
+    )
+  }
 
   return (
-    <div>
-      {faqData.map((item) => (
-        <div key={item.question}>
-          <button onClick={() => toggleAnswer(item.question)}>
-            {item.question}
-          </button>
-          {openQuestions.includes(item.question) && (
-            <p>{item.answer}</p>
-          )}
-        </div>
-      ))}
+    <div className='flex flex-col justify-center items-center w-full gap-8 px-8 my-8'>
+      <p className='text-3xl font-bold text-center text-black'>FAQ</p>
+      <div className='w-full'>
+        {faqData.map((faq, index) => (
+          <div key={index} className='bg-yellow-200 rounded-md p-6 mb-4 shadow-md border border-yellow-500'>
+            <button
+              onClick={() => toggleAnswer(index)}
+              className='flex justify-between items-center cursor-pointer w-full text-left p-0 border-none bg-transparent'
+              aria-expanded={activeIndices.includes(index)}
+              aria-controls={`faq-answer-${index}`}
+            >
+              <p className='text-lg text-black'>
+                <strong>{faq.question}</strong>
+              </p>
+              <svg
+                className={`w-6 h-6 transform transition-transform duration-300 ${
+                  activeIndices.includes(index) ? 'rotate-180' : ''
+                }`}
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+              >
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+              </svg>
+            </button>
+            {activeIndices.includes(index) && (
+              <>
+                <hr className='my-4 border-gray-400' />
+                <p className='text-base text-black' dangerouslySetInnerHTML={{ __html: faq.answer }}></p>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
