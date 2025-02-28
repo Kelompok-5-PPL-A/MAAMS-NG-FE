@@ -2,7 +2,7 @@ import React from 'react'
 import { render, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import toast from 'react-hot-toast'
-import CreateLanding from '../../components/CreateLanding/index'
+import CreateLanding from '../../components/CreateLanding'
 import { useRouter } from 'next/router'
 
 jest.mock('react-hot-toast')
