@@ -39,7 +39,7 @@ const CreateLanding = () => {
             <div className='flex flex-row gap-2'>
               <form className='flex flex-row w-full gap-x-4 items-center justify-center' onSubmit={handleSubmit}>
                 <CustomInput
-                  inputClassName='p-6 text-sm w-[450px] border border-gray-300 rounded-lg'
+                  inputClassName='p-6 text-sm w-[450px] border border-black-300 rounded-lg shadow-md focus:shadow-lg transition-shadow duration-200'
                   placeholder='ingin menganalisis apa hari ini ...'
                   spacerClassName='space-y-0'
                   isDisabled={false}
@@ -47,7 +47,7 @@ const CreateLanding = () => {
                   value={question}
                 />
                 <button className='' title='submit_button'>
-                  <img src='/icons/send-icon.svg' alt='search' className='bg-yellow-400 p-4 rounded-full' />
+                  <img src='/icons/send-icon.svg' alt='search' className='bg-yellow-400 p-3 w-20 h-15 rounded-full' />
                 </button>
               </form>
             </div>
