@@ -18,6 +18,8 @@
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "@testing-library/react": "^16.2.0",
+    "axios": "^1.6.7",
+    "axios-mock-adapter": "^1.22.0",
     "commitizen": "^4.3.0",
     "dotenv": "^16.4.7",
     "framer-motion": "^12.4.7",
