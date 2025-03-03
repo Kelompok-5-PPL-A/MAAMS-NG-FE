@@ -29,7 +29,7 @@ const CreateLanding = () => {
   })
 
   return (
-    <div className='flex flex-col lg:flex-row justify-between items-center gap-12 lg:mx-48'>
+    <div className='flex flex-col lg:flex-row justify-between items-center gap-12 lg:mx-55'>
       <div className=''>
         <img src='/icons/landing-icon.svg' alt='landing' className='' />
       </div>
@@ -39,7 +39,7 @@ const CreateLanding = () => {
             <div className='flex flex-row gap-2'>
               <form className='flex flex-row w-full gap-x-4 items-center justify-center' onSubmit={handleSubmit}>
                 <CustomInput
-                  inputClassName='p-6 text-sm w-[450px] border border-black-300 rounded-lg shadow-md focus:shadow-lg transition-shadow duration-200'
+                  inputClassName='p-6 text-sm w-[400px] border border-black-300 rounded-lg shadow-md focus:shadow-lg transition-shadow duration-200'
                   placeholder='ingin menganalisis apa hari ini ...'
                   spacerClassName='space-y-0'
                   isDisabled={false}
