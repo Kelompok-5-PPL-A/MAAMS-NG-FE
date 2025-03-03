@@ -34,7 +34,7 @@ const CreateLanding = () => {
         <img src='/icons/landing-icon.svg' alt='landing' className='' />
       </div>
       <div className=''>
-          <div className='flex flex-col gap-8 mx-12'>
+          <div className='flex flex-col items-center justify-center gap-4 lg:gap-12'>
             <h1 className='text-3xl font-bold text-center'>Apa masalah yang ingin dianalisis hari ini?</h1>
             <div className='flex flex-row gap-2'>
               <form className='flex flex-row w-full gap-x-4 items-center justify-center' onSubmit={handleSubmit}>

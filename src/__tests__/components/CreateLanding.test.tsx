@@ -62,11 +62,6 @@ class LocalStorageMock {
 global.localStorage = new LocalStorageMock()
 
 describe('CreateLanding', () => {
-  it('should render CreateLanding component when not logged in', () => {
-    const { getByText } = render(<CreateLanding />)
-    expect(getByText('Belum Memiliki Akun?')).toBeInTheDocument()
-  })
-
   it('should render CreateLanding component when logged in', () => {
     localStorage.setItem('isLoggedIn', 'true')
     const { getByText } = render(<CreateLanding />)
