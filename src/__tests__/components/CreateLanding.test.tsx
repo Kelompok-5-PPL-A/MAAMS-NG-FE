@@ -3,6 +3,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import toast from 'react-hot-toast'
 import CreateLanding from '../../components/CreateLanding'
+import { CustomInput } from '../../components/customInput'
 import { useRouter } from 'next/router'
 
 jest.mock('react-hot-toast')
@@ -113,5 +114,51 @@ describe('CreateLanding', () => {
         query: { question: 'Pertanyaan baru' }
       })
     })
+  })
+})
+
+describe('CustomInput', () => {
+  it('should render input component correctly', () => {
+    const { getByPlaceholderText } = render(
+      <CustomInput
+        placeholder="Test Input"
+        inputClassName="input-class"
+        onChange={() => {}}
+        value=""
+      />
+    )
+    expect(getByPlaceholderText('Test Input')).toBeInTheDocument()
+  })
+
+  it('should display error icon when error is present', () => {
+    const { container } = render(
+      <CustomInput
+        placeholder="Test Input"
+        inputClassName="input-class"
+        error="This is an error"
+        onChange={() => {}}
+        value=""
+      />
+    )
+
+    const icon = container.querySelector('.chakra-icon')
+    
+    expect(icon).toBeInTheDocument()
+    expect(icon).toHaveClass('chakra-icon')
+  })  
+
+  it('should not display error icon when no error is present', () => {
+    const { queryByRole } = render(
+      <CustomInput
+        placeholder="Test Input"
+        inputClassName="input-class"
+        error=""
+        onChange={() => {}}
+        value=""
+      />
+    )
+
+    const icon = queryByRole('img')
+    expect(icon).not.toBeInTheDocument()
   })
 })
