@@ -9,7 +9,7 @@ const Index = () => {
     <MainLayout marginOverride='m-0'>
       <HeaderIntro />
       <CreateLanding />
-      <FAQ/>
+      <FAQ />
     </MainLayout>
   )
 }
