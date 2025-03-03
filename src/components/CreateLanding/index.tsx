@@ -1,5 +1,5 @@
 import { CustomInput } from '../customInput'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 
