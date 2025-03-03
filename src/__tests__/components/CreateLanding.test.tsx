@@ -161,4 +161,32 @@ describe('CustomInput', () => {
     const icon = queryByRole('img')
     expect(icon).not.toBeInTheDocument()
   })
+
+  it('should render label when label prop is provided', () => {
+    const { getByText } = render(
+      <CustomInput
+        label="Test Label"
+        placeholder="Test Input"
+        inputClassName="input-class"
+        onChange={() => {}}
+        value=""
+      />
+    )
+
+    expect(getByText('Test Label')).toBeInTheDocument()
+  })
+
+  it('should not render label when label prop is not provided', () => {
+    const { queryByText } = render(
+      <CustomInput
+        placeholder="Test Input"
+        inputClassName="input-class"
+        onChange={() => {}}
+        value=""
+      />
+    )
+
+    const label = queryByText('Test Label')
+    expect(label).not.toBeInTheDocument()
+  })
 })
