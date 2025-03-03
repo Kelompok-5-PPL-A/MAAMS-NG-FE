@@ -4,13 +4,13 @@ const DeveloperList = ({ developers }: { developers: string[] }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-2 gap-x-4">
       <div>
-        {developers.slice(0, 7).map((developer, index) => (
-          <div key={index}>{developer}</div>
+        {developers.slice(0, 7).map((developer) => (
+          <div key={developer}>{developer}</div>
         ))}
       </div>
       <div>
-        {developers.slice(7).map((developer, index) => (
-          <div key={index}>{developer}</div>
+        {developers.slice(7).map((developer) => (
+          <div key={developer}>{developer}</div>
         ))}
       </div>
     </div>

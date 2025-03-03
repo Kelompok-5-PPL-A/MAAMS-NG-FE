@@ -1,11 +1,9 @@
 import { CustomInput } from '../customInput'
-import Link from 'next/link'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 
 const CreateLanding = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [question, setQuestion] = useState<string>('')
   const router = useRouter()
 
@@ -22,11 +20,6 @@ const CreateLanding = () => {
       query: { question: question }
     })
   }
-
-  useEffect(() => {
-    const refresh_token = localStorage.getItem('isLoggedIn')
-    setIsLoggedIn(refresh_token === 'true')
-  })
 
   return (
     <div className='flex flex-col lg:flex-row justify-between items-center gap-12 lg:mx-48'>

@@ -87,7 +87,7 @@ const Navbar = () => {
                     id="dropdownNavbarLink"
                     className="flex md:items-center justify-between w-full py-2 md:px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0 md:w-auto "
                   >
-                    {userData?.name || 'Name'}
+                    {userData?.name ?? 'Name'}
                     <svg
                       className="w-2.5 h-2.5 ms-2.5"
                       aria-hidden="true"
