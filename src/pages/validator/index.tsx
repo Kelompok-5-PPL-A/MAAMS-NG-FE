@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import MainLayout from '@/layout/MainLayout'
-import axiosInstance from '@/services/axiosInstance'
+// import axiosInstance from '@/services/axiosInstance'
 import { DropdownMode } from '@/components/dropdownMode'
 import Mode from '../../constants/mode'
 import toast from 'react-hot-toast'
@@ -51,45 +51,45 @@ const QuestionAddPage: React.FC = () => {
     setTags(tags.filter((tag) => tag !== tagToRemove))
   }
 
-  const handleSubmit = async () => {
-    setIsLoading(true)
-    if (!title) {
-      toast.error('Judul harus diisi')
-      setIsLoading(false)
-      return
-    } else if (!question) {
-      toast.error('Pertanyaan harus diisi')
-      setIsLoading(false)
-      return
-    } else if (tags.length == 0) {
-      toast.error('Minimal mengisi 1 kategori')
-      setIsLoading(false)
-      return
-    } else if (title.length > 40) {
-      toast.error('Judul maksimal 40 karakter. Berikan judul yang lebih singkat')
-      setIsLoading(false)
-      return
-    }
+  // const handleSubmit = async () => {
+  //   setIsLoading(true)
+  //   if (!title) {
+  //     toast.error('Judul harus diisi')
+  //     setIsLoading(false)
+  //     return
+  //   } else if (!question) {
+  //     toast.error('Pertanyaan harus diisi')
+  //     setIsLoading(false)
+  //     return
+  //   } else if (tags.length == 0) {
+  //     toast.error('Minimal mengisi 1 kategori')
+  //     setIsLoading(false)
+  //     return
+  //   } else if (title.length > 40) {
+  //     toast.error('Judul maksimal 40 karakter. Berikan judul yang lebih singkat')
+  //     setIsLoading(false)
+  //     return
+  //   }
 
-    try {
-      const { data } = await axiosInstance.post('/api/v1/validator/baru/', {
-        title: title,
-        question: question,
-        mode: mode,
-        tags: tags
-      })
-      toast.success('Analisis berhasil ditambahkan')
-      router.push(`/validator/${data.id}`)
-    } catch (error: any) {
-      if (error.response) {
-        toast.error(error.response.data.detail)
-        setIsLoading(false)
-      } else {
-        toast.error('Gagal menambahkan analisis')
-        setIsLoading(false)
-      }
-    }
-  }
+  //   try {
+  //     const { data } = await axiosInstance.post('/api/v1/validator/baru/', {
+  //       title: title,
+  //       question: question,
+  //       mode: mode,
+  //       tags: tags
+  //     })
+  //     toast.success('Analisis berhasil ditambahkan')
+  //     router.push(`/validator/${data.id}`)
+  //   } catch (error: any) {
+  //     if (error.response) {
+  //       toast.error(error.response.data.detail)
+  //       setIsLoading(false)
+  //     } else {
+  //       toast.error('Gagal menambahkan analisis')
+  //       setIsLoading(false)
+  //     }
+  //   }
+  // }
 
   return (
     <MainLayout>
@@ -135,7 +135,7 @@ const QuestionAddPage: React.FC = () => {
             <div className='flex justify-center w-full flex-col lg:flex-row'>
               <button
                 type='button'
-                onClick={handleSubmit}
+                // onClick={handleSubmit}
                 className='bg-gradient-to-b from-yellow-400 to-yellow-600 text-l text-white font-bold py-2 px-12 rounded-xl'
                 disabled={isLoading}
               >
