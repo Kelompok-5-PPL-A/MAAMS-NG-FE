@@ -18,15 +18,6 @@ const QuestionAddPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
 
-  // const refresh = typeof window !== 'undefined' ? window.localStorage.getItem('refresh') : ''
-  // useEffect(() => {
-  //   if (!refresh) {
-  //     toast.error('silakan login terlebih dahulu')
-  //     router.push('/login')
-  //     return
-  //   }
-  // }, [])
-
   useEffect(() => {
     if (router.query.question) {
       setQuestion(router.query.question as string)
