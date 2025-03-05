@@ -1,26 +1,52 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ConfirmationPopupProps } from '../types/confirmation'
 import Mode from '../../constants/mode'
 
 const Dialog: React.FC<{ isOpen: boolean; onClose: () => void; children: React.ReactNode }> = ({ isOpen, onClose, children }) => {
-  if (!isOpen) return null
-
-  return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center' onClick={onClose}>
-      <div className='bg-white p-6 rounded-lg shadow-lg' onClick={(e) => e.stopPropagation()}>
-        {children}
+    useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onClose()
+        }
+      }
+      if (isOpen) {
+        document.addEventListener('keydown', handleKeyDown)
+      }
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown)
+      }
+    }, [isOpen, onClose])
+  
+    if (!isOpen) return null
+  
+    return (
+      <div
+        className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50' 
+        onClick={onClose} 
+        role='dialog' 
+        aria-modal='true' 
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && onClose()}
+      >
+        <div
+          className='bg-white w-[400px] max-w-full p-6 rounded-lg shadow-lg overflow-auto text-center' 
+          onClick={(e) => e.stopPropagation()} 
+          role='document'
+          tabIndex={0}
+        >
+          {children}
+        </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 
 const Button: React.FC<{ onClick: () => void; variant?: 'outline' | 'gradient'; children: React.ReactNode }> = ({
   onClick,
   variant = 'outline',
   children,
 }) => {
-  const baseClass = 'px-4 py-2 rounded-md font-semibold'
-  const variantClass = variant === 'gradient' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' : 'border border-gray-400 text-gray-700'
+  const baseClass = 'py-2 px-12 rounded-xl font-semibold'
+  const variantClass = variant === 'gradient' ? 'bg-gradient-to-b from-yellow-400 to-yellow-600 text-l text-white font-bold py-2 px-12 rounded-xl' : 'border border-yellow-400 text-yellow-400'
 
   return (
     <button onClick={onClick} className={`${baseClass} ${variantClass}`}>
@@ -51,7 +77,7 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({ mode, onConfirm, 
   return (
     <Dialog isOpen={isOpen} onClose={handleCancel}>
       <h2 className='text-xl font-bold mb-4'>{getMessage()}</h2>
-      <div className='flex justify-end gap-4'>
+      <div className='flex justify-center gap-4'>
         <Button variant='outline' onClick={handleCancel}>
           Batal
         </Button>
