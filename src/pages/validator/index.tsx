@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { useRouter } from 'next/router'
 import { CustomInput } from '@/components/customInput'
 import { Badge } from '@/badges'
+import ConfirmationPopup from '@/components/confirmationPopup'
 
 const QuestionAddPage: React.FC = () => {
   const router = useRouter()
@@ -16,6 +17,8 @@ const QuestionAddPage: React.FC = () => {
   const [newTag, setNewTag] = useState<string>('')
   const [isLoading] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
+  const [showConfirmation, setShowConfirmation] = useState<boolean>(false)
+  const [selectedMode, setSelectedMode] = useState<Mode>(mode)
 
   useEffect(() => {
     if (router.query.question) {
@@ -24,7 +27,18 @@ const QuestionAddPage: React.FC = () => {
   }, [router.query])
 
   const handleModeChange = (newMode: Mode) => {
-    setMode(newMode)
+    setSelectedMode(newMode)
+    setShowConfirmation(true)
+  }
+
+  const handleConfirmModeChange = () => {
+    setMode(selectedMode)
+    setShowConfirmation(false)
+  }
+
+  const handleCancelModeChange = () => {
+    setSelectedMode(mode)
+    setShowConfirmation(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -52,6 +66,13 @@ const QuestionAddPage: React.FC = () => {
 
   return (
     <MainLayout>
+      {showConfirmation && (
+        <ConfirmationPopup
+          mode={selectedMode}
+          onConfirm={handleConfirmModeChange}
+          onCancel={handleCancelModeChange}
+        />
+      )}
       <div className='min-h-screen m-10'>
         <div className='flex flex-col w-full'>
           <div className='w-full'>
