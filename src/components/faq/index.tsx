@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 interface FAQItem {
+  id: number
   question: string
   answer: string
 }
@@ -10,6 +11,7 @@ const FAQ: React.FC = () => {
 
   const faqData: FAQItem[] = [
     {
+      id: 1,
       question: 'Apa itu MAAMS?',
       answer:
         'Aplikasi ini berfokus pada <strong>validasi sebab-sebab masalah</strong> yang dimasukkan oleh pengguna. ' +
@@ -18,6 +20,7 @@ const FAQ: React.FC = () => {
         'untuk menemukan <strong>akar dari masalah</strong> dengan lebih tepat.'
     },
     {
+      id: 2,
       question: 'Apa perbedaan Pribadi dan Pengawasan?',
       answer:
         'Perbedaan antara <strong>Pribadi</strong> dan <strong>Pengawasan</strong> adalah mode Pribadi hanya memungkinkan pengguna itu sendiri ' +
@@ -27,6 +30,7 @@ const FAQ: React.FC = () => {
         'Pengawasan memungkinkan pengawasan untuk memastikan proses validasi berjalan dengan baik.'
     },
     {
+      id: 3,
       question: 'Mengapa MAAMS itu penting?',
       answer:
         'MAAMS penting karena aplikasi ini membantu dalam mengidentifikasi dan memvalidasi ' +
@@ -47,20 +51,20 @@ const FAQ: React.FC = () => {
     <div className='flex flex-col justify-center items-center w-full gap-8 px-8 my-8'>
       <p className='text-3xl font-bold text-center text-black'>FAQ</p>
       <div className='w-full'>
-        {faqData.map((faq, index) => (
-          <div key={index} className='bg-yellow-200 rounded-md p-6 mb-4 shadow-md border border-yellow-500'>
+        {faqData.map((faq) => (
+          <div key={faq.id} className='bg-yellow-200 rounded-md p-6 mb-4 shadow-md border border-yellow-500'>
             <button
-              onClick={() => toggleAnswer(index)}
+              onClick={() => toggleAnswer(faq.id)}
               className='flex justify-between items-center cursor-pointer w-full text-left p-0 border-none bg-transparent'
-              aria-expanded={activeIndices.includes(index)}
-              aria-controls={`faq-answer-${index}`}
+              aria-expanded={activeIndices.includes(faq.id)}
+              aria-controls={`faq-answer-${faq.id}`}
             >
               <p className='text-lg text-black'>
                 <strong>{faq.question}</strong>
               </p>
               <svg
                 className={`w-6 h-6 transform transition-transform duration-300 ${
-                  activeIndices.includes(index) ? 'rotate-180' : ''
+                  activeIndices.includes(faq.id) ? 'rotate-180' : ''
                 }`}
                 fill='none'
                 viewBox='0 0 24 24'
@@ -69,7 +73,7 @@ const FAQ: React.FC = () => {
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
               </svg>
             </button>
-            {activeIndices.includes(index) && (
+            {activeIndices.includes(faq.id) && (
               <>
                 <hr className='my-4 border-gray-400' />
                 <p className='text-base text-black' dangerouslySetInnerHTML={{ __html: faq.answer }}></p>
