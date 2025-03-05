@@ -11,5 +11,5 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   moduleDirectories: ['./node_modules', 'src'],
-  setupFilesAfterEnv: ['<rootDir>/src/jest-setup.ts']
+  setupFilesAfterEnv: ['<rootDir>/jest-setup.ts']
 }
