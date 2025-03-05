@@ -4,6 +4,7 @@ import QuestionAddPage from '@/pages/validator'
 // import axiosInstance from '@/services/axiosInstance'
 import { toast } from 'react-hot-toast'
 import Mode from '@/constants/mode'
+import '@testing-library/jest-dom'
 
 const mockPush = jest.fn()
 const mockReload = jest.fn()
@@ -27,10 +28,10 @@ describe('QuestionAddPage', () => {
 
   test('renders correctly with default values', () => {
     const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
-    expect(getByText('Ingin menganalisis masalah apa hari ini?')).toBeInTheDocument
-    expect(getByPlaceholderText('Ingin menganalisis apa hari ini ...')).toBeInTheDocument
-    expect(getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')).toBeInTheDocument
-    expect(getByPlaceholderText('Berikan maksimal 3 kategori ...')).toBeInTheDocument
+    expect(getByText('Ingin menganalisis masalah apa hari ini?')).toBeInTheDocument()
+    expect(getByPlaceholderText('Ingin menganalisis apa hari ini ...')).toBeInTheDocument()
+    expect(getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')).toBeInTheDocument()
+    expect(getByPlaceholderText('Berikan maksimal 3 kategori ...')).toBeInTheDocument()
   })
 
   test('updates title, question, and newTag state variables on input change', () => {
@@ -43,9 +44,9 @@ describe('QuestionAddPage', () => {
     fireEvent.change(questionInput, { target: { value: 'Sample Question' } })
     fireEvent.change(newTagInput, { target: { value: 'Sample Tag' } })
 
-    expect(titleInput.getAttribute('value')).toBe('Sample Title')
-    expect(questionInput.getAttribute('value')).toBe('Sample Question')
-    expect(newTagInput.getAttribute('value')).toBe('Sample Tag')
+    expect(titleInput).toHaveValue('Sample Title')
+    expect(questionInput).toHaveValue('Sample Question')
+    expect(newTagInput).toHaveValue('Sample Tag')
   })
 
   test('adds a tag when Enter key is pressed', () => {
@@ -55,7 +56,7 @@ describe('QuestionAddPage', () => {
     fireEvent.change(newTagInput, { target: { value: 'Sample Tag' } })
     fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
 
-    expect(getByText('Sample Tag')).toBeInTheDocument
+    expect(getByText('Sample Tag')).toBeInTheDocument()
   })
 
   test('removes an entered tag when remove button is clicked', () => {
@@ -65,12 +66,12 @@ describe('QuestionAddPage', () => {
     fireEvent.change(newTagInput, { target: { value: 'Sample Tag' } })
     fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
 
-    expect(getByText('Sample Tag')).toBeInTheDocument
+    expect(getByText('Sample Tag')).toBeInTheDocument()
 
     const removeButton = getByTestId('remove-tag-button')
     fireEvent.click(removeButton)
 
-    expect(queryByText('Sample Tag')).not.toBeInTheDocument
+    expect(queryByText('Sample Tag')).not.toBeInTheDocument()
   })
 
   test('prevents adding more than 3 tags', async () => {
@@ -158,38 +159,6 @@ describe('QuestionAddPage', () => {
     })
   })
 
-  // test('submits form with valid data and redirects to correct route', async () => {
-  //   const mockPost = jest.fn().mockResolvedValueOnce({ data: { id: 123 } })
-  //   const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
-  //   axiosInstance.post = mockPost
-
-  //   const titleInput = getByPlaceholderText('Ingin menganalisis apa hari ini ...')
-  //   const questionInput = getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')
-  //   const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
-  //   const submitButton = getByText('Kirim')
-
-  //   fireEvent.change(titleInput, { target: { value: 'Sample Title' } })
-  //   fireEvent.change(questionInput, { target: { value: 'Sample Question' } })
-  //   fireEvent.change(newTagInput, { target: { value: 'Sample Tag' } })
-  //   fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
-
-  //   fireEvent.click(submitButton)
-
-  //   await waitFor(() => expect(axiosInstance.post).toHaveBeenCalledTimes(1))
-  //   expect(axiosInstance.post).toHaveBeenCalledWith('/api/v1/validator/baru/', {
-  //     title: 'Sample Title',
-  //     question: 'Sample Question',
-  //     mode: 'PRIBADI',
-  //     tags: ['Sample Tag']
-  //   })
-  //   expect(mockPost).toHaveBeenCalled()
-  //   await waitFor(() => {
-  //     setTimeout(() => {
-  //       expect(toast.error).toHaveBeenCalledWith('Analisis berhasil ditambahkan')
-  //     }, 10000)
-  //   })
-  // })
-
   test('submits form with a long category', async () => {
     const { getByPlaceholderText } = render(<QuestionAddPage />)
     const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
@@ -229,61 +198,6 @@ describe('QuestionAddPage', () => {
     expect(getByText(Mode.pengawasan)).toBeInTheDocument
   })
 
-  // test('displays error message from backend when fail to post', async () => {
-  //   const errorResponse = {
-  //     data: {
-  //       detail: 'Backend Error Message'
-  //     }
-  //   }
-  //   const mockPost = jest.fn().mockRejectedValueOnce({ response: errorResponse })
-  //   axiosInstance.post = mockPost
-
-  //   const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
-
-  //   const titleInput = getByPlaceholderText('Ingin menganalisis apa hari ini ...')
-  //   const questionInput = getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')
-  //   const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
-  //   const submitButton = getByText('Kirim')
-
-  //   fireEvent.change(titleInput, { target: { value: 'Sample Title' } })
-  //   fireEvent.change(questionInput, { target: { value: 'Sample Question' } })
-  //   fireEvent.change(newTagInput, { target: { value: 'Sample Tag' } })
-  //   fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
-
-  //   fireEvent.click(submitButton)
-
-  //   await waitFor(() => {
-  //     setTimeout(() => {
-  //       expect(toast).toHaveBeenCalledWith('Backend Error Message')
-  //     }, 10000)
-  //   })
-  // })
-
-  // test('displays error message from backend when fail to post', async () => {
-  //   const mockPost = jest.fn().mockRejectedValueOnce({ status: 400 })
-  //   axiosInstance.post = mockPost
-
-  //   const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
-
-  //   const titleInput = getByPlaceholderText('Ingin menganalisis apa hari ini ...')
-  //   const questionInput = getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')
-  //   const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
-  //   const submitButton = getByText('Kirim')
-
-  //   fireEvent.change(titleInput, { target: { value: 'Sample Title' } })
-  //   fireEvent.change(questionInput, { target: { value: 'Sample Question' } })
-  //   fireEvent.change(newTagInput, { target: { value: 'Sample Tag' } })
-  //   fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
-
-  //   fireEvent.click(submitButton)
-
-  //   await waitFor(() => {
-  //     setTimeout(() => {
-  //       expect(toast).toHaveBeenCalledWith('Gagal menambahkan analisis')
-  //     }, 10000)
-  //   })
-  // })
-
   test('should set question state when router query parameter is present', async () => {
     const { getByPlaceholderText } = render(<QuestionAddPage />)
 
@@ -318,5 +232,23 @@ describe('QuestionAddPage', () => {
         expect(toast.error).toHaveBeenCalledWith('Pertanyaan harus diisi')
       }, 10000)
     })
+  })
+
+  test('changes the mode from PRIBADI to PENGAWASAN', () => {
+    const { getByText } = render(<QuestionAddPage />)
+
+    fireEvent.click(getByText(Mode.pribadi))
+    fireEvent.click(getByText(Mode.pengawasan))
+
+    expect(getByText(Mode.pengawasan)).toBeInTheDocument
+  })
+
+  test('changes the mode from PRIBADI to PENGAWASAN', () => {
+    const { getByText } = render(<QuestionAddPage />)
+
+    fireEvent.click(getByText(Mode.pribadi))
+    fireEvent.click(getByText(Mode.pengawasan))
+
+    expect(getByText(Mode.pengawasan)).toBeInTheDocument
   })
 })
