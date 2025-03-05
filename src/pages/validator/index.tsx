@@ -27,8 +27,10 @@ const QuestionAddPage: React.FC = () => {
   }, [router.query])
 
   const handleModeChange = (newMode: Mode) => {
-    setSelectedMode(newMode)
-    setShowConfirmation(true)
+    if (newMode !== mode) {
+      setSelectedMode(newMode)
+      setShowConfirmation(true)
+    }
   }
 
   const handleConfirmModeChange = () => {
@@ -76,7 +78,7 @@ const QuestionAddPage: React.FC = () => {
       <div className='min-h-screen m-10'>
         <div className='flex flex-col w-full'>
           <div className='w-full'>
-            <DropdownMode selectedMode={mode} onChange={handleModeChange} />
+            <DropdownMode selectedMode={selectedMode} onChange={handleModeChange} />
           </div>
           <h1 className='text-2xl font-bold text-black my-8'>Ingin menganalisis masalah apa hari ini?</h1>
           <div className='flex flex-col lg:justify-center lg:w-full gap-4'>
