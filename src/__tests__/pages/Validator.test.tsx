@@ -20,9 +20,75 @@ jest.mock('next/router', () => ({
   })
 }))
 
+jest.mock('react-hot-toast', () => ({
+  error: jest.fn(),
+  success: jest.fn()
+}))
+
 describe('QuestionAddPage', () => {
   afterEach(() => {
     jest.clearAllMocks()
+  })
+  
+  test('does not add empty tag when Enter key is pressed with empty input', () => {
+    const { getByPlaceholderText, queryByTestId } = render(<QuestionAddPage />)
+    const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
+
+    fireEvent.change(newTagInput, { target: { value: '' } })
+    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
+
+    expect(queryByTestId('remove-tag-button')).not.toBeInTheDocument()
+  })
+
+  test('does not add tag with only whitespace when Enter key is pressed', () => {
+    const { getByPlaceholderText, queryByTestId } = render(<QuestionAddPage />)
+    const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
+
+    fireEvent.change(newTagInput, { target: { value: '   ' } })
+    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
+
+    expect(queryByTestId('remove-tag-button')).not.toBeInTheDocument()
+  })
+
+  test('trims whitespace from tags when adding', () => {
+    const { getByPlaceholderText, getByText } = render(<QuestionAddPage />)
+    const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
+
+    fireEvent.change(newTagInput, { target: { value: '  Tag1  ' } })
+    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
+
+    expect(getByText('Tag1')).toBeInTheDocument()
+  })
+
+  test('clears input field after adding tag', () => {
+    const { getByPlaceholderText } = render(<QuestionAddPage />)
+    const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
+
+    fireEvent.change(newTagInput, { target: { value: 'Tag1' } })
+    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
+
+    expect(newTagInput.getAttribute('value')).toBe('')
+  })
+  
+  test('ignores non-Enter key presses for tag input', () => {
+    const { getByPlaceholderText, queryByText } = render(<QuestionAddPage />)
+    const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
+
+    fireEvent.change(newTagInput, { target: { value: 'Tag1' } })
+    fireEvent.keyDown(newTagInput, { key: 'Space', code: 'Space' })
+
+    expect(queryByText('Tag1')).not.toBeInTheDocument()
+    expect(newTagInput.getAttribute('value')).toBe('Tag1')
+  })
+  
+  test('handles Enter key press without any input value', () => {
+    const { getByPlaceholderText, queryByTestId } = render(<QuestionAddPage />)
+    const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
+    
+    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
+    
+    expect(queryByTestId('remove-tag-button')).not.toBeInTheDocument()
+  })
   })
 
   test('renders correctly with default values', () => {
@@ -319,4 +385,3 @@ describe('QuestionAddPage', () => {
       }, 10000)
     })
   })
-})
