@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+=======
 ## SonarCloud Analysis
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Kelompok-5-PPL-A_MAAMS-NG-FE&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Kelompok-5-PPL-A_MAAMS-NG-FE)
@@ -5,6 +7,7 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Kelompok-5-PPL-A_MAAMS-NG-FE&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Kelompok-5-PPL-A_MAAMS-NG-FE)
 
 
+>>>>>>> ca9804e37b847f72c39572f81c01355d8efa43a4
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
 
 ## Getting Started

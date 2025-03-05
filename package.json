@@ -9,7 +9,8 @@
     "lint": "next lint",
     "prepare": "husky",
     "postinstall": "husky install",
-    "test": "jest"
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
@@ -17,7 +18,10 @@
     "@chakra-ui/system": "^2.6.2",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
+    "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
+    "axios": "^1.8.1",
+    "axios-mock-adapter": "^2.1.0",
     "commitizen": "^4.3.0",
     "dotenv": "^16.4.7",
     "framer-motion": "^12.4.7",
