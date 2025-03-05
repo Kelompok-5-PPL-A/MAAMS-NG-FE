@@ -4,6 +4,7 @@ import QuestionAddPage from '@/pages/validator'
 // import axiosInstance from '@/services/axiosInstance'
 import { toast } from 'react-hot-toast'
 import Mode from '@/constants/mode'
+import '@testing-library/jest-dom'
 
 const mockPush = jest.fn()
 const mockReload = jest.fn()
