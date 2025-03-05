@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import MainLayout from '@/layout/MainLayout'
-// import axiosInstance from '@/services/axiosInstance'
 import { DropdownMode } from '@/components/dropdownMode'
 import Mode from '../../constants/mode'
 import toast from 'react-hot-toast'
@@ -15,7 +14,7 @@ const QuestionAddPage: React.FC = () => {
   const [title, setTitle] = useState<string>('')
   const [question, setQuestion] = useState<string>('')
   const [newTag, setNewTag] = useState<string>('')
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isLoading] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
 
   useEffect(() => {
@@ -51,46 +50,6 @@ const QuestionAddPage: React.FC = () => {
     setTags(tags.filter((tag) => tag !== tagToRemove))
   }
 
-  // const handleSubmit = async () => {
-  //   setIsLoading(true)
-  //   if (!title) {
-  //     toast.error('Judul harus diisi')
-  //     setIsLoading(false)
-  //     return
-  //   } else if (!question) {
-  //     toast.error('Pertanyaan harus diisi')
-  //     setIsLoading(false)
-  //     return
-  //   } else if (tags.length == 0) {
-  //     toast.error('Minimal mengisi 1 kategori')
-  //     setIsLoading(false)
-  //     return
-  //   } else if (title.length > 40) {
-  //     toast.error('Judul maksimal 40 karakter. Berikan judul yang lebih singkat')
-  //     setIsLoading(false)
-  //     return
-  //   }
-
-  //   try {
-  //     const { data } = await axiosInstance.post('/api/v1/validator/baru/', {
-  //       title: title,
-  //       question: question,
-  //       mode: mode,
-  //       tags: tags
-  //     })
-  //     toast.success('Analisis berhasil ditambahkan')
-  //     router.push(`/validator/${data.id}`)
-  //   } catch (error: any) {
-  //     if (error.response) {
-  //       toast.error(error.response.data.detail)
-  //       setIsLoading(false)
-  //     } else {
-  //       toast.error('Gagal menambahkan analisis')
-  //       setIsLoading(false)
-  //     }
-  //   }
-  // }
-
   return (
     <MainLayout>
       <div className='min-h-screen m-10'>
@@ -125,8 +84,8 @@ const QuestionAddPage: React.FC = () => {
                 onKeyDown={handleKeyDown}
               ></CustomInput>
               <div className='flex flex-wrap gap-2'>
-                {tags.map((tag, index) => (
-                  <div key={index}>
+                {tags.map((tag) => (
+                  <div key={tag}>
                     <Badge text={tag} isRemovable={true} handleRemove={() => handleRemoveTag(tag)}></Badge>
                   </div>
                 ))}
