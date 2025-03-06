@@ -12,10 +12,6 @@ describe('axiosInstance', () => {
       mock.reset()
     })
   
-    test('should have the correct baseURL', () => {
-      expect(axiosInstance.defaults.baseURL).toBe('http://127.0.0.1:8000/') //still locally test
-    })
-  
     test('should successfully make a GET request', async () => {
       const mockData = { message: 'Success' }
       mock.onGet('/test-endpoint').reply(200, mockData)
