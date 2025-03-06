@@ -6,9 +6,10 @@ describe('axiosInstance', () => {
   
     beforeEach(() => {
       mock = new MockAdapter(axiosInstance) 
+    })
   
     afterEach(() => {
-      mock.reset() 
+      mock.reset()
     })
   
     test('should have the correct baseURL', () => {
@@ -42,4 +43,4 @@ describe('axiosInstance', () => {
       expect(response.status).toBe(201)
       expect(response.data).toEqual(mockResponse)
     })
-})})
+})
