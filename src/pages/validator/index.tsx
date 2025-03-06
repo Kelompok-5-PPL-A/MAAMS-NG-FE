@@ -75,7 +75,7 @@ const QuestionAddPage: React.FC = () => {
           onCancel={handleCancelModeChange}
         />
       )}
-      <div className='min-h-screen m-10'>
+      <div className='min-h-screen m-10 my-20'>
         <div className='flex flex-col w-full'>
           <div className='w-full'>
             <DropdownMode selectedMode={selectedMode} onChange={handleModeChange} />
@@ -118,7 +118,7 @@ const QuestionAddPage: React.FC = () => {
               <button
                 type='button'
                 // onClick={handleSubmit}
-                className='bg-gradient-to-b from-yellow-400 to-yellow-600 text-l text-white font-bold py-2 px-12 rounded-xl'
+                className='bg-gradient-to-b from-yellow-400 to-yellow-600 text-l text-white font-bold py-2 px-12 rounded-xl w-[192px] mx-auto'
                 disabled={isLoading}
               >
                 Kirim
