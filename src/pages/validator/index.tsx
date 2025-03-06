@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { useRouter } from 'next/router'
 import { CustomInput } from '@/components/customInput'
 import { Badge } from '@/badges'
+import axiosInstance from '../../services/axiosInstance'
 
 const QuestionAddPage: React.FC = () => {
   const router = useRouter()
@@ -14,7 +15,7 @@ const QuestionAddPage: React.FC = () => {
   const [title, setTitle] = useState<string>('')
   const [question, setQuestion] = useState<string>('')
   const [newTag, setNewTag] = useState<string>('')
-  const [isLoading] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
 
   useEffect(() => {
@@ -43,6 +44,48 @@ const QuestionAddPage: React.FC = () => {
       }
       setTags((prevCategories) => [...prevCategories, newTag.trim()])
       setNewTag('')
+    }
+  }
+  
+  const handleSubmit = async () => {
+    setIsLoading(true)
+    if (!title) {
+      toast.error('Judul harus diisi')
+      setIsLoading(false)
+      return
+    } else if (!question) {
+      toast.error('Pertanyaan harus diisi')
+      setIsLoading(false)
+      return
+    } else if (tags.length == 0) {
+      toast.error('Minimal mengisi 1 kategori')
+      setIsLoading(false)
+      return
+    } else if (title.length > 40) {
+      toast.error('Judul maksimal 40 karakter. Berikan judul yang lebih singkat')
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const { data } = await axiosInstance.post('/api/baru/', {
+        title: title,
+        question: question,
+        mode: mode,
+        tags: tags
+      })
+      if(data) {
+        toast.success('Analisis berhasil ditambahkan')
+      }
+      // router.push(`/validator/${data.id}`)
+    } catch (error: any) {
+      if (error.response) {
+        toast.error(error.response.data.detail)
+        setIsLoading(false)
+      } else {
+        toast.error('Gagal menambahkan analisis')
+        setIsLoading(false)
+      }
     }
   }
 
@@ -94,7 +137,7 @@ const QuestionAddPage: React.FC = () => {
             <div className='flex justify-center w-full flex-col lg:flex-row'>
               <button
                 type='button'
-                // onClick={handleSubmit}
+                onClick={handleSubmit}
                 className='bg-gradient-to-b from-yellow-400 to-yellow-600 text-l text-white font-bold py-2 px-12 rounded-xl'
                 disabled={isLoading}
               >
