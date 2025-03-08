@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { useRouter } from 'next/router'
 import { CustomInput } from '@/components/customInput'
 import { Badge } from '@/badges'
+import ConfirmationPopup from '@/components/confirmationPopup'
 import axiosInstance from '../../services/axiosInstance'
 
 const QuestionAddPage: React.FC = () => {
@@ -17,6 +18,8 @@ const QuestionAddPage: React.FC = () => {
   const [newTag, setNewTag] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
+  const [showConfirmation, setShowConfirmation] = useState<boolean>(false)
+  const [selectedMode, setSelectedMode] = useState<Mode>(mode)
 
   useEffect(() => {
     if (router.query.question) {
@@ -25,7 +28,20 @@ const QuestionAddPage: React.FC = () => {
   }, [router.query])
 
   const handleModeChange = (newMode: Mode) => {
-    setMode(newMode)
+    if (newMode !== mode) {
+      setSelectedMode(newMode)
+      setShowConfirmation(true)
+    }
+  }
+
+  const handleConfirmModeChange = () => {
+    setMode(selectedMode)
+    setShowConfirmation(false)
+  }
+
+  const handleCancelModeChange = () => {
+    setSelectedMode(mode)
+    setShowConfirmation(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -95,10 +111,17 @@ const QuestionAddPage: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className='min-h-screen m-10'>
+      {showConfirmation && (
+        <ConfirmationPopup
+          mode={selectedMode}
+          onConfirm={handleConfirmModeChange}
+          onCancel={handleCancelModeChange}
+        />
+      )}
+      <div className='min-h-screen m-10 my-20'>
         <div className='flex flex-col w-full'>
           <div className='w-full'>
-            <DropdownMode selectedMode={mode} onChange={handleModeChange} />
+            <DropdownMode selectedMode={selectedMode} onChange={handleModeChange} />
           </div>
           <h1 className='text-2xl font-bold text-black my-8'>Ingin menganalisis masalah apa hari ini?</h1>
           <div className='flex flex-col lg:justify-center lg:w-full gap-4'>
