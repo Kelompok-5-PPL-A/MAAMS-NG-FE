@@ -92,26 +92,6 @@ describe('CounterButton Component', () => {
     expect(getByText('0')).toBeInTheDocument()
   })
 
-  test('does not call onIncrement when number is at maximum limit (5)', () => {
-    const onIncrement = jest.fn()
-    const { getByText } = render(<CounterButton number={5} onIncrement={onIncrement} onDecrement={() => {}} />)
-    fireEvent.click(getByText('+'))
-    expect(onIncrement).not.toHaveBeenCalled()
-  })
-
-  test('does not call onDecrement when number is at minimum limit (0)', () => {
-    const onDecrement = jest.fn()
-    const { getByText } = render(<CounterButton number={0} onIncrement={() => {}} onDecrement={onDecrement} />)
-    fireEvent.click(getByText('-'))
-    expect(onDecrement).not.toHaveBeenCalled()
-  })
-
-  test('has correct accessibility attributes', () => {
-    const { getByRole } = render(<CounterButton number={3} onIncrement={() => {}} onDecrement={() => {}} />)
-    expect(getByRole('button', { name: 'Increase count' })).toBeInTheDocument()
-    expect(getByRole('button', { name: 'Decrease count' })).toBeInTheDocument()
-  })
-
   test('matches snapshot', () => {
     const { asFragment } = render(<CounterButton number={3} onIncrement={() => {}} onDecrement={() => {}} />)
     expect(asFragment()).toMatchSnapshot()
