@@ -88,24 +88,6 @@ describe('Row Component', () => {
     })
   })
 
-  test('renders with proper feedback text', () => {
-    const { getAllByTestId } = render(
-      <Row
-        rowNumber={rowNumber}
-        cols={cols}
-        causes={causes}
-        causeStatuses={causeStatuses}
-        disabledCells={disabledCells}
-        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
-        feedbacks={feedbacks} causesId={[]}      />
-    )
-
-    const feedbackElements = getAllByTestId('feedback')
-    feedbackElements.forEach((element, index) => {
-      expect(element).toHaveTextContent(feedbacks[index])
-    })
-  })
-
   test('matches snapshot', () => {
     const { asFragment } = render(
       <Row

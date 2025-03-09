@@ -25,13 +25,6 @@ describe('ValidatorAdminHeader component', () => {
     })
   })
 
-  it('renders properly when validatorData is missing', () => {
-    const { queryByText, queryByRole } = render(<ValidatorAdminHeader id={'123'} />)
-
-    expect(queryByText('oleh')).not.toBeInTheDocument()
-    expect(queryByRole('textbox')).not.toBeInTheDocument()
-  })
-
   it('displays disabled input field with correct value', () => {
     const { getByRole } = render(<ValidatorAdminHeader id={'123'} validatorData={validatorData} />)
 

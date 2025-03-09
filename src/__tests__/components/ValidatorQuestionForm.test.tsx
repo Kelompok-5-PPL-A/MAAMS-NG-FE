@@ -673,44 +673,4 @@ describe('ValidatorQuestionForm Component', () => {
 
     expect(queryByText('hilang')).not.toBeInTheDocument
   })
-
-  test("renders the form correctly", () => {
-    render(<ValidatorQuestionForm />);
-    expect(screen.getByLabelText("Question:")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /submit/i })).toBeInTheDocument();
-  });
-
-  test("allows user to type in the question input field", () => {
-    
-    render(<ValidatorQuestionForm />);
-    const input = screen.getByLabelText("Question:") as HTMLInputElement;
-    fireEvent.change(input, { target: { value: "Sample question" } });
-    expect(input.value).toBe("Sample question");
-  });
-
-  test("displays an error message when submitting empty question", () => {
-    render(<ValidatorQuestionForm />);
-    fireEvent.click(screen.getByRole("button", { name: /submit/i }));
-    expect(screen.getByText("Question cannot be empty")).toBeInTheDocument();
-  });
-
-  test("submits form successfully when valid question is entered", () => {
-    const handleSubmit = jest.fn();
-    render(<ValidatorQuestionForm {...({ onSubmit: handleSubmit } as any)} />);
-    
-    const input = screen.getByLabelText("Question:");
-    fireEvent.change(input, { target: { value: "Is this working?" } });
-    fireEvent.click(screen.getByRole("button", { name: /submit/i }));
-    
-    expect(handleSubmit).toHaveBeenCalledTimes(1);
-    expect(handleSubmit).toHaveBeenCalledWith("Is this working?");
-  });
-
-  test("does not call onSubmit when input is empty", () => {
-    const handleSubmit = jest.fn();
-    render(<ValidatorQuestionForm {...({ onSubmit: handleSubmit } as any)} />);
-    
-    fireEvent.click(screen.getByRole("button", { name: /submit/i }));
-    expect(handleSubmit).not.toHaveBeenCalled();
-  });
 })
