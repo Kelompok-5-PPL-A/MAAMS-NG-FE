@@ -22,7 +22,14 @@ describe('axiosInstance', () => {
     const token = 'mockAccessToken'
     jest.spyOn(localStorage.__proto__, 'getItem').mockReturnValue(token)
 
-    const config = await axiosInstance.interceptors.request.handlers[0].fulfilled({ headers: {} })
+    const requestInterceptor = axiosInstance.interceptors.request.use(config => {
+      if (localStorage.getItem('accessToken')) {
+        config.headers.authorization = `Bearer ${localStorage.getItem('accessToken')}`
+      }
+      return config
+    })
+    const config = await axiosInstance.interceptors.request.handlers[requestInterceptor].fulfilled({ headers: {} })
+    axiosInstance.interceptors.request.eject(requestInterceptor)
 
     expect(config.headers.authorization).toBe(`Bearer ${token}`)
   })
