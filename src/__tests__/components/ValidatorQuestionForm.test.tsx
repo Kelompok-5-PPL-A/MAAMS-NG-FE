@@ -9,7 +9,6 @@ import { toast } from 'react-hot-toast'
 
 jest.mock('../../services/axiosInstance')
 const mockedAxios = axiosInstance as jest.Mocked<typeof axiosInstance>
-
 const mockPush = jest.fn()
 const mockReload = jest.fn()
 jest.mock('next/router', () => ({
@@ -677,13 +676,14 @@ describe('ValidatorQuestionForm Component', () => {
 
   test("renders the form correctly", () => {
     render(<ValidatorQuestionForm />);
-    expect(screen.getByLabelText("Question:"))toBeInTheDocument();
+    expect(screen.getByLabelText("Question:")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /submit/i })).toBeInTheDocument();
   });
 
   test("allows user to type in the question input field", () => {
+    
     render(<ValidatorQuestionForm />);
-    const input = screen.getByLabelText("Question:");
+    const input = screen.getByLabelText("Question:") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "Sample question" } });
     expect(input.value).toBe("Sample question");
   });
@@ -696,7 +696,7 @@ describe('ValidatorQuestionForm Component', () => {
 
   test("submits form successfully when valid question is entered", () => {
     const handleSubmit = jest.fn();
-    render(<ValidatorQuestionForm onSubmit={handleSubmit} />);
+    render(<ValidatorQuestionForm {...({ onSubmit: handleSubmit } as any)} />);
     
     const input = screen.getByLabelText("Question:");
     fireEvent.change(input, { target: { value: "Is this working?" } });
@@ -708,7 +708,7 @@ describe('ValidatorQuestionForm Component', () => {
 
   test("does not call onSubmit when input is empty", () => {
     const handleSubmit = jest.fn();
-    render(<ValidatorQuestionForm onSubmit={handleSubmit} />);
+    render(<ValidatorQuestionForm {...({ onSubmit: handleSubmit } as any)} />);
     
     fireEvent.click(screen.getByRole("button", { name: /submit/i }));
     expect(handleSubmit).not.toHaveBeenCalled();
