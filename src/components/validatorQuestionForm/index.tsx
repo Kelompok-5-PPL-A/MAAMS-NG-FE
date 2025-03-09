@@ -13,7 +13,7 @@ import axiosInstance from '../../services/axiosInstance'
 import { EditableTitleForm } from '../../components/editableTitleForm'
 import { TagsGroup } from '../../components/tagsGroup'
 import { BiPencil } from 'react-icons/bi'
-import { Badge } from '../../components/badge'
+import { Badge } from '../../badges'
 import { HiOutlineInformationCircle } from 'react-icons/hi'
 
 export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id, validatorData }) => {

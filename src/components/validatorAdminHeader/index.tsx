@@ -12,7 +12,7 @@ export const ValidatorAdminHeader: React.FC<ValidatorQuestionFormProps> = ({ id,
         {validatorData?.title ? validatorData?.title : validatorData?.question}
       </h1>
       <p>oleh {validatorData?.username || 'Username'}</p>
-      <TagsGroup tags={validatorData?.tags} />
+      <TagsGroup tags={validatorData?.tags || []} />
       <div className='w-full'>
         <div className='flex gap-4'>
           <CustomInput

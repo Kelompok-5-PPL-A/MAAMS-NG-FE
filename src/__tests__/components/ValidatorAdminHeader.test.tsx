@@ -49,9 +49,9 @@ describe('ValidatorAdminHeader component', () => {
     expect(inputElement.value).toBe(validatorData.question)
   })
 
-  it('renders correctly when mode is Mode.publik', () => {
+  it('renders correctly when mode is Mode.pengawasan', () => {
     const { getByText } = render(
-      <ValidatorAdminHeader id={'123'} validatorData={{ ...validatorData, mode: Mode.publik }} />
+      <ValidatorAdminHeader id={'123'} validatorData={{ ...validatorData, mode: Mode.pengawasan }} />
     )
 
     expect(getByText(validatorData.title)).toBeInTheDocument()
