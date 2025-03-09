@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, fireEvent } from '@testing-library/react'
-import { CircularIconButton } from '../../components/CircularIconButton'
+import { CircularIconButton } from '../../components/circularIconButton'
 
 describe('CircularIconButton Component', () => {
   test('renders button with provided icon', () => {
