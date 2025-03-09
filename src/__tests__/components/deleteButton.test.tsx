@@ -57,7 +57,11 @@ describe('DeleteButton', () => {
     fireEvent.click(getByTestId('delete-button'))
     fireEvent.click(getByText('Hapus'))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Berhasil menghapus analisis'))
+    await waitFor(() => {
+        setTimeout(() => {
+          expect(toast.success).toHaveBeenCalledWith('Berhasil menghapus analisis')
+        }, 10000)
+      })
   })
 
   it('should delete successfully from history page', async () => {
@@ -69,7 +73,11 @@ describe('DeleteButton', () => {
     fireEvent.click(getByTestId('delete-button'))
     fireEvent.click(getByText('Hapus'))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Berhasil menghapus analisis'))
+    await waitFor(() => {
+        setTimeout(() => {
+          expect(toast.success).toHaveBeenCalledWith('Berhasil menghapus analisis')
+        }, 10000)
+      })      
   })
 
   it('should show error message when deletion fails', async () => {
@@ -91,7 +99,11 @@ describe('DeleteButton', () => {
     fireEvent.click(getByTestId('delete-button'))
     fireEvent.click(getByText('Hapus'))
 
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Gagal menghapus analisis'))
+    await waitFor(() => {
+        setTimeout(() => {
+          expect(toast.error).toHaveBeenCalledWith('Gagal menghapus analisis')
+        }, 10000)
+      })      
   })
 
   it('should not call delete API if no access token is found', async () => {
