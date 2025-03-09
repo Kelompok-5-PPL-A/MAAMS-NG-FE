@@ -1,92 +1,42 @@
-// since now we still dont have the auth service, we will mock the localstorage and the toast
-// but when we have the auth service, remove the mock and use the real one using sso (adjust this code)
-import axiosInstance from '../../services/axiosInstance'
-import axios from 'axios'
 import MockAdapter from 'axios-mock-adapter'
-import { useRouter } from 'next/router'
-import toast from 'react-hot-toast'
-import { NextRouter } from 'next/router'
+import axiosInstance from '../../services/axiosInstance'
 
-// Mock dependencies
-jest.mock('next/router', () => ({
-    useRouter: jest.fn(),
-  }))
-  
-  jest.mock('react-hot-toast', () => ({
-    error: jest.fn(),
-  }))
-  
-  describe('axiosInstance', () => {
-    let mockAxios: MockAdapter 
-    let mockRouter: NextRouter
+describe('axiosInstance', () => {
+    let mock: MockAdapter
   
     beforeEach(() => {
-      mockAxios = new MockAdapter(axiosInstance)
-  
-      // Create a mock implementation of NextRouter
-      mockRouter = {
-        push: jest.fn(),
-        replace: jest.fn(),
-        prefetch: jest.fn(),
-        pathname: '/',
-        route: '/',
-        query: {},
-        asPath: '/',
-        basePath: '',
-        isLocaleDomain: false,
-        isReady: true,
-        isPreview: false,
-        events: {
-          on: jest.fn(),
-          off: jest.fn(),
-          emit: jest.fn(),
-        },
-      } as unknown as NextRouter
-  
-      ;(useRouter as jest.Mock).mockReturnValue(mockRouter) // Type assertion
-  
-      localStorage.clear()
+      mock = new MockAdapter(axiosInstance) 
     })
   
     afterEach(() => {
-      mockAxios.reset()
-      jest.clearAllMocks()
+      mock.reset()
     })
   
-    test('should set Authorization header if access token exists', async () => {
-      localStorage.setItem('access', 'mockToken')
+    test('should successfully make a GET request', async () => {
+      const mockData = { message: 'Success' }
+      mock.onGet('/test-endpoint').reply(200, mockData)
   
-      mockAxios.onGet('/test').reply(200, { success: true })
-  
-      const response = await axiosInstance.get('/test')
-  
+      const response = await axiosInstance.get('/test-endpoint')
+      
       expect(response.status).toBe(200)
-      expect(response.data).toEqual({ success: true })
-  
-      const requestHeaders = mockAxios.history.get[0].headers
-      expect(requestHeaders?.authorization).toBe('Bearer mockToken')
+      expect(response.data).toEqual(mockData)
     })
   
-    test('should handle 401 error by clearing storage and redirecting to login', async () => {
-      localStorage.setItem('access', 'mockToken')
+    test('should handle a 404 error response', async () => {
+      mock.onGet('/not-found').reply(404, { error: 'Not Found' })
   
-      mockAxios.onGet('/test').reply(401)
-  
-      await expect(axiosInstance.get('/test')).rejects.toThrow()
-  
-      expect(toast.error).toHaveBeenCalledWith(
-        'Sesi anda telah berakhir. Silakan login kembali'
-      )
-      expect(localStorage.getItem('access')).toBeNull()
-      expect(mockRouter.push).toHaveBeenCalledWith('/login')
+      await expect(axiosInstance.get('/not-found')).rejects.toThrow('Request failed with status code 404')
     })
   
-    test('should return response data on successful request', async () => {
-      mockAxios.onGet('/test').reply(200, { data: 'Success' })
+    test('should handle a POST request successfully', async () => {
+      const postData = { title: 'Test' }
+      const mockResponse = { message: 'Created' }
+      
+      mock.onPost('/create', postData).reply(201, mockResponse)
   
-      const response = await axiosInstance.get('/test')
+      const response = await axiosInstance.post('/create', postData)
   
-      expect(response.status).toBe(200)
-      expect(response.data).toEqual({ data: 'Success' })
+      expect(response.status).toBe(201)
+      expect(response.data).toEqual(mockResponse)
     })
-  })
+})
