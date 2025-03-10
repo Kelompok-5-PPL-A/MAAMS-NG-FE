@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { TagsGroup } from '../../components/tagsGroup'
 
 export const ValidatorAdminHeader: React.FC<ValidatorQuestionFormProps> = ({ id, validatorData }) => {
-  const [question, setQuestion] = useState<string>(validatorData?.question || '')
+  const [question, setQuestion] = useState<string>(validatorData?.question ?? '')
 
   return (
     <div className='flex flex-col gap-4'>

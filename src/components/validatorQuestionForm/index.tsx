@@ -17,15 +17,15 @@ import { Badge } from '../../badges'
 import { HiOutlineInformationCircle } from 'react-icons/hi'
 
 export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id, validatorData }) => {
-  const [question, setQuestion] = useState<string>(validatorData?.question || '')
+  const [question, setQuestion] = useState<string>(validatorData?.question ?? '')
   const [mode, setMode] = useState<Mode | undefined>(validatorData?.mode || Mode.pribadi)
   const router = useRouter()
   const [isModeChangeModalOpen, setIsModeChangeModalOpen] = useState<boolean>(false)
   const [pendingMode, setPendingMode] = useState(mode)
-  const [title, setTitle] = useState<string | undefined>(validatorData?.title || validatorData?.question)
+  const [title, setTitle] = useState<string | undefined>(validatorData?.title ?? validatorData?.question)
   const [isTagsChangeModalOpen, setIsTagsChangeModalOpen] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
-  const [tagsModal, setTagsModals] = useState<string[]>([])
+  const [tagsModal, setTagsModal] = useState<string[]>([]);
   const [newTag, setNewTag] = useState<string>('')
 
   const handleTitleChange = (newTitle: string) => {
@@ -33,7 +33,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
   }
 
   const handleTagsReset = () => {
-    setTagsModals(tags)
+    setTagsModal(tags)
     setIsTagsChangeModalOpen(false)
   }
 
@@ -46,9 +46,9 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
     if (validatorData?.mode !== mode) {
       setMode(validatorData?.mode ?? Mode.pribadi)
     }
-    setTitle(validatorData?.title || validatorData?.question)
+    setTitle(validatorData?.title ?? validatorData?.question)
     setTags(validatorData?.tags ?? [])
-    setTagsModals(validatorData?.tags ?? [])
+    setTagsModal(validatorData?.tags ?? [])
   }, [validatorData])
 
   const handleModeChangeConfirm = async () => {
@@ -114,7 +114,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
         tags: tagsModal
       })
       setTags(data.tags)
-      setTagsModals(data.tags)
+      setTagsModal(data.tags)
       setIsTagsChangeModalOpen(false)
       toast.success('Berhasil mengubah kategori')
     } catch (error: any) {
@@ -150,64 +150,58 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
         toast.error('Kategori sudah ada. Masukan kategori lain')
         return
       }
-      setTagsModals((prevCategories = []) => [...prevCategories, newTag.trim()])
+      setTagsModal((prevCategories = []) => [...prevCategories, newTag.trim()])
       setNewTag('')
     }
   }
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTagsModals(tagsModal?.filter((tag) => tag !== tagToRemove))
+    setTagsModal(tagsModal?.filter((tag) => tag !== tagToRemove))
   }
 
   return (
-    <>
-      <div className='flex flex-col w-full gap-8'>
-        <div className='flex flex-row'>
-          <div className='w-full'>
-            <DropdownMode selectedMode={isModeChangeModalOpen ? pendingMode : mode} onChange={handleModeChange} />
-          </div>
-          {id && <DeleteButton idQuestion={id} pathname={router.pathname} />}
+    <div className='flex flex-col w-full gap-8'>
+      <div className='flex flex-row'>
+        <div className='w-full'>
+          <DropdownMode selectedMode={isModeChangeModalOpen ? pendingMode : mode} onChange={handleModeChange} />
         </div>
-
-        {id && <EditableTitleForm title={title} onTitleChange={handleTitleChange} id={id} />}
-
-        <div className='flex flex-col gap-2'>
-          <h2 className='text-md'>Kategori Analisis:</h2>
-          <div className='flex flex-row gap-2'>
-            <TagsGroup tags={tags} />
-            <button
-              className='rounded-full px-3 py-1 flex item-center bg-amber-500 radius-xl flex-row gap-1 hover:bg-amber-400'
-              onClick={() => setIsTagsChangeModalOpen(!isTagsChangeModalOpen)}
-              data-testid='toggle-tags-button'
-            >
-              <BiPencil className='h-6' />
-              Ubah Kategori
-            </button>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} data-testid='question-form'>
-          <>
-            <div className='w-full'>
-              <div className='flex gap-4'>
-                <CustomInput
-                  inputClassName='flex-grow w-full py-7 p-6 bg-white rounded-[10px] shadow border border-zinc-500 justify-start items-center gap-4 inline-flex'
-                  placeholder='Isi pertanyaan anda di sini'
-                  value={id ? validatorData?.question : question}
-                  isDisabled={id ? true : false}
-                  onChange={(e) => setQuestion(e.target.value)}
-                />
-                {id ? (
-                  <></>
-                ) : (
-                  <CircularIconButton icon={<Icon as={MdSend} />} type='submit' data-testid='submit-question' />
-                )}
-              </div>
-            </div>
-          </>
-        </form>
+        {id && <DeleteButton idQuestion={id} pathname={router.pathname} />}
       </div>
-
+  
+      {id && <EditableTitleForm title={title} onTitleChange={handleTitleChange} id={id} />}
+  
+      <div className='flex flex-col gap-2'>
+        <h2 className='text-md'>Kategori Analisis:</h2>
+        <div className='flex flex-row gap-2'>
+          <TagsGroup tags={tags} />
+          <button
+            className='rounded-full px-3 py-1 flex items-center bg-amber-500 radius-xl flex-row gap-1 hover:bg-amber-400'
+            onClick={() => setIsTagsChangeModalOpen(!isTagsChangeModalOpen)}
+            data-testid='toggle-tags-button'
+          >
+            <BiPencil className='h-6' />
+            Ubah Kategori
+          </button>
+        </div>
+      </div>
+  
+      <form onSubmit={handleSubmit} data-testid='question-form'>
+        <div className='w-full'>
+          <div className='flex gap-4'>
+            <CustomInput
+              inputClassName='flex-grow w-full py-7 p-6 bg-white rounded-[10px] shadow border border-zinc-500 justify-start items-center gap-4 inline-flex'
+              placeholder='Isi pertanyaan anda di sini'
+              value={id ? validatorData?.question : question}
+              isDisabled={!!id}
+              onChange={(e) => setQuestion(e.target.value)}
+            />
+            {!id && (
+              <CircularIconButton icon={<Icon as={MdSend} />} type='submit' data-testid='submit-question' />
+            )}
+          </div>
+        </div>
+      </form>
+  
       <Modal isOpen={isModeChangeModalOpen} onClose={() => setIsModeChangeModalOpen(false)}>
         <ModalOverlay />
         <ModalContent className='py-8'>
@@ -220,13 +214,13 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
           <ModalFooter>
             <div className='w-full flex flex-row gap-4'>
               <button
-                className='w-full px-6 py-2 border-2 border-yellow-400 rounded-2xl justify-center items-center text-black text-lg'
+                className='w-full px-6 py-2 border-2 border-yellow-400 rounded-2xl text-black text-lg'
                 onClick={() => setIsModeChangeModalOpen(false)}
               >
                 Batal
               </button>
               <button
-                className='w-full px-6 py-2 bg-gradient-to-t from-yellow-500 to-yellow-500 text-white rounded-2xl justify-center items-center gap-2 inline-flex'
+                className='w-full px-6 py-2 bg-gradient-to-t from-yellow-500 to-yellow-500 text-white rounded-2xl gap-2 inline-flex'
                 onClick={handleModeChangeConfirm}
               >
                 Simpan
@@ -235,8 +229,8 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
           </ModalFooter>
         </ModalContent>
       </Modal>
-
-      <Modal size='xl' isOpen={isTagsChangeModalOpen} onClose={() => handleTagsReset()}>
+  
+      <Modal size='xl' isOpen={isTagsChangeModalOpen} onClose={handleTagsReset}>
         <ModalOverlay />
         <ModalContent className='py-8'>
           <ModalCloseButton />
@@ -248,12 +242,10 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
                 placeholder='Berikan maksimal 3 kategori ...'
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyDown={handleKeyDown}
-              ></CustomInput>
+              />
               <div className='flex flex-wrap gap-2'>
-                {tagsModal?.map((tag, index) => (
-                  <div key={index}>
-                    <Badge text={tag} isRemovable={true} handleRemove={() => handleRemoveTag(tag)}></Badge>
-                  </div>
+                {tagsModal?.map((tag) => (
+                  <Badge key={tag} text={tag} isRemovable handleRemove={() => handleRemoveTag(tag)} />
                 ))}
               </div>
             </div>
@@ -261,13 +253,13 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
           <ModalFooter>
             <div className='flex flex-row gap-4'>
               <button
-                className='w-full px-6 py-2 border-2 border-yellow-400 rounded-2xl justify-center items-center text-black text-lg'
-                onClick={() => handleTagsReset()}
+                className='w-full px-6 py-2 border-2 border-yellow-400 rounded-2xl text-black text-lg'
+                onClick={handleTagsReset}
               >
                 Batal
               </button>
               <button
-                className='w-full px-6 py-2 bg-gradient-to-t from-yellow-500 to-yellow-500 text-white rounded-2xl justify-center items-center gap-2 inline-flex'
+                className='w-full px-6 py-2 bg-gradient-to-t from-yellow-500 to-yellow-500 text-white rounded-2xl gap-2 inline-flex'
                 onClick={handleTagsChangeConfirm}
               >
                 Kirim
@@ -276,6 +268,6 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </>
+    </div>
   )
-}
+}  

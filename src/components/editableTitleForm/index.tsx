@@ -6,7 +6,6 @@ import { MdSend } from 'react-icons/md'
 import { CircularIconButton } from '../../components/circularIconButton'
 import { Icon } from '@chakra-ui/react'
 import { useOnClickOutside } from 'usehooks-ts'
-import React from 'react'
 import { HiOutlineInformationCircle } from 'react-icons/hi'
 
 export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id, onTitleChange }) => {
@@ -36,7 +35,6 @@ export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id,
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-
     const titleInput = newTitle?.trim()
 
     if (!titleInput) {
@@ -45,8 +43,7 @@ export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id,
       setNewTitle(title)
       return
     }
-
-    if (titleInput == title) {
+    if (titleInput === title) {
       toast('Judul sama dengan sebelumnya', {
         icon: <HiOutlineInformationCircle className='text-blue-500 w-6 h-6' />
       })
@@ -54,7 +51,6 @@ export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id,
       setNewTitle(title)
       return
     }
-
     if (titleInput.length > 40) {
       toast.error('Batas panjang judul hanya 40 karakter')
       setIsEditable(false)
@@ -81,6 +77,25 @@ export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id,
     }
   }
 
+  let content;
+  if (isLoading) {
+    content = <span>Saving...</span>;
+  } else {
+    content = (
+      <form ref={ref} className='flex flex-row gap-4' onSubmit={handleSubmit}>
+        <input
+          data-testid='input-title'
+          ref={inputRef}
+          className='p-2 bg-white rounded-[10px] border border-black justify-center items-center gap-2 inline-flex w-full'
+          type='text'
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+        />
+        <CircularIconButton icon={<Icon as={MdSend} />} type='submit' />
+      </form>
+    );
+  }
+
   return (
     <>
       {!isEditable ? (
@@ -90,20 +105,8 @@ export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id,
             <BiPencil className='w-6 h-6' />
           </button>
         </div>
-      ) : isLoading ? (
-        <span>Saving...</span>
       ) : (
-        <form ref={ref} className='flex flex-row gap-4' onSubmit={handleSubmit}>
-          <input
-            data-testid='input-title'
-            ref={inputRef}
-            className='p-2 bg-white rounded-[10px] border border-black justify-center items-center gap-2 inline-flex w-full'
-            type='text'
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-          />
-          <CircularIconButton icon={<Icon as={MdSend} />} type='submit' />
-        </form>
+        content
       )}
     </>
   )
