@@ -83,7 +83,6 @@ describe('ValidatorAdminHeader component', () => {
   
     expect(getByText('oleh Username')).toBeInTheDocument();
   });
-  
 
   it('handles case where tags are undefined', () => {
     const { queryByText } = render(

@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 
 const axiosInstance = axios.create({
@@ -9,14 +8,13 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const access = localStorage.getItem('access')
-
     if (access) {
       if (config.headers) config.headers.authorization = `Bearer ${access}`
     }
     return config
   },
   (error) => {
-    return Promise.reject(error)
+    return Promise.reject(new Error(error.message || 'Terjadi kesalahan pada request'))
   }
 )
 
@@ -26,9 +24,9 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       toast.error('Sesi anda telah berakhir. Silakan login kembali')
       localStorage.clear()
-      useRouter().push('/login')
+      window.location.href = '/login' // Ganti useRouter() dengan window.location.href
     }
-    return Promise.reject(error)
+    return Promise.reject(new Error(error.message || 'Terjadi kesalahan pada response'))
   }
 )
 
