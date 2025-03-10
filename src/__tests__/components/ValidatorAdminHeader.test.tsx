@@ -66,4 +66,39 @@ describe('ValidatorAdminHeader component', () => {
     expect(queryByText('example tag')).not.toBeInTheDocument()
     expect(queryByText('another tag')).not.toBeInTheDocument()
   })
+
+  it('renders question when title is missing', () => {
+    const { getByText } = render(
+      <ValidatorAdminHeader id={'123'} validatorData={{ ...validatorData, title: '' }} />
+    );
+  
+    expect(getByText(validatorData.question)).toBeInTheDocument();
+  });
+  
+
+  it('renders default username when username is missing', () => {
+    const { getByText } = render(
+      <ValidatorAdminHeader id={'123'} validatorData={{ ...validatorData, username: '' }} />
+    );
+  
+    expect(getByText('oleh Username')).toBeInTheDocument();
+  });
+  
+
+  it('handles case where tags are undefined', () => {
+    const { queryByText } = render(
+      <ValidatorAdminHeader id={'123'} validatorData={{ ...validatorData, tags: [] }} />
+    )
+
+    expect(queryByText('example tag')).not.toBeInTheDocument()
+    expect(queryByText('another tag')).not.toBeInTheDocument()
+  })
+
+  it('renders question from state when id is undefined', () => {
+    const { getByDisplayValue } = render(
+      <ValidatorAdminHeader id={undefined} validatorData={validatorData} />
+    )
+
+    expect(getByDisplayValue(validatorData.question)).toBeInTheDocument()
+  })
 })
