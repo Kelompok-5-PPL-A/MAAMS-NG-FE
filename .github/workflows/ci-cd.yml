@@ -121,6 +121,9 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
       
+      - name: Link to Vercel project
+        run: vercel link --project maams-ng --yes --token ${{ secrets.VERCEL_TOKEN }}
+
       - name: Deploy to Vercel (Staging)
         run: |
           vercel pull --yes --environment=staging --token ${{ secrets.VERCEL_TOKEN }}
@@ -138,6 +141,9 @@ jobs:
       
       - name: Install Vercel CLI
         run: npm install -g vercel
+
+      - name: Link to Vercel project
+        run: vercel link --project maams-ng --yes --token ${{ secrets.VERCEL_TOKEN }}
       
       - name: Deploy to Vercel (Production)
         run: |
