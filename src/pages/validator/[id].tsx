@@ -145,7 +145,7 @@ const ValidatorDetailPage = () => {
                         disabledCells={Array(columnCount).fill(true)}
                         onCauseAndStatusChanges={(causeIndex: number, newValue: string, newStatus: CauseStatus) =>
                             // updateCauseAndStatus(row.id, causeIndex, newValue, newStatus) 
-                            <></>
+                            {}
                         }
                         feedbacks={row.feedbacks}
                         />
