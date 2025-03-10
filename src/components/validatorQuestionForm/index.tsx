@@ -127,11 +127,13 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
   }
 
   const arraysAreEqual = (arr1: string[] | undefined, arr2: string[] | undefined) => {
-    if (!arr1 || !arr2) return arr1 === arr2
-    if (arr1.length !== arr2.length) return false
-    const sortedArr1 = [...arr1].sort()
-    const sortedArr2 = [...arr2].sort()
-    return sortedArr1.every((value, index) => value === sortedArr2[index])
+    if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false; // Ensure both are valid arrays
+    if (arr1.length !== arr2.length) return false; // Length check
+
+    const sortedArr1 = [...arr1].sort((a, b) => a.localeCompare(b));
+    const sortedArr2 = [...arr2].sort((a, b) => a.localeCompare(b));
+
+    return sortedArr1.every((value, index) => value === sortedArr2[index]);
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

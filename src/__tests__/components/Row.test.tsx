@@ -102,4 +102,68 @@ describe('Row Component', () => {
 
     expect(asFragment()).toMatchSnapshot()
   })
+
+  test('renders feedback text correctly', () => {
+    const { getAllByTestId } = render(
+      <Row
+        rowNumber={rowNumber}
+        cols={cols}
+        causes={causes}
+        causeStatuses={causeStatuses}
+        disabledCells={disabledCells}
+        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
+        feedbacks={feedbacks}
+        causesId={[]}      
+      />
+    )
+  
+    const feedbackElements = getAllByTestId('cell')
+    feedbackElements.forEach((cell, index) => {
+      expect(cell).toHaveTextContent(feedbacks[index])
+    })
+  })
+  
+  test('does not render feedback when empty', () => {
+    const emptyFeedbacks = ['', '', '']
+    
+    const { queryAllByTestId } = render(
+      <Row
+        rowNumber={rowNumber}
+        cols={cols}
+        causes={causes}
+        causeStatuses={causeStatuses}
+        disabledCells={disabledCells}
+        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
+        feedbacks={emptyFeedbacks}
+        causesId={[]}      
+      />
+    )
+  
+    const feedbackElements = queryAllByTestId('cell')
+    feedbackElements.forEach((cell) => {
+      expect(cell).not.toHaveTextContent('Feedback')
+    })
+  })
+  
+  test('calls onCauseAndStatusChanges when a cause is updated', () => {
+    const { getAllByTestId } = render(
+      <Row
+        rowNumber={rowNumber}
+        cols={cols}
+        causes={causes}
+        causeStatuses={causeStatuses}
+        disabledCells={disabledCells}
+        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
+        feedbacks={feedbacks}
+        causesId={[]}      
+      />
+    )
+  
+    const textareas = getAllByTestId('cell').map(cell => cell.querySelector('textarea'))
+  
+    fireEvent.change(textareas[1]!, { target: { value: 'Updated Cause' } })
+  
+    expect(mockOnCauseAndStatusChanges).toHaveBeenCalledWith(1, 'Updated Cause', CauseStatus.Unchecked)
+  })
+  
 })
