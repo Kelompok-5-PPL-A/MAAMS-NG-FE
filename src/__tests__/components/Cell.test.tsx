@@ -68,4 +68,13 @@ describe('Cell Component', () => {
     // Ensure NO feedback emoji or text is present
     expect(screen.queryByText('☑️ Root Cause Found Akar Masalah Kolom A ditemukan')).toBeNull()
   })
+
+  test('does not call onChange when input is empty', () => {
+    render(<Cell {...defaultProps} causeStatus={CauseStatus.Unchecked} />);
+    const textarea = screen.getByPlaceholderText('Enter cause...');
+  
+    fireEvent.change(textarea, { target: { value: '' } });
+  
+    expect(mockOnChange).not.toHaveBeenCalled();
+  });  
 })

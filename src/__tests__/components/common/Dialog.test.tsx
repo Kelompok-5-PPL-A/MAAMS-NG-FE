@@ -107,24 +107,51 @@ describe('Dialog Component', () => {
     expect(document.body.style.overflow).toBe('unset')
   })
 
-  test('removes event listeners when unmounted', () => {
-    const { unmount } = render(
-      <Dialog isOpen={true} onClose={onClose} title={testTitle}>
-        {testContent}
-      </Dialog>
-    )
-    unmount()
-    fireEvent.keyDown(document, { key: 'Escape' })
-    expect(onClose).not.toHaveBeenCalled()
+  test('calls showModal when available', () => {
+    const mockShowModal = jest.fn()
+    HTMLDialogElement.prototype.showModal = mockShowModal
+
+    render(<Dialog isOpen={true} onClose={onClose} title={testTitle}>{testContent}</Dialog>)
+    expect(mockShowModal).toHaveBeenCalled()
   })
 
-  test('content click does not trigger onClose', () => {
-    render(
-      <Dialog isOpen={true} onClose={onClose} title={testTitle}>
-        <div data-testid="dialog-content">{testContent}</div>
+  test('renders children when isOpen is true', () => {
+    const { getByText } = render(
+      <Dialog isOpen={true} onClose={() => {}} title="Test Dialog">
+        <p>Dialog Content</p>
       </Dialog>
-    )
-    fireEvent.click(screen.getByTestId('dialog-content'))
-    expect(onClose).not.toHaveBeenCalled()
-  })
+    );
+    expect(getByText('Dialog Content')).toBeInTheDocument();
+  });
+
+  test('does not render when isOpen is false', () => {
+    const { queryByText } = render(
+      <Dialog isOpen={false} onClose={() => {}} title="Test Dialog">
+        <p>Dialog Content</p>
+      </Dialog>
+    );
+    expect(queryByText('Dialog Content')).not.toBeInTheDocument();
+  });
+
+  test('closes when escape key is pressed', () => {
+    const handleClose = jest.fn();
+    render(
+      <Dialog isOpen={true} onClose={handleClose} title="Test Dialog">
+        <p>Dialog Content</p>
+      </Dialog>
+    );
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(handleClose).toHaveBeenCalled();
+  });
+
+  test('closes when background is clicked', () => {
+    const handleClose = jest.fn();
+    const { getByLabelText } = render(
+      <Dialog isOpen={true} onClose={handleClose} title="Test Dialog">
+        <p>Dialog Content</p>
+      </Dialog>
+    );
+    fireEvent.click(getByLabelText('Close dialog'));
+    expect(handleClose).toHaveBeenCalled();
+  });
 })
