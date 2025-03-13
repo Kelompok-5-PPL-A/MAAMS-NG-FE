@@ -116,3 +116,77 @@ describe('CreateLanding', () => {
     })
   })
 })
+
+describe('CustomInput', () => {
+  it('should render input component correctly', () => {
+    const { getByPlaceholderText } = render(
+      <CustomInput
+        placeholder="Test Input"
+        inputClassName="input-class"
+        onChange={() => {}}
+        value=""
+      />
+    )
+    expect(getByPlaceholderText('Test Input')).toBeInTheDocument()
+  })
+
+  it('should display error icon when error is present', () => {
+    const { container } = render(
+      <CustomInput
+        placeholder="Test Input"
+        inputClassName="input-class"
+        error="This is an error"
+        onChange={() => {}}
+        value=""
+      />
+    )
+
+    const icon = container.querySelector('.chakra-icon')
+    
+    expect(icon).toBeInTheDocument()
+    expect(icon).toHaveClass('chakra-icon')
+  })  
+
+  it('should not display error icon when no error is present', () => {
+    const { queryByRole } = render(
+      <CustomInput
+        placeholder="Test Input"
+        inputClassName="input-class"
+        error=""
+        onChange={() => {}}
+        value=""
+      />
+    )
+
+    const icon = queryByRole('img')
+    expect(icon).not.toBeInTheDocument()
+  })
+
+  it('should render label when label prop is provided', () => {
+    const { getByText } = render(
+      <CustomInput
+        label="Test Label"
+        placeholder="Test Input"
+        inputClassName="input-class"
+        onChange={() => {}}
+        value=""
+      />
+    )
+
+    expect(getByText('Test Label')).toBeInTheDocument()
+  })
+
+  it('should not render label when label prop is not provided', () => {
+    const { queryByText } = render(
+      <CustomInput
+        placeholder="Test Input"
+        inputClassName="input-class"
+        onChange={() => {}}
+        value=""
+      />
+    )
+
+    const label = queryByText('Test Label')
+    expect(label).not.toBeInTheDocument()
+  })
+})
