@@ -81,7 +81,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
     }
 
     try {
-      const { data } = await axiosInstance.post('/api/v1/validator/baru/', {
+      const { data } = await axiosInstance.post('/question/submit/', {
         mode: mode,
         question: question
       })
