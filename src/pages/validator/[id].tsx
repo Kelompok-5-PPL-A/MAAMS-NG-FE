@@ -10,7 +10,7 @@ import { CauseStatus } from '../../lib/enum'
 import { Cause } from '../../components/types/cause'
 import { ValidatorQuestionForm } from '@/components/validatorQuestionForm'
 // import { ValidatorAdminHeader } from '../../components/validatorAdminHeader'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import axiosInstance from '../../services/axiosInstance'
 
 const defaultValidatorData: ValidatorData = {

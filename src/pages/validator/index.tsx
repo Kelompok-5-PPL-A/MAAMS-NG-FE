@@ -3,7 +3,6 @@ import MainLayout from '@/layout/MainLayout'
 import { DropdownMode } from '@/components/dropdownMode'
 import Mode from '../../constants/mode'
 import toast from 'react-hot-toast'
-import { Toaster } from 'react-hot-toast'
 import { useRouter } from 'next/router'
 import { CustomInput } from '@/components/customInput'
 import { Badge } from '@/badges'
@@ -110,7 +109,6 @@ const QuestionAddPage: React.FC = () => {
 
   return (
     <MainLayout>
-      <Toaster/>
       {showConfirmation && (
         <ConfirmationPopup
           mode={selectedMode}
