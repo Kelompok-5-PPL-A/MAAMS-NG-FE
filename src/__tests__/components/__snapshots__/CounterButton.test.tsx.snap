@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CounterButton Component matches snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="items-center my-2"
+  >
+    <h2
+      class="text-center text-sm font-bold text-black relative mx-auto mb-2"
+    >
+      Jumlah Kolom (Max 5)
+    </h2>
+    <div
+      class="main-container flex justify-center items-center flex-nowrap relative mx-auto my-0"
+    >
+      <button
+        class="border-[#aeaeae] border-r-0 flex h-10 py-2 px-8 justify-center items-center shrink-0 flex-nowrap rounded-tl-[10px] rounded-tr-none rounded-br-none rounded-bl-[10px] border-solid border relative"
+      >
+        <span
+          class="text-[#aeaeae] text-2xl font-bold relative text-center whitespace-nowrap z-[1]"
+        >
+          -
+        </span>
+      </button>
+      <div
+        class="flex h-10 py-2 px-8 justify-center items-center shrink-0 flex-nowrap bg-[#fbc707] relative z-[2]"
+      >
+        <span
+          class="shrink-0 basis-auto text-[14px] font-bold text-black relative text-left whitespace-nowrap z-[3]"
+        >
+          3
+        </span>
+      </div>
+      <button
+        class="border-[#fbc707] border-l-0 flex h-10 py-2 px-8 justify-center items-center shrink-0 flex-nowrap rounded-tl-none rounded-tr-[10px] rounded-br-[10px] rounded-bl-none border-solid border relative z-[4]"
+      >
+        <span
+          class="text-[#fbc707] text-2xl font-bold relative text-center whitespace-nowrap z-[1]"
+        >
+          +
+        </span>
+      </button>
+    </div>
+  </div>
+</DocumentFragment>
+`;
