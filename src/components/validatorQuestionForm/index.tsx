@@ -81,11 +81,9 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
     }
 
     try {
-      const { data } = await axiosInstance.post('/question/baru/', {
-        title: title,
-        question: question,
+      const { data } = await axiosInstance.post('/question/submit/', {
         mode: mode,
-        tags: tags
+        question: question
       })
       toast.success('Analisis berhasil ditambahkan')
       router.push(`/validator/${data.id}`)
