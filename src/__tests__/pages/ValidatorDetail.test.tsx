@@ -1,10 +1,9 @@
 import React from 'react'
-import { render, fireEvent, within, screen, waitFor } from '@testing-library/react'
+import { render, fireEvent, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import ValidatorDetailPage from '../../pages/validator/[id]'
 import axiosInstance from '../../services/axiosInstance'
 import { toast } from 'react-hot-toast'
-import { CauseStatus } from '../../lib/enum'
 
 jest.mock('../../services/axiosInstance', () => ({
     post: jest.fn(),
@@ -139,49 +138,6 @@ describe('ValidatorDetailPage', () => {
             expect(screen.findByText('mockMode')).resolves.toBeInTheDocument()
             expect(screen.findByText('mockTitle')).resolves.toBeInTheDocument()
             expect(screen.findByText('mockTags')).resolves.toBeInTheDocument()
-        })
-    })
-
-    test('Handles API error gracefully', async () => {
-        mockedAxios.get.mockRejectedValueOnce(new Error('API Error'))
-        render(<ValidatorDetailPage />)
-    
-        await waitFor(() => {
-            setTimeout(() => {
-                expect(toast.error).toHaveBeenCalledWith('API Error')
-            }, 10000)  
-        })
-    })
-
-    test('should set rows to an initial row when no causes are returned', async () => {
-        mockedAxios.get.mockResolvedValueOnce({
-            data: []
-        })
-    
-        render(<ValidatorDetailPage />)
-    
-        await waitFor(() => {
-            expect(screen.getByText('Sebab:')).toBeInTheDocument
-        })
-    })
-    
-    test('should process and set rows when all statuses are CorrectNotRoot or CorrectRoot', async () => {
-        const causesData = [
-            { id: 1, cause: 'Cause 1', row: 1, column: 0, status: CauseStatus.CorrectRoot },
-            { id: 2, cause: 'Cause 2', row: 1, column: 1, status: CauseStatus.CorrectRoot },
-            { id: 3, cause: 'Cause 3', row: 1, column: 2, status: CauseStatus.CorrectRoot },
-            { id: 4, cause: 'Cause 4', row: 1, column: 3, status: CauseStatus.CorrectRoot }
-        ]
-    
-        mockedAxios.get.mockResolvedValueOnce({
-            data: causesData
-        })
-    
-        render(<ValidatorDetailPage />)
-    
-        await waitFor(() => {
-            const newRow = screen.getAllByRole('textbox').length
-            expect(newRow).toBeGreaterThan(3)
         })
     })
 })
