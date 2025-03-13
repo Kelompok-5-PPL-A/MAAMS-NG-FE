@@ -3,6 +3,7 @@ import MainLayout from '@/layout/MainLayout'
 import { DropdownMode } from '@/components/dropdownMode'
 import Mode from '../../constants/mode'
 import toast from 'react-hot-toast'
+import { Toaster } from 'react-hot-toast'
 import { useRouter } from 'next/router'
 import { CustomInput } from '@/components/customInput'
 import { Badge } from '@/badges'
@@ -84,16 +85,14 @@ const QuestionAddPage: React.FC = () => {
     }
 
     try {
-      const { data } = await axiosInstance.post('/api/baru/', {
+      const { data } = await axiosInstance.post('/question/submit/', {
         title: title,
         question: question,
         mode: mode,
         tags: tags
       })
-      if(data) {
-        toast.success('Analisis berhasil ditambahkan')
-      }
-      // router.push(`/validator/${data.id}`)
+      toast.success('Analisis berhasil ditambahkan')
+      router.push(`/validator/${data.id}`)
     } catch (error: any) {
       if (error.response) {
         toast.error(error.response.data.detail)
@@ -111,6 +110,7 @@ const QuestionAddPage: React.FC = () => {
 
   return (
     <MainLayout>
+      <Toaster/>
       {showConfirmation && (
         <ConfirmationPopup
           mode={selectedMode}
