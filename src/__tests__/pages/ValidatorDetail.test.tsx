@@ -651,4 +651,21 @@ describe('ValidatorDetailPage', () => {
       }, 10000)
     })
   })
+
+    beforeEach(() => {
+      mockAxios.history = { ...mockAxios.history, get: [], post: [] };
+  });
+  
+  test('validates Kirim Sebab button is disabled when input is empty', async () => {
+      render(<ValidatorDetailPage />);
+      const button = screen.getByText(/Kirim Sebab/i);
+      expect(button).toBeDisabled();
+  });
+
+  test('button is disabled during loading state', async () => {
+      mockAxios.onGet('/question/1').replyOnce(() => new Promise(() => {}));
+      render(<ValidatorDetailPage />);
+      const button = screen.getByText(/Kirim Sebab/i);
+      expect(button).toBeDisabled();
+  });
 });
