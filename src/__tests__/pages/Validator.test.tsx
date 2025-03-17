@@ -1,12 +1,17 @@
 import React from 'react'
-import { render, fireEvent, waitFor, screen } from '@testing-library/react'
+import { render, fireEvent, waitFor, screen, act } from '@testing-library/react'
 import QuestionAddPage from '@/pages/validator'
 import axiosInstance from '@/services/axiosInstance'
-import { toast } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import Mode from '@/constants/mode'
 import '@testing-library/jest-dom'
 
 jest.mock('@/services/axiosInstance')
+jest.mock('react-hot-toast', () => ({
+  error: jest.fn(),
+  success: jest.fn()
+}))
+
 const mockPush = jest.fn()
 const mockReload = jest.fn()
 
@@ -503,4 +508,121 @@ describe('QuestionAddPage', () => {
     fireEvent.click(getByText(Mode.pribadi))
     expect(getByText(Mode.pribadi)).toBeInTheDocument()
   })
+
+  test('sets question from router.query.question', async () => {
+    const mockRouter = {
+      query: { question: 'Test Question?' }
+    }
+    
+    // Update the router mock before rendering
+    jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => mockRouter)
+    
+    render(<QuestionAddPage />)
+    
+    // Wait for the question to be set
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')).toHaveValue('Test Question?')
+    })
+  })
+
+  test('displays confirmation popup when mode changes', async () => {
+    render(<QuestionAddPage />)
+
+    // Click mode button to open dropdown
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pribadi))
+    })
+
+    // Wait for and click the pengawasan option
+    await waitFor(() => {
+      expect(screen.getByText(Mode.pengawasan)).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pengawasan))
+    })
+
+    // Verify confirmation popup is shown
+    expect(screen.getByText('Apakah Anda yakin ingin menampilkan analisis ini kepada Admin?')).toBeInTheDocument()
+  })
+
+  test('confirms and updates mode', async () => {
+    render(<QuestionAddPage />)
+
+    // Click mode button to open dropdown
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pribadi))
+    })
+
+    // Wait for and click the pengawasan option
+    await waitFor(() => {
+      expect(screen.getByText(Mode.pengawasan)).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pengawasan))
+    })
+
+    // Click confirm button
+    await act(async () => {
+      fireEvent.click(screen.getByText('Simpan'))
+    })
+
+    // Verify mode is updated
+    expect(screen.getByText(Mode.pengawasan)).toBeInTheDocument()
+  })
+
+  test('cancels mode change', async () => {
+    render(<QuestionAddPage />)
+
+    // Click mode button to open dropdown
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pribadi))
+    })
+
+    // Wait for and click the pengawasan option
+    await waitFor(() => {
+      expect(screen.getByText(Mode.pengawasan)).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pengawasan))
+    })
+
+    // Click cancel button
+    await act(async () => {
+      fireEvent.click(screen.getByText('Batal'))
+    })
+
+    // Verify mode remains unchanged
+    expect(screen.getByText(Mode.pribadi)).toBeInTheDocument()
+  })
+
+  
+
+  test('prevents adding more than 3 categories', async () => {
+    render(<QuestionAddPage />)
+
+    const categoryInput = screen.getByPlaceholderText('Berikan maksimal 3 kategori ...')
+
+    // Add 3 categories
+    await act(async () => {
+      fireEvent.change(categoryInput, { target: { value: 'Category1' } })
+      fireEvent.keyDown(categoryInput, { key: 'Enter' })
+      fireEvent.change(categoryInput, { target: { value: 'Category2' } })
+      fireEvent.keyDown(categoryInput, { key: 'Enter' })
+      fireEvent.change(categoryInput, { target: { value: 'Category3' } })
+      fireEvent.keyDown(categoryInput, { key: 'Enter' })
+
+      // Try to add a fourth category
+      fireEvent.change(categoryInput, { target: { value: 'Category4' } })
+      fireEvent.keyDown(categoryInput, { key: 'Enter' })
+    })
+
+    // Verify error message
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Kategori sudah ada 3')
+    })
+  })
+  
 })
