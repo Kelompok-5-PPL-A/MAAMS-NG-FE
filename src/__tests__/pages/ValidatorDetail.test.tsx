@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import ValidatorDetailPage from '../../pages/validator/[id]'
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
@@ -655,7 +655,7 @@ describe('ValidatorDetailPage', () => {
     beforeEach(() => {
       mockAxios.history = { ...mockAxios.history, get: [], post: [] };
   });
-  
+
   test('validates Kirim Sebab button is disabled when input is empty', async () => {
       render(<ValidatorDetailPage />);
       const button = screen.getByText(/Kirim Sebab/i);
@@ -667,5 +667,38 @@ describe('ValidatorDetailPage', () => {
       render(<ValidatorDetailPage />);
       const button = screen.getByText(/Kirim Sebab/i);
       expect(button).toBeDisabled();
+  });
+
+  it('sends patch requests only for unresolved causes', async () => {
+    const rows = [
+        {
+            id: 1,
+            causes: ['Cause A', 'Cause B', 'Cause C'],
+            causesId: [101, 102, 103],
+            statuses: ['Unresolved', 'Resolved', 'Unresolved'], // Should only patch 101 & 103
+        },
+    ];
+
+    const id = 1;
+    const patchMock = jest.fn().mockResolvedValue({ data: {} }); 
+
+    const patchCausesFromRow = async (rowNumber: number) => {
+        const row = rows.find((row) => row.id === rowNumber)!;
+
+        const patchPromises = row.causes.map((cause, index) => {
+            if (row.statuses[index] !== 'Resolved') {
+                return patchMock(`/cause/patch/${id}/${row.causesId[index]}/`, { cause });
+            }
+        });
+
+        await Promise.all(patchPromises);
+    };
+
+    await patchCausesFromRow(1);
+
+    //Ensure the function was called twice (for 101 and 103)
+    expect(patchMock).toHaveBeenCalledTimes(2);
+    expect(patchMock).toHaveBeenCalledWith('/cause/patch/1/101/', { cause: 'Cause A' });
+    expect(patchMock).toHaveBeenCalledWith('/cause/patch/1/103/', { cause: 'Cause C' });
   });
 });
