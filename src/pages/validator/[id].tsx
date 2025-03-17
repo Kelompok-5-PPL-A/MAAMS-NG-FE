@@ -292,6 +292,16 @@ const ValidatorDetailPage = () => {
         return newRows
     }
 
+    const getStatusValue = (cause: Cause): CauseStatus => {
+      if (cause.root_status) {
+        return CauseStatus.CorrectRoot;
+      } else if (cause.status) {
+        return CauseStatus.CorrectNotRoot;
+      } else {
+        return CauseStatus.Incorrect;
+      }
+    };
+
     const processAndSetRows = (causes: Cause[]) => {
         const groupedCauses: { [key: number]: Cause[] } = {}
     
@@ -311,18 +321,14 @@ const ValidatorDetailPage = () => {
           const disabled = Array(columnCount).fill(false)
     
           rowCauses.forEach((cause) => {
-            const colIndex = cause.column
-            causes[colIndex] = cause.cause
-            causesId[colIndex] = cause.id
-            statuses[colIndex] = cause.root_status
-              ? CauseStatus.CorrectRoot
-              : cause.status
-                ? CauseStatus.CorrectNotRoot
-                : CauseStatus.Incorrect
-            disabled[colIndex] = cause.status
-            feedbacks[colIndex] = cause.feedback
-          })
-    
+            const colIndex = cause.column;
+            causes[colIndex] = cause.cause;
+            causesId[colIndex] = cause.id;
+            statuses[colIndex] = getStatusValue(cause);
+            disabled[colIndex] = cause.status;
+            feedbacks[colIndex] = cause.feedback;
+          });
+              
           return {
             id: parseInt(rowNumber),
             causes,
