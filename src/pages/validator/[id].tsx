@@ -9,7 +9,6 @@ import { SubmitButton } from '../../components/submitButton'
 import { CauseStatus } from '../../lib/enum'
 import { Cause } from '../../components/types/cause'
 import { ValidatorQuestionForm } from '@/components/validatorQuestionForm'
-// import { ValidatorAdminHeader } from '../../components/validatorAdminHeader'
 import toast from 'react-hot-toast'
 import axiosInstance from '../../services/axiosInstance'
 
@@ -123,17 +122,23 @@ const ValidatorDetailPage = () => {
     }
     
     const updateCauseAndStatus = (rowId: number, columnIndex: number, newCause: string, newStatus: CauseStatus) => {
-    setRows((prevRows) =>
-        prevRows.map((row) =>
-        row.id === rowId
-            ? {
+        const updateRow = (row: Rows): Rows => {
+            if (row.id !== rowId) return row;
+            
+            const updatedCauses = [...row.causes];
+            updatedCauses[columnIndex] = newCause;
+            
+            const updatedStatuses = [...row.statuses];
+            updatedStatuses[columnIndex] = newStatus;
+            
+            return {
                 ...row,
-                causes: row.causes.map((cause, index) => (index === columnIndex ? newCause : cause)),
-                statuses: row.statuses.map((status, index) => (index === columnIndex ? newStatus : status))
-            }
-            : row
-        )
-    )
+                causes: updatedCauses,
+                statuses: updatedStatuses
+            };
+        };
+        
+        setRows(prevRows => prevRows.map(updateRow));
     }
 
     useEffect(() => {
@@ -372,11 +377,7 @@ const ValidatorDetailPage = () => {
 
     return (
         <MainLayout>
-            {/* <Toaster/> */}
             <div className='flex flex-col w-full gap-8'>
-                
-                {/* <ValidatorAdminHeader id={id} validatorData={validatorData} /> */}
-
                 <ValidatorQuestionForm id={id} validatorData={validatorData} />
               
                 <h1 className='text-2xl font-bold text-black'>Sebab:</h1>
