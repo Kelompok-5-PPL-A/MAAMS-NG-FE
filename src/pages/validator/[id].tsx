@@ -12,6 +12,7 @@ import { ValidatorQuestionForm } from '@/components/validatorQuestionForm'
 // import { ValidatorAdminHeader } from '../../components/validatorAdminHeader'
 import toast from 'react-hot-toast'
 import axiosInstance from '../../services/axiosInstance'
+import { Rows } from '@/components/types/rows'
 
 const defaultValidatorData: ValidatorData = {
     title: '',
@@ -32,15 +33,6 @@ const defaultCauses: Cause = {
     cause: '',
     status: false,
     feedback: ''
-}
-
-interface Rows {
-    id: number
-    causes: any[]
-    causesId: any[]
-    statuses: any[]
-    feedbacks: any[]
-    disabled: any[]
 }
 
 function createInitialRow(id: number, cols: number) {
@@ -112,13 +104,8 @@ const ValidatorDetailPage = () => {
           const receivedData: ValidatorData = response.data
           setValidatorData(receivedData)
         } catch (error: any) {
-          if (error.response) {
-            toast.error(error.response.data.detail)
-            router.push('/')
-          } else {
-            toast.error('Gagal mengambil data analisis')
-            router.push('/')
-          }
+          toast.error('Gagal mengambil data analisis')
+          router.push('/')
         }
     }
     
