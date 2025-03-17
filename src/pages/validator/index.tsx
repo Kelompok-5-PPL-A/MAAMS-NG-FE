@@ -147,7 +147,7 @@ const QuestionAddPage: React.FC = () => {
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyDown={handleKeyDown}
               ></CustomInput>
-              <div className='flex flex-wrap gap-2'>
+              <div className='flex flex-wrap gap-2' data-id="tags-container">
                 {tags.map((tag) => (
                   <div key={tag}>
                     <Badge text={tag} isRemovable={true} handleRemove={() => handleRemoveTag(tag)}></Badge>
