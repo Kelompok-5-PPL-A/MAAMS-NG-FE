@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const axiosInstance = axios.create({
-  baseURL: "http://34.87.35.100"
+  baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 })
 
 export default axiosInstance
