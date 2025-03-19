@@ -1,10 +1,8 @@
 import React from 'react'
 import { render, fireEvent, waitFor, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import toast from 'react-hot-toast'
-import CreateLanding from '../../components/CreateLanding'
-import { CustomInput } from '../../components/customInput'
 import { useRouter } from 'next/router'
+import Login from '@/pages/login'
 
 // Mock dependencies
 jest.mock('react-hot-toast', () => ({
@@ -43,8 +41,11 @@ describe('Login Page', () => {
     jest.clearAllMocks()
   })
 
-  it('should render the login page', () => {
-    render(<Login />)
-    expect(screen.getByText('Masuk ke Akun')).toBeInTheDocument()
+  describe('Render Login Page', () => {
+    it('renders the main heading and input field', () => {
+      render(<Login />)
+      
+      expect(screen.getByText('Masuk ke Akun')).toBeInTheDocument()
+    })
   })
 })
