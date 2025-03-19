@@ -9,7 +9,6 @@ import { SubmitButton } from '../../components/submitButton'
 import { CauseStatus } from '../../lib/enum'
 import { Cause } from '../../components/types/cause'
 import { ValidatorQuestionForm } from '@/components/validatorQuestionForm'
-// import { ValidatorAdminHeader } from '../../components/validatorAdminHeader'
 import toast from 'react-hot-toast'
 import axiosInstance from '../../services/axiosInstance'
 
@@ -123,17 +122,23 @@ const ValidatorDetailPage = () => {
     }
     
     const updateCauseAndStatus = (rowId: number, columnIndex: number, newCause: string, newStatus: CauseStatus) => {
-    setRows((prevRows) =>
-        prevRows.map((row) =>
-        row.id === rowId
-            ? {
+        const updateRow = (row: Rows): Rows => {
+            if (row.id !== rowId) return row;
+            
+            const updatedCauses = [...row.causes];
+            updatedCauses[columnIndex] = newCause;
+            
+            const updatedStatuses = [...row.statuses];
+            updatedStatuses[columnIndex] = newStatus;
+            
+            return {
                 ...row,
-                causes: row.causes.map((cause, index) => (index === columnIndex ? newCause : cause)),
-                statuses: row.statuses.map((status, index) => (index === columnIndex ? newStatus : status))
-            }
-            : row
-        )
-    )
+                causes: updatedCauses,
+                statuses: updatedStatuses
+            };
+        };
+        
+        setRows(prevRows => prevRows.map(updateRow));
     }
 
     useEffect(() => {
@@ -287,6 +292,16 @@ const ValidatorDetailPage = () => {
         return newRows
     }
 
+    const getStatusValue = (cause: Cause): CauseStatus => {
+      if (cause.root_status) {
+        return CauseStatus.CorrectRoot;
+      } else if (cause.status) {
+        return CauseStatus.CorrectNotRoot;
+      } else {
+        return CauseStatus.Incorrect;
+      }
+    };
+
     const processAndSetRows = (causes: Cause[]) => {
         const groupedCauses: { [key: number]: Cause[] } = {}
     
@@ -306,18 +321,14 @@ const ValidatorDetailPage = () => {
           const disabled = Array(columnCount).fill(false)
     
           rowCauses.forEach((cause) => {
-            const colIndex = cause.column
-            causes[colIndex] = cause.cause
-            causesId[colIndex] = cause.id
-            statuses[colIndex] = cause.root_status
-              ? CauseStatus.CorrectRoot
-              : cause.status
-                ? CauseStatus.CorrectNotRoot
-                : CauseStatus.Incorrect
-            disabled[colIndex] = cause.status
-            feedbacks[colIndex] = cause.feedback
-          })
-    
+            const colIndex = cause.column;
+            causes[colIndex] = cause.cause;
+            causesId[colIndex] = cause.id;
+            statuses[colIndex] = getStatusValue(cause);
+            disabled[colIndex] = cause.status;
+            feedbacks[colIndex] = cause.feedback;
+          });
+              
           return {
             id: parseInt(rowNumber),
             causes,
@@ -372,11 +383,7 @@ const ValidatorDetailPage = () => {
 
     return (
         <MainLayout>
-            {/* <Toaster/> */}
             <div className='flex flex-col w-full gap-8'>
-                
-                {/* <ValidatorAdminHeader id={id} validatorData={validatorData} /> */}
-
                 <ValidatorQuestionForm id={id} validatorData={validatorData} />
               
                 <h1 className='text-2xl font-bold text-black'>Sebab:</h1>
