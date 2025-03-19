@@ -70,5 +70,26 @@ describe('Login Page', () => {
       
       expect(logoIndex).toBeLessThan(textIndex!)
     })
+
+    it('renders the SSO login button', () => {
+      render(<Login />)
+      expect(screen.getByText('Masuk dengan SSO UI')).toBeInTheDocument()
+    })
+
+    it('renders the UI logo image inside the button', () => {
+      render(<Login />)
+      const uiLogo = screen.getByAltText('UI Logo')
+      const loginButton = screen.getByText('Masuk dengan SSO UI').closest('button')
+      
+      expect(uiLogo).toBeInTheDocument()
+      expect(loginButton).toContainElement(uiLogo)
+      
+      // Check if the logo is positioned before the text
+      const buttonContent = loginButton?.innerHTML
+      const logoIndex = buttonContent?.indexOf('UI Logo')
+      const textIndex = buttonContent?.indexOf('Masuk dengan SSO UI')
+      
+      expect(logoIndex).toBeLessThan(textIndex!)
+    })
   })
 })
