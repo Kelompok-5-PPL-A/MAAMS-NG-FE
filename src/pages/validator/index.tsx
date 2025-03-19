@@ -60,6 +60,8 @@ const QuestionAddPage: React.FC = () => {
       }
       setTags((prevCategories) => [...prevCategories, newTag.trim()])
       setNewTag('')
+    } else {
+      toast.error('Kategori harus diisi')
     }
   }
   

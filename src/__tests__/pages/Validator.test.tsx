@@ -598,8 +598,6 @@ describe('QuestionAddPage', () => {
     expect(screen.getByText(Mode.pribadi)).toBeInTheDocument()
   })
 
-  
-
   test('prevents adding more than 3 categories', async () => {
     render(<QuestionAddPage />)
 
@@ -624,5 +622,55 @@ describe('QuestionAddPage', () => {
       expect(toast.error).toHaveBeenCalledWith('Kategori sudah ada 3')
     })
   })
-  
+
+  test('prevents adding empty category', async () => {
+    render(<QuestionAddPage />)
+
+    const categoryInput = screen.getByPlaceholderText('Berikan maksimal 3 kategori ...')
+
+    await act(async () => {
+      fireEvent.change(categoryInput, { target: { value: '' } })
+      fireEvent.keyDown(categoryInput, { key: 'Enter' })
+    })
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Kategori harus diisi')
+    })
+  })
+
+  test('handles question query parameter changes', async () => {
+    // Mock router with initial query
+    const mockRouter = {
+      query: { question: 'Initial Question' } as { question: string | undefined | null }
+    }
+    jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => mockRouter)
+    
+    const { rerender } = render(<QuestionAddPage />)
+    
+    // Verify initial question is set
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')).toHaveValue('Initial Question')
+    })
+
+    mockRouter.query = { question: 'Updated Question' }
+    rerender(<QuestionAddPage />)
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')).toHaveValue('Updated Question')
+    })
+  })
+
+  test('does not set question when router.query.question is falsy', async () => {
+    // Mock router with falsy question query
+    const mockRouter = {
+      query: { question: '' } as { question: string | undefined | null }
+    }
+    jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => mockRouter)
+    
+    render(<QuestionAddPage />)
+    
+    // Verify question is not set
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')).toHaveValue('')
+    })
+  })
 })
