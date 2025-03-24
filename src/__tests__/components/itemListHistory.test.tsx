@@ -72,4 +72,40 @@ describe('ListItem Component', () => {
 
     expect(queryByText('Hapus')).toBeNull()
   })
+
+  test('renders tags correctly when provided', () => {
+    const props = {
+      title: 'Test Title',
+      timestamp: '2024-04-05',
+      mode: 'Test Mode',
+      user: 'Test User',
+      idQuestion: '12345',
+      tags: ['React', 'Testing', 'Next.js']
+    }
+  
+    const { getByText } = render(<ListItem {...props} />)
+  
+    // Pastikan setiap tag yang diberikan muncul
+    props.tags.forEach(tag => {
+      expect(getByText(tag)).toBeInTheDocument()
+    })
+  })
+  
+  test('does not render tags when none are provided', () => {
+    const props = {
+      title: 'Test Title',
+      timestamp: '2024-04-05',
+      mode: 'Test Mode',
+      user: 'Test User',
+      idQuestion: '12345',
+      tags: [] // Tidak ada tag
+    }
+  
+    const { queryByText } = render(<ListItem {...props} />)
+  
+    // Pastikan tidak ada tag yang muncul
+    expect(queryByText('React')).toBeNull()
+    expect(queryByText('Testing')).toBeNull()
+    expect(queryByText('Next.js')).toBeNull()
+  })
 })
