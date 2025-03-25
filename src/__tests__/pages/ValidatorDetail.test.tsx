@@ -692,12 +692,10 @@ describe('ValidatorDetailPage', () => {
   
   (axiosInstance.post as jest.Mock).mockResolvedValue({ data: { id: 'new-cause-id' } });
   (axiosInstance.patch as jest.Mock).mockResolvedValue({ data: { success: true } });
-});
-
-// Test for lines 198-199: Checking if causes are successfully loaded
+  // Test for lines 198-199: Checking if causes are successfully loaded
 test("should handle an empty array", () => {
-  disableValidatedRow.mockImplementation((rows) => [...rows]); // ✅ Fix: Ensure it returns the same array
-  expect(disableValidatedRow([])).toEqual([]); // ✅ Now it will return []
+  disableValidatedRow.mockImplementation((rows) => [...rows]); //  Fix: Ensure it returns the same array
+  expect(disableValidatedRow([])).toEqual([]); //  Now it will return []
 });
 
 
@@ -850,4 +848,5 @@ test('should not set isDone if there is only one row', () => {
   expect(result).toBeUndefined(); // Ensure function returns undefined
 });
 
+});
 
