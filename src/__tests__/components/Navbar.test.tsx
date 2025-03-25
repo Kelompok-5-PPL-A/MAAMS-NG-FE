@@ -3,6 +3,25 @@ import { render, fireEvent, act } from '@testing-library/react'
 import Navbar from '../../components/navbar/navbar'
 import '@testing-library/jest-dom'
 
+// Mock dependencies
+jest.mock('react-hot-toast', () => ({
+  error: jest.fn()
+}))
+
+jest.mock('next/router', () => ({
+  useRouter: jest.fn()
+}))
+
+// Mock localStorage
+const mockLocalStorage = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  clear: jest.fn(),
+  removeItem: jest.fn(),
+  length: 0,
+  key: jest.fn()
+}
+
 const sampleUserData = {
   uuid: '123e4567-e89b-12d3-a456-426614174000',
   date_joined: '2024-04-27T08:00:00Z',
