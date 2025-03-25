@@ -7,6 +7,26 @@ describe('formatTimestamp function', () => {
     expect(formattedTimestamp).toBe('08:30 01/04/2024')
   })
 
+  test("formats timestamp correctly when minutes is less than 10", () => {
+    const timestamp = "2025-03-25T12:05:00Z"; // 5 menit
+    expect(formatTimestamp(timestamp)).toBe("12:05 25/03/2025");
+  });
+
+  test("formats timestamp correctly when minutes is 10 or more", () => {
+    const timestamp = "2025-03-25T12:15:00Z";
+    expect(formatTimestamp(timestamp)).toBe("12:15 25/03/2025");
+  });
+
+  test("formats timestamp correctly when hours is less than 10", () => {
+    const timestamp = "2025-03-25T09:30:00Z"; // 9 pagi
+    expect(formatTimestamp(timestamp)).toBe("09:30 25/03/2025");
+  });
+
+  test("formats timestamp correctly when hours and minutes are both less than 10", () => {
+    const timestamp = "2025-03-25T05:05:00Z";
+    expect(formatTimestamp(timestamp)).toBe("05:05 25/03/2025");
+  });
+
   describe('formatting components', () => {
     it('should format hours correctly', () => {
       const timestamp = '2024-04-01T08:30:00.000Z'
