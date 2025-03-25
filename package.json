@@ -29,13 +29,13 @@
     "framer-motion": "^12.4.7",
     "husky": "^9.0.10",
     "next": "^15.2.2",
+    "next-auth": "^4.24.11",
     "next-remove-imports": "^1.0.12",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.5.2",
     "react-icons": "^5.5.0",
-    "usehooks-ts": "^3.1.1",
-    "zustand": "^5.0.3"
+    "usehooks-ts": "^3.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
@@ -44,9 +44,7 @@
     "@babel/preset-typescript": "^7.23.3",
     "@eslint/eslintrc": "^3",
     "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react-hooks": "^8.0.1",
     "@types/jest": "^29.5.14",
-    "@types/next-auth": "^3.15.0",
     "@types/node": "^20",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
