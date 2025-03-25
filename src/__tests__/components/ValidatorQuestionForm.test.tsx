@@ -20,7 +20,7 @@ jest.mock('next/router', () => ({
 
 jest.mock('react-hot-toast', () => {
   const toastMock = jest.fn() as unknown as jest.MockedFunction<typeof import('react-hot-toast').default>;
-  
+
   toastMock.error = jest.fn();
   toastMock.success = jest.fn();
 
@@ -33,6 +33,8 @@ jest.mock('react-hot-toast', () => {
 });
 
 
+
+
 beforeEach(() => {
   localStorage.clear()
   jest.clearAllMocks()
@@ -40,7 +42,6 @@ beforeEach(() => {
 
 afterEach(() => {
   localStorage.clear()
-  jest.clearAllMocks()
 })
 
 class LocalStorageMock {
@@ -95,6 +96,7 @@ describe('ValidatorQuestionForm Component', () => {
     expect(input.getAttribute('value')).toBe('Pertanyaan baru')
   })
 
+  
   test('displays error when question is not filled', async () => {
     jest.requireMock('next/router').useRouter().push('/')
   
@@ -106,10 +108,8 @@ describe('ValidatorQuestionForm Component', () => {
     fireEvent.submit(button)
   
     await waitFor(() => {
-      setTimeout(() => {
-        expect(toast.error).toHaveBeenCalledWith('Pertanyaan harus diisi')
-      }, 1000)
-    })
+      expect(toast.error).toHaveBeenCalledWith('Pertanyaan harus diisi');
+    });    
   })
   
   test('displays success message and redirects on successful API call', async () => {
