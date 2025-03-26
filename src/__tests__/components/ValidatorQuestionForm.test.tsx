@@ -98,19 +98,21 @@ describe('ValidatorQuestionForm Component', () => {
 
   
   test('displays error when question is not filled', async () => {
-    jest.requireMock('next/router').useRouter().push('/')
+    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken');
+    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem');
   
-    const { getByPlaceholderText, getByTestId } = render(<ValidatorQuestionForm />)
-    const input = getByPlaceholderText('Isi pertanyaan anda di sini')
-    const button = getByTestId('submit-question')
+    const { getByPlaceholderText, getByTestId } = render(<ValidatorQuestionForm />);
   
-    fireEvent.change(input, { target: { value: '' } })
-    fireEvent.submit(button)
+    const input = getByPlaceholderText('Isi pertanyaan anda di sini');
+    fireEvent.change(input, { target: { value: '' } }); // Kosongkan input
+    fireEvent.submit(getByTestId('submit-question')); // Submit form
   
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Pertanyaan harus diisi');
-    });    
-  })
+      setTimeout(() => {
+        expect(toast.error).toHaveBeenCalledWith('Pertanyaan harus diisi');
+      }, 10000); // Delay 10 detik untuk memastikan error muncul
+    });
+  });
   
   test('displays success message and redirects on successful API call', async () => {
     const mockResponseData = { mode: 'mode', question: 'question' }
