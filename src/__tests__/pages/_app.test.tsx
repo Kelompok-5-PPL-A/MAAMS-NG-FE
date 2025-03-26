@@ -3,6 +3,14 @@ import * as React from 'react';
 import { render, screen } from '@testing-library/react';
 import App from '@/pages/_app';
 import { ChakraProvider } from '@chakra-ui/react';
+import { useRouter } from 'next/router';
+
+// Mock the Next.js router
+jest.mock('next/router', () => ({
+  useRouter: () => ({
+    pathname: '/',
+  }),
+}));
 // Mock the Component and pageProps
 const MockComponent = () => <div>Mock Component</div>;
 const mockPageProps = {};
