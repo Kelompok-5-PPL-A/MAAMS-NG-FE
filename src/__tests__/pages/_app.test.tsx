@@ -4,6 +4,14 @@ import App from '@/pages/_app';
 import { ChakraProvider } from '@chakra-ui/react';
 import { SessionProvider } from 'next-auth/react';
 
+import { useRouter } from 'next/router';
+
+// Mock the Next.js router
+jest.mock('next/router', () => ({
+  useRouter: () => ({
+    pathname: '/',
+  }),
+}));
 // Mock the Component and pageProps
 const MockComponent = () => <div>Mock Component</div>;
 const mockPageProps = {
