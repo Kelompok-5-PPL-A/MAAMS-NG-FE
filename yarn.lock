@@ -6585,7 +6585,7 @@ module-details-from-path@^1.0.3:
   resolved "https://registry.npmjs.org/module-details-from-path/-/module-details-from-path-1.0.3.tgz"
   integrity sha512-ySViT69/76t8VhE1xXHK6Ch4NcDd26gx0MzKXLO+F7NOtnqH68d9zF94nT8ZWSxXh8ELOERsnJO/sWt1xZYw5A==
 
-motion-dom@^12.4.5:
+motion-dom@^12.4.5, motion-dom@^12.6.1:
   version "12.6.1"
   resolved "https://registry.npmjs.org/motion-dom/-/motion-dom-12.6.1.tgz"
   integrity sha512-8XVsriTUEVOepoIDgE/LDGdg7qaKXWdt+wQA/8z0p8YzJDLYL8gbimZ3YkCLlj7bB2i/4UBD/g+VO7y9ZY0zHQ==

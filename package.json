@@ -28,6 +28,7 @@
     "dotenv": "^16.4.7",
     "framer-motion": "^12.4.7",
     "husky": "^9.0.10",
+    "motion-dom": "^12.6.1",
     "next": "^15.2.2",
     "next-auth": "^4.24.11",
     "next-remove-imports": "^1.0.12",
