@@ -17,7 +17,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <ChakraProvider>
       <Toaster />
-      <SessionProvider session={pageProps.session}>
+      <SessionProvider session={pageProps.session} basePath={process.env.NEXTAUTH_URL + "/api/auth/"}>
         <Suspense fallback={<div>Loading...</div>}>
         {router.pathname === '/login' ? <Login /> : <Component {...pageProps} />}
       </Suspense>
