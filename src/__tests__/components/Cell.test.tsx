@@ -78,3 +78,77 @@ describe('Cell Component', () => {
     expect(mockOnChange).not.toHaveBeenCalled();
   });  
 })
+
+describe('Cell Component', () => {
+  it('renders feedback correctly for CorrectRoot status', () => {
+    render(
+      <Cell
+        cellName="A1"
+        cause="Test Cause"
+        onChange={() => {}}
+        causeStatus={CauseStatus.CorrectRoot}
+        disabled={false}
+        placeholder="Enter cause"
+        feedback="Root cause found"
+      />
+    )
+
+    expect(screen.getByText('☑️ Root cause found Akar Masalah Kolom A ditemukan')).toBeInTheDocument()
+  })
+
+  it('renders feedback correctly for CorrectNotRoot status', () => {
+    render(
+      <Cell
+        cellName="A1"
+        cause="Test Cause"
+        onChange={() => {}}
+        causeStatus={CauseStatus.CorrectNotRoot}
+        disabled={false}
+        placeholder="Enter cause"
+        feedback="Correct but not root"
+      />
+    )
+
+    expect(screen.getByText('✅ Correct but not root')).toBeInTheDocument()
+  })
+
+  it('renders feedback correctly for Incorrect status', () => {
+    render(
+      <Cell
+        cellName="A1"
+        cause="Test Cause"
+        onChange={() => {}}
+        causeStatus={CauseStatus.Incorrect}
+        disabled={false}
+        placeholder="Enter cause"
+        feedback="Incorrect cause"
+      />
+    )
+
+    expect(screen.getByText('❌ Incorrect cause')).toBeInTheDocument()
+  })
+
+  it('renders feedback correctly for Unchecked status', () => {
+    render(
+      <div data-testid="cell-container">
+        <Cell
+          cellName="A1"
+          cause="Test Cause"
+          onChange={() => {}}
+          causeStatus={CauseStatus.Unchecked}
+          disabled={false}
+          placeholder="Enter cause"
+          feedback="Unchecked cause"
+        />
+      </div>
+    )
+
+    // Check if the textarea is rendered with the placeholder
+    const textarea = screen.getByPlaceholderText('Enter cause')
+    expect(textarea).toBeInTheDocument()
+
+    const feedbackElement = screen.getByTestId('cell-container')
+    expect(screen.getByText('Unchecked cause')).toBeInTheDocument()
+
+  })
+})

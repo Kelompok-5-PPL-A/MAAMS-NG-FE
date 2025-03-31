@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { UserDataProps } from '../types/userData'
+import { signOut } from 'next-auth/react'
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -27,6 +28,12 @@ const Navbar = () => {
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen)
+  }
+
+  const logoutUser = async () => {
+    await signOut({ redirect: false });
+    localStorage.clear()
+    window.location.href="/"
   }
 
   return (
@@ -114,6 +121,7 @@ const Navbar = () => {
                       </ul>
                       <div className='py-1'>
                         <button
+                          onClick={logoutUser}
                           className='block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left'
                         >
                           Sign out
