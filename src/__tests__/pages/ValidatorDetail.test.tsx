@@ -429,6 +429,11 @@ describe('ValidatorDetailPage', () => {
       response: {
         data: {
           detail: 'Backend Error'
+  test('shows a toast and redirects if backend error on getting causes', async () => {
+    const errorResponse = {
+      response: {
+        data: {
+          detail: 'Backend Error'
         }
       }
     }
@@ -464,14 +469,6 @@ describe('ValidatorDetailPage', () => {
     })
   })
 
-  test('shows a toast and redirects if backend error on getting causes', async () => {
-    const errorResponse = {
-      response: {
-        data: {
-          detail: 'Backend Error'
-        }
-      }
-    }
     mockAxios.onGet('/cause/1/').replyOnce(500, errorResponse)
     const { getAllByPlaceholderText, getByText } = render(<ValidatorDetailPage />)
 
@@ -692,10 +689,11 @@ describe('ValidatorDetailPage', () => {
   
   (axiosInstance.post as jest.Mock).mockResolvedValue({ data: { id: 'new-cause-id' } });
   (axiosInstance.patch as jest.Mock).mockResolvedValue({ data: { success: true } });
-  // Test for lines 198-199: Checking if causes are successfully loaded
+
+// Test for lines 198-199: Checking if causes are successfully loaded
 test("should handle an empty array", () => {
-  disableValidatedRow.mockImplementation((rows) => [...rows]); //  Fix: Ensure it returns the same array
-  expect(disableValidatedRow([])).toEqual([]); //  Now it will return []
+  disableValidatedRow.mockImplementation((rows) => [...rows]); // ✅ Fix: Ensure it returns the same array
+  expect(disableValidatedRow([])).toEqual([]); // ✅ Now it will return []
 });
 
 
@@ -847,6 +845,4 @@ test('should not set isDone if there is only one row', () => {
   expect(setIsDoneMock).not.toHaveBeenCalled(); // Ensure setIsDone is NOT called
   expect(result).toBeUndefined(); // Ensure function returns undefined
 });
-
 });
-
