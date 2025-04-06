@@ -5,6 +5,7 @@ import { ValidatorData } from '../../components/types/validatorQuestionFormProps
 import Mode from '../../constants/mode'
 import { formatTimestamp } from '../../utils/dateFormatter'
 import toast from 'react-hot-toast'
+import { useAuth } from '@/hooks/useAuth'
 
 const defaultValidatorData: ValidatorData = {
   title: '',
@@ -17,15 +18,14 @@ const defaultValidatorData: ValidatorData = {
 }
 
 const RecentAnalysis: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [isSSOLoggedIn, setIsSSOLoggedIn] = useState(false) // Tambahkan state untuk SSO UI
   const [recentData, setRecentData] = useState<ValidatorData>(defaultValidatorData)
+  const { isAuthenticated, isLoading } = useAuth()
+
+  // Fallback untuk login SSO sementara
+  const isSSODummyLoggedIn = typeof window !== 'undefined' && localStorage.getItem('isSSOLoggedIn') === 'true'
 
   useEffect(() => {
-    const googleAuth = localStorage.getItem('isLoggedIn') // Cek login Google OAuth
-    const ssoAuth = localStorage.getItem('isSSOLoggedIn') // Cek login SSO UI
-
-    const handleGet = async () => {
+    const fetchRecentAnalysis = async () => {
       try {
         const response = await axiosInstance.get(`/api/v1/validator/recent/`)
         const receivedData: ValidatorData = response.data
@@ -35,17 +35,16 @@ const RecentAnalysis: React.FC = () => {
       }
     }
 
-    setIsLoggedIn(googleAuth === 'true')
-    setIsSSOLoggedIn(ssoAuth === 'true')
-
-    if (googleAuth === 'true' || ssoAuth === 'true') {
-      handleGet()
+    if (!isLoading && (isAuthenticated || isSSODummyLoggedIn)) {
+      fetchRecentAnalysis()
     }
-  }, [])
+  }, [isAuthenticated, isLoading])
+
+  const shouldShow = !isLoading && (isAuthenticated || isSSODummyLoggedIn) && recentData?.id
 
   return (
     <>
-      {(isLoggedIn || isSSOLoggedIn) && recentData?.id != null && (
+      {shouldShow && (
         <div className='flex flex-col justify-center items-center w-full gap-8 px-8 my-8'>
           <p className='text-3xl font-bold text-center text-black'>Analisis Terbaru</p>
           <div className='w-full'>
