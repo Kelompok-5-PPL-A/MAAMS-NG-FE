@@ -18,23 +18,6 @@ jest.mock('next/router', () => ({
   })
 }))
 
-jest.mock('react-hot-toast', () => {
-  const toastMock = jest.fn() as unknown as jest.MockedFunction<typeof import('react-hot-toast').default>;
-
-  toastMock.error = jest.fn();
-  toastMock.success = jest.fn();
-
-  return {
-    __esModule: true,
-    default: toastMock,
-    error: toastMock.error,
-    success: toastMock.success,
-  };
-});
-
-
-
-
 beforeEach(() => {
   localStorage.clear()
   jest.clearAllMocks()
@@ -42,6 +25,7 @@ beforeEach(() => {
 
 afterEach(() => {
   localStorage.clear()
+  jest.clearAllMocks()
 })
 
 class LocalStorageMock {
@@ -96,57 +80,193 @@ describe('ValidatorQuestionForm Component', () => {
     expect(input.getAttribute('value')).toBe('Pertanyaan baru')
   })
 
-  
   test('displays error when question is not filled', async () => {
-    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken');
-    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem');
-  
-    const { getByPlaceholderText, getByTestId } = render(<ValidatorQuestionForm />);
-  
-    const input = getByPlaceholderText('Isi pertanyaan anda di sini');
-    fireEvent.change(input, { target: { value: '' } }); // Kosongkan input
-    fireEvent.submit(getByTestId('submit-question')); // Submit form
-  
-    await waitFor(() => {
-      setTimeout(() => {
-        expect(toast.error).toHaveBeenCalledWith('Pertanyaan harus diisi');
-      }, 10000); // Delay 10 detik untuk memastikan error muncul
-    });
-  });
-  
-  test('displays success message and redirects on successful API call', async () => {
-    const mockResponseData = { mode: 'mode', question: 'question' }
-    mockedAxios.post.mockResolvedValue({ data: mockResponseData })
-  
-    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken')
-    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem')
-  
+    jest.requireMock('next/router').useRouter().push('/')
+
     const { getByPlaceholderText, getByTestId } = render(<ValidatorQuestionForm />)
-  
     const input = getByPlaceholderText('Isi pertanyaan anda di sini')
-    fireEvent.change(input, { target: { value: 'question' } })
-    fireEvent.submit(getByTestId('submit-question'))
-  
+    const button = getByTestId('submit-question')
+    fireEvent.change(input, { target: { value: '' } })
+    fireEvent.submit(button)
+
     await waitFor(() => {
       setTimeout(() => {
-        expect(toast.success).toHaveBeenCalledWith('Analisis berhasil ditambahkan')
+        expect(toast.error).toHaveBeenCalledWith('Pertanyaan harus diisi')
       }, 10000)
     })
   })
-  
-  test('updates mode successfully with API call', async () => {
-    const id = 'id-test-1'
-    mockedAxios.patch.mockResolvedValue({ data: { mode: Mode.pengawasan } })
-  
-    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken')
-    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem')
-  
-    const { getByText, queryByText } = render(<ValidatorQuestionForm id={id} />)
-  
+
+  test('calls handleTitleChange when change title', () => {
+    const validatorData = {
+      mode: Mode.pribadi,
+      question: 'Contoh pertanyaan',
+      username: 'test',
+      created_at: 'test',
+      title: 'test',
+      tags: ['example tag']
+    }
+    const { getByText, getByTestId } = render(<ValidatorQuestionForm id={'id-test'} validatorData={validatorData} />)
+
+    expect(getByText('test')).toBeInTheDocument
+
+    const edit = getByTestId('edit-title')
+    fireEvent.click(edit)
+
+    const input = getByTestId('input-title')
+    fireEvent.change(input, { target: { value: 'baru' } })
+    const submit = getByTestId('submit-question')
+
+    fireEvent.click(submit)
+
+    expect(getByText('Saving...')).toBeInTheDocument
+  })
+
+  test('calls handleModeChange when option is selected in the dropdown and id is not provided', () => {
+    const validatorData = {
+      mode: Mode.pribadi,
+      question: 'Contoh pertanyaan',
+      username: 'test',
+      created_at: 'test',
+      title: 'test',
+      tags: ['test']
+    }
+    const { getByText } = render(<ValidatorQuestionForm id={undefined} validatorData={validatorData} />)
+
+    const dropdown = getByText(Mode.pribadi)
+    fireEvent.click(dropdown)
+
+    const option = getByText(Mode.pengawasan)
+    fireEvent.click(option)
+
+    expect(dropdown.textContent).toBe(Mode.pengawasan)
+  })
+
+  test('opens mode change confirmation modal when a new mode is selected', async () => {
+    const { getByText } = render(<ValidatorQuestionForm />)
     fireEvent.click(getByText(Mode.pribadi))
     fireEvent.click(getByText(Mode.pengawasan))
+
+    expect(getByText('Apakah Anda yakin ingin menampilkan analisis ini kepada Admin?')).toBeInTheDocument()
+  })
+
+  test('displays success message and redirects on successful API call', async () => {
+    const mockResponseData = {
+      mode: 'mode',
+      question: 'question'
+    }
+    mockedAxios.post.mockResolvedValue({ data: mockResponseData })
+
+    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken')
+    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem')
+
+    const { getByPlaceholderText, getByTestId } = render(<ValidatorQuestionForm />)
+
+    const input = getByPlaceholderText('Isi pertanyaan anda di sini')
+    fireEvent.change(input, { target: { value: 'question' } })
+
+    const button = getByTestId('submit-question')
+
+    fireEvent.submit(button)
+
+    await waitFor(() => {
+      setTimeout(() => {
+        expect(toast).toHaveBeenCalledWith('Analisis berhasil ditambahkan')
+      }, 10000)
+    })
+  })
+
+  test('displays error message when fail to post', async () => {
+    const errorResponse = {
+      response: {
+        request: {
+          responseText: 'Gagal menambahkan analisis'
+        }
+      }
+    }
+    mockedAxios.post.mockRejectedValueOnce({ data: errorResponse })
+
+    const { getByPlaceholderText, getByTestId } = render(<ValidatorQuestionForm />)
+
+    const input = getByPlaceholderText('Isi pertanyaan anda di sini')
+    fireEvent.change(input, { target: { value: 'question' } })
+
+    const button = getByTestId('submit-question')
+
+    fireEvent.submit(button)
+
+    await waitFor(() => {
+      setTimeout(() => {
+        expect(toast).toHaveBeenCalledWith('Gagal menambahkan analisis')
+      }, 10000)
+    })
+  })
+
+  test('displays error message from backend when fail to post', async () => {
+    const errorResponse = {
+      data: {
+        detail: 'Backend Error Message'
+      }
+    }
+    mockedAxios.post.mockRejectedValueOnce({ response: errorResponse })
+
+    const { getByPlaceholderText, getByTestId } = render(<ValidatorQuestionForm />)
+
+    const input = getByPlaceholderText('Isi pertanyaan anda di sini')
+    fireEvent.change(input, { target: { value: 'question' } })
+
+    const button = getByTestId('submit-question')
+
+    fireEvent.submit(button)
+
+    await waitFor(() => {
+      setTimeout(() => {
+        expect(toast).toHaveBeenCalledWith('Backend Error Message')
+      }, 10000)
+    })
+  })
+
+  test('updates mode successfully without id', async () => {
+    const validatorData = {
+      mode: Mode.pribadi,
+      question: 'Contoh pertanyaan',
+      username: 'Johndoe',
+      created_at: 'test',
+      title: 'test',
+      tags: ['example tag']
+    }
+    const { getByText } = render(<ValidatorQuestionForm id={undefined} validatorData={validatorData} />)
+
+    const dropdown = getByText(Mode.pribadi)
+    fireEvent.click(dropdown)
+    const option = getByText(Mode.pengawasan)
+    fireEvent.click(option)
     fireEvent.click(getByText('Simpan'))
-  
+
+    await waitFor(() => {
+      setTimeout(() => {
+        expect(toast.success).toHaveBeenCalledWith('Berhasil mengubah mode')
+      }, 10000)
+    })
+  })
+
+  test('updates mode successfully with API call', async () => {
+    const id = 'id-test-1'
+    const mockResponseData = {
+      mode: Mode.pengawasan
+    }
+    mockedAxios.patch.mockResolvedValue({ data: mockResponseData })
+
+    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken')
+    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem')
+
+    const { getByText, queryByText } = render(<ValidatorQuestionForm id={id} />)
+
+    const dropdown = getByText(Mode.pribadi)
+    fireEvent.click(dropdown)
+    const option = getByText(Mode.pengawasan)
+    fireEvent.click(option)
+    fireEvent.click(getByText('Simpan'))
+
     await waitFor(() => {
       setTimeout(() => {
         expect(queryByText('Apakah Anda yakin ingin menampilkan analisis ini kepada Admin?')).not.toBeInTheDocument()
@@ -154,7 +274,6 @@ describe('ValidatorQuestionForm Component', () => {
       }, 10000)
     })
   })
-  
 
   test('should show error message when failed', async () => {
     const id = 'id-test-error-1'
@@ -272,48 +391,69 @@ describe('ValidatorQuestionForm Component', () => {
     })
   })
 
-  test('updates tags with duplicate value', async () => {
-    // Mock localStorage
-    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken');
-    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem');
+  test('updates tags with duplicate', async () => {
+    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken')
+    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem')
 
-    const defaultValidatorData = {
+    const validatorData = {
       mode: Mode.pribadi,
-      question: 'Test Question',
-      title: 'Test Title',
-      tags: [],
-      username: 'testuser',
-      created_at: '2023-01-01'
-    };
+      question: 'Contoh pertanyaan',
+      username: 'test',
+      created_at: 'test',
+      title: 'test',
+      tags: ['kategori']
+    }
 
-    const { getByText, getByPlaceholderText } = render(
-      <ValidatorQuestionForm 
-        id={'test-id'} 
-        validatorData={defaultValidatorData} 
-      />
-    );
+    const { getByTestId, getByPlaceholderText } = render(
+      <ValidatorQuestionForm id={'id-test'} validatorData={validatorData} />
+    )
 
-    // Open tags modal
-    const editTagButton = getByText('Ubah Kategori');
-    fireEvent.click(editTagButton);
+    const editTagButton = getByTestId('toggle-tags-button')
+    fireEvent.click(editTagButton)
+    const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
+    fireEvent.change(newTagInput, { target: { value: 'kategori' } })
+    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
 
-    const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...');
-
-    // Add first tag
-    fireEvent.change(newTagInput, { target: { value: 'duplicate' } });
-    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' });
-
-    // Try to add duplicate tag
-    fireEvent.change(newTagInput, { target: { value: 'duplicate' } });
-    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' });
-
-    // Wait and check if toast.error was called with the correct message
     await waitFor(() => {
       setTimeout(() => {
         expect(toast.error).toHaveBeenCalledWith('Kategori sudah ada. Masukan kategori lain')
       }, 10000)
-    });
-  });
+    })
+  })
+
+  test('updates tags with 4 value total', async () => {
+    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken')
+    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem')
+
+    const validatorData = {
+      mode: Mode.pribadi,
+      question: 'Contoh pertanyaan',
+      username: 'test',
+      created_at: 'test',
+      title: 'test',
+      tags: ['kategori']
+    }
+
+    const { getByTestId, getByPlaceholderText } = render(
+      <ValidatorQuestionForm id={'id-test'} validatorData={validatorData} />
+    )
+
+    const editTagButton = getByTestId('toggle-tags-button')
+    fireEvent.click(editTagButton)
+    const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
+    fireEvent.change(newTagInput, { target: { value: '2' } })
+    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
+    fireEvent.change(newTagInput, { target: { value: '3' } })
+    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
+    fireEvent.change(newTagInput, { target: { value: '4' } })
+    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
+
+    await waitFor(() => {
+      setTimeout(() => {
+        expect(toast.error).toHaveBeenCalledWith('Kategori sudah ada 3')
+      }, 10000)
+    })
+  })
 
   test('updates tags with long category', async () => {
     jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken')
@@ -395,9 +535,9 @@ describe('ValidatorQuestionForm Component', () => {
 
     await waitFor(() => {
       setTimeout(() => {
-        expect(toast.error).toHaveBeenCalledWith('Kategori sama dengan sebelumnya')
+        expect(toast).toHaveBeenCalledWith('Kategori sama dengan sebelumnya')
       }, 10000)
-    })    
+    })
   })
 
   test('reset tags input when modal is closed', async () => {
