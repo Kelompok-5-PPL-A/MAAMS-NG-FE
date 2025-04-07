@@ -21,44 +21,44 @@ export default NextAuth({
       if (account?.id_token) {
         try {
           const response = await googleLogin(account.id_token);
-          const backendData = response.data;
-          
+          const { access_token, refresh_token, user, is_new_user } = response.data;
           return {
             ...token,
-            access_token: backendData.access_token,
-            refresh_token: backendData.refresh_token,
-            uuid: backendData.data.uuid,
-            email: backendData.data.email,
-            first_name: backendData.data.first_name,
-            last_name: backendData.data.last_name,
-            is_active: backendData.data.is_active,
-            is_staff: backendData.data.is_staff,
+            accessToken: access_token,
+            refreshToken: refresh_token,
+            user: {
+              uuid: user.uuid,
+              email: user.email,
+              username: user.username,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              is_active: user.is_active,
+              role: user.role,
+              npm: user.npm,
+              angkatan: user.angkatan,
+              is_new_user: is_new_user,
+            },
           };
-
         } catch (error) {
           console.error("Google login failed:", error);
-          return token;
+          return {
+            ...token,
+            error: "GoogleLoginFailed",
+          };
         }
       }
-      
       return token;
     },
     async session({ session, token }) {
-      session.user = {
-        ...session.user,
-        uuid: token.uuid as string,
-        email: token.email as string,
-        first_name: token.first_name as string,
-        last_name: token.last_name as string,
-        is_active: token.is_active as boolean,
-        is_staff: token.is_staff as boolean,
+      return {
+        ...session,
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+        user: {
+          ...token.user!,
+        },
+        error: token.error,
       };
-
-      session.access_token = token.access_token as string;
-      session.refresh_token = token.refresh_token as string;
-      session.error = token.error as string;
-
-      return session;
     },
   },
   session: {

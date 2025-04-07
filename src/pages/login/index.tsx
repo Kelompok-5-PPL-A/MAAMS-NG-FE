@@ -29,10 +29,10 @@ const Login: React.FC = () => {
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       try {
-        localStorage.setItem("userData", JSON.stringify(session?.user))
-        localStorage.setItem("accessToken", user?.access_token!)
-        localStorage.setItem("refreshToken", user?.refresh_token!)
-        toast.success(`Welcome, ${user?.name!}!`, {
+        localStorage.setItem("userData", JSON.stringify(user))
+        localStorage.setItem("accessToken", session?.access_token!)
+        localStorage.setItem("refreshToken", session?.refresh_token!)
+        toast.success(`Welcome, ${user?.first_name!}!`, {
           duration: 4500,
           position: 'top-center',
           icon: '👋',
@@ -43,7 +43,7 @@ const Login: React.FC = () => {
         console.error('Local storage error:', error);
       }
     }
-  }, [isAuthenticated, isLoading, router, user]);
+  }, [isAuthenticated, isLoading, router, session, user]);
 
   return (
     <MainLayout>

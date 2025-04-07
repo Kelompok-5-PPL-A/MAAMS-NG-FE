@@ -30,14 +30,16 @@ export const refreshToken = async (refresh_token: string): Promise<AxiosResponse
   );
 };
 
-export const verifyToken = async (token: string): Promise<AxiosResponse<TokenResponse>> => {
+export const verifyToken = async (access_token: string): Promise<AxiosResponse<TokenResponse>> => {
   const config: AxiosRequestConfig = {
-    headers: customHeaders,
+    headers: {
+      ...customHeaders,
+      Authorization: `Bearer ${access_token}`,
+    },
   };
 
-  return axios.post(
+  return axios.get(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/token/verify/`,
-    { token },
     config
   );
 };

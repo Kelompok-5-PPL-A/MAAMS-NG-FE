@@ -6,7 +6,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [isStaff, setIsStaff] = useState(false)
+  const [Role, setRole] = useState("")
   const [userData, setUserData] = useState<UserDataProps | null>(null)
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const Navbar = () => {
   }, [])
 
   useEffect(() => {
-    setIsStaff(userData?.is_staff || false)
+    setRole(userData?.role!)
   }, [userData])
 
   const toggleMenu = () => {
@@ -78,7 +78,7 @@ const Navbar = () => {
                     Riwayat
                   </a>
                 </li>
-                {isStaff && (
+                {Role && (
                   <li>
                     <a
                       href="/analisisPublik"
@@ -94,7 +94,7 @@ const Navbar = () => {
                     id="dropdownNavbarLink"
                     className="flex md:items-center justify-between w-full py-2 md:px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0 md:w-auto "
                   >
-                    {userData?.name ?? 'Name'}
+                    {userData?.first_name}
                     <svg
                       className="w-2.5 h-2.5 ms-2.5"
                       aria-hidden="true"

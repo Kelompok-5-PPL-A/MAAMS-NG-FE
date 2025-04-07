@@ -25,9 +25,7 @@ export const useAuth = () => {
   }, [session]);
 
   const isAuthenticated = (
-    status === "authenticated" && 
-    isTokenValid === true && 
-    !!session?.user
+    status === "authenticated" && !!session?.user
   );
 
   return {
