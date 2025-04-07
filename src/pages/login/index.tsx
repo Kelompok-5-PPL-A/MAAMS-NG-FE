@@ -5,7 +5,7 @@ import ui from '../../assets/ui.png';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, signOut } from 'next-auth/react';
 import { useAuth } from "@/hooks/useAuth";
 
 const Login: React.FC = () => {
@@ -13,10 +13,17 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { user, session, isAuthenticated } = useAuth();
 
+  const handleSSOLogin = async () => {
+    setIsLoading(true);
+    const serviceUrl = encodeURIComponent(`${window.location.origin}/auth/callback`);
+    window.location.href = `https://sso.ui.ac.id/cas2/login?service=${serviceUrl}`;
+  };
+
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
       await signIn('google');
+      localStorage.setItem('loginMethod', 'google');
       localStorage.setItem('isLoggedIn', 'true');
     } catch (error) {
       toast.error('Failed to login with Google');
@@ -27,20 +34,23 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      try {
-        localStorage.setItem("userData", JSON.stringify(user))
-        localStorage.setItem("accessToken", session?.access_token!)
-        localStorage.setItem("refreshToken", session?.refresh_token!)
-        toast.success(`Welcome, ${user?.first_name!}!`, {
-          duration: 4500,
-          position: 'top-center',
-          icon: '👋',
-        });
-        router.push("/");
-      } catch (error) {
-        toast.error('Gagal menyimpan data login');
-        console.error('Local storage error:', error);
+    const loginMethod = localStorage.getItem("loginMethod");
+    if (loginMethod === "google") {
+      if (!isLoading && isAuthenticated) {
+        try {
+          localStorage.setItem("userData", JSON.stringify(user))
+          localStorage.setItem("accessToken", session?.access_token!)
+          localStorage.setItem("refreshToken", session?.refresh_token!)
+          toast.success(`Welcome, ${user?.first_name!}!`, {
+            duration: 4500,
+            position: 'top-center',
+            icon: '👋',
+          });
+          router.push("/");
+        } catch (error) {
+          toast.error('Gagal menyimpan data login');
+          console.error('Local storage error:', error);
+        }
       }
     }
   }, [isAuthenticated, isLoading, router, session, user]);
@@ -65,7 +75,9 @@ const Login: React.FC = () => {
          </button>
 
          <div className='flex flex-col items-center justify-center mt-4'>
-         <button className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-white md:border-0 md:p-2 md:rounded-xl md:w-80'>
+         <button 
+         onClick={handleSSOLogin}
+         className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-white md:border-0 md:p-2 md:rounded-xl md:w-80'>
            <img src={ui.src} alt='UI Logo' className='w-10 h-10' loading='lazy' />{' '}
              Masuk dengan SSO UI
            </button>

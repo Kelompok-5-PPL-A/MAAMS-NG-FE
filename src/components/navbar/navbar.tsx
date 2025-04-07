@@ -31,9 +31,15 @@ const Navbar = () => {
   }
 
   const logoutUser = async () => {
-    await signOut({ redirect: false });
-    localStorage.clear()
-    window.location.href="/"
+    const loginMethod = localStorage.getItem("loginMethod");
+    localStorage.clear();
+    if (loginMethod === "sso") {
+      const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
+      window.location.href = casLogoutURL;
+    } else {
+      await signOut({ redirect: false });
+      window.location.href = "/";
+    }
   }
 
   return (

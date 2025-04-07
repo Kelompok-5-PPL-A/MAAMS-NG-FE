@@ -15,6 +15,8 @@ declare module "next-auth" {
     is_staff: boolean
     access_token?: string
     refresh_token?: string
+    is_new_user?: boolean;
+    provider?: string;
   }
 
   interface Session extends DefaultSession {
@@ -35,6 +37,7 @@ declare module "next-auth" {
 
     access_token?: string
     refresh_token?: string
+    provider?: string // ✅ Tambahkan ini
     error?: string
   }
 }
@@ -53,5 +56,6 @@ declare module "next-auth/jwt" {
     is_staff: boolean
     access_token?: string
     refresh_token?: string
+    provider?: string // ✅ Tambahkan ini juga
   }
 }
