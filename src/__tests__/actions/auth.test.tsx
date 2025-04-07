@@ -11,7 +11,6 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('Auth API Service', () => {
   const mockBaseUrl = 'http://localhost:8000';
-  
   process.env.NEXT_PUBLIC_API_BASE_URL = mockBaseUrl;
 
   beforeEach(() => {
@@ -20,20 +19,24 @@ describe('Auth API Service', () => {
 
   describe('googleLogin', () => {
     const mockIdToken = 'google-id-token-123';
-    
+
     const createSuccessfulMockResponse = (): AxiosResponse<LoginResponse> => ({
       data: {
         access_token: 'access-token-123',
         refresh_token: 'refresh-token-456',
-        data: {
+        user: {
           uuid: 'user-uuid-789',
           email: 'test@example.com',
+          username: 'testuser',
           first_name: 'Test',
           last_name: 'User',
           is_active: true,
-          is_staff: false,
-          date_joined: '2024-03-25T00:00:00Z'
+          role: 'mahasiswa',
+          npm: '1234567890',
+          angkatan: '2020',
+          date_joined: '2024-03-25T00:00:00Z',
         },
+        is_new_user: false,
         detail: 'Login successful'
       },
       status: 200,
@@ -77,18 +80,29 @@ describe('Auth API Service', () => {
       const networkError = new Error('Network Error');
       mockedAxios.post.mockRejectedValue(networkError);
 
-      await expect(googleLogin(mockIdToken)).rejects.toEqual(networkError);
+      await expect(googleLogin(mockIdToken)).rejects.toThrow('Network Error');
     });
   });
 
   describe('refreshToken', () => {
     const mockRefreshToken = 'refresh-token-456';
-    
+
     const createSuccessfulTokenResponse = (): AxiosResponse<TokenResponse> => ({
       data: {
         access: 'new-access-token-789',
         refresh: 'new-refresh-token-101',
-        detail: 'Token refreshed successfully'
+        user: {
+          uuid: 'user-uuid-789',
+          email: 'test@example.com',
+          username: 'testuser',
+          first_name: 'Test',
+          last_name: 'User',
+          is_active: true,
+          role: 'mahasiswa',
+          npm: '1234567890',
+          angkatan: '2020',
+          date_joined: '2024-03-25T00:00:00Z',
+        },
       },
       status: 200,
       statusText: 'OK',
@@ -130,8 +144,8 @@ describe('Auth API Service', () => {
 
   describe('verifyToken', () => {
     const mockToken = 'access-token-123';
-    
-    const createSuccessfulVerifyResponse = (): AxiosResponse<TokenResponse> => ({
+
+    const createSuccessfulVerifyResponse = (): AxiosResponse<{ detail: string }> => ({
       data: {
         detail: 'Token is valid'
       },
@@ -143,17 +157,19 @@ describe('Auth API Service', () => {
 
     it('should successfully verify token', async () => {
       const mockResponse = createSuccessfulVerifyResponse();
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      mockedAxios.get.mockResolvedValue(mockResponse);
 
       const response = await verifyToken(mockToken);
 
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockedAxios.get).toHaveBeenCalledWith(
         `${mockBaseUrl}/api/v1/auth/token/verify/`,
-        { token: mockToken },
-        { headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }}
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${mockToken}`
+          }
+        }
       );
       expect(response.data).toEqual(mockResponse.data);
     });
@@ -167,7 +183,7 @@ describe('Auth API Service', () => {
           }
         }
       };
-      mockedAxios.post.mockRejectedValue(errorResponse);
+      mockedAxios.get.mockRejectedValue(errorResponse);
 
       await expect(verifyToken(mockToken)).rejects.toEqual(errorResponse);
     });
