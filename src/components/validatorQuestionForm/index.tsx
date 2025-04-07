@@ -137,8 +137,12 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && newTag.trim() !== '') {
-      if (tagsModal?.length == 3) {
+    if (e.key === 'Enter') {
+      if (newTag.trim() === '') {
+        toast.error('Kategori harus diisi')
+        return
+      }
+      if (tags.length == 3) {
         toast.error('Kategori sudah ada 3')
         return
       }
@@ -146,14 +150,14 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
         toast.error('Kategori maksimal 10 karakter.')
         return
       }
-      if (tagsModal?.includes(newTag.trim())) {
+      if (tags.includes(newTag.trim())) {
         toast.error('Kategori sudah ada. Masukan kategori lain')
         return
       }
-      setTagsModal((prevCategories = []) => [...prevCategories, newTag.trim()])
+      setTags((prevCategories) => [...prevCategories, newTag.trim()])
       setNewTag('')
     }
-  }
+  }  
 
   const handleRemoveTag = (tagToRemove: string) => {
     setTagsModal(tagsModal?.filter((tag) => tag !== tagToRemove))
