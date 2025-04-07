@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import {
   googleLogin,
   refreshToken,
+  ssoLogin,
   verifyToken
 } from '@/actions/auth';
 import { LoginResponse, TokenResponse } from '@/components/types/auth';
@@ -52,7 +53,7 @@ describe('Auth API Service', () => {
       const response = await googleLogin(mockIdToken);
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
-        `${mockBaseUrl}/api/v1/auth/login-google/`,
+        `${mockBaseUrl}api/v1/auth/login-google/`,
         { id_token: mockIdToken },
         { headers: {
           'Accept': 'application/json',
@@ -117,7 +118,7 @@ describe('Auth API Service', () => {
       const response = await refreshToken(mockRefreshToken);
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
-        `${mockBaseUrl}/api/v1/auth/token/refresh/`,
+        `${mockBaseUrl}api/v1/auth/token/refresh/`,
         { refresh: mockRefreshToken },
         { headers: {
           'Accept': 'application/json',
@@ -162,7 +163,7 @@ describe('Auth API Service', () => {
       const response = await verifyToken(mockToken);
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        `${mockBaseUrl}/api/v1/auth/token/verify/`,
+        `${mockBaseUrl}api/v1/auth/token/verify/`,
         {
           headers: {
             Accept: 'application/json',
@@ -200,4 +201,83 @@ describe('Auth API Service', () => {
       await expect(googleLogin('test-token')).rejects.toEqual(unexpectedError);
     });
   });
+  
+  describe('ssoLogin', () => {
+    const mockTicket = 'sso-ticket-123';
+  
+    const createSuccessfulMockResponse = (): AxiosResponse<LoginResponse> => ({
+      data: {
+        access_token: 'access-token-123',
+        refresh_token: 'refresh-token-456',
+        user: {
+          uuid: 'user-uuid-789',
+          email: 'test@example.com',
+          username: 'testuser',
+          first_name: 'Test',
+          last_name: 'User',
+          is_active: true,
+          role: 'mahasiswa',
+          npm: '1234567890',
+          angkatan: '2020',
+          date_joined: '2024-03-25T00:00:00Z',
+        },
+        is_new_user: false,
+        detail: 'Login successful'
+      },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as any
+    });
+  
+    it('should successfully login with SSO ticket', async () => {
+      const mockResponse = createSuccessfulMockResponse();
+      mockedAxios.get.mockResolvedValue(mockResponse);
+  
+      const response = await ssoLogin(mockTicket);
+  
+      expect(mockedAxios.get).toHaveBeenCalledWith(
+        `${mockBaseUrl}api/v1/auth/login-sso/`,
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          params: { ticket: mockTicket }
+        }
+      );
+      expect(response.data).toEqual(mockResponse.data);
+    });
+  
+    it('should handle 400 Bad Request errors', async () => {
+      const errorResponse = {
+        response: {
+          status: 400,
+          data: {
+            detail: 'Invalid SSO ticket'
+          }
+        }
+      };
+      mockedAxios.get.mockRejectedValue(errorResponse);
+  
+      await expect(ssoLogin(mockTicket)).rejects.toEqual(errorResponse);
+    });
+  
+    it('should handle network errors', async () => {
+      const networkError = new Error('Network Error');
+      mockedAxios.get.mockRejectedValue(networkError);
+  
+      await expect(ssoLogin(mockTicket)).rejects.toThrow('Network Error');
+    });
+  
+    it('should handle unexpected error formats', async () => {
+      const unexpectedError = {
+        message: 'Unexpected error in SSO login',
+        code: 'UNEXPECTED_SSO_ERROR'
+      };
+      mockedAxios.get.mockRejectedValue(unexpectedError);
+  
+      await expect(ssoLogin(mockTicket)).rejects.toEqual(unexpectedError);
+    });
+  }); 
 });
