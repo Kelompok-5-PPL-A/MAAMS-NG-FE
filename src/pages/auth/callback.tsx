@@ -1,5 +1,4 @@
 import { ssoLogin } from '@/actions/auth';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
@@ -13,13 +12,20 @@ const Callback = () => {
       if (!ticket) return;
 
       try {
-        await signIn('sso', {
-          ticket: ticket,
-          redirect: false, 
-        })
-        
+        const res = await ssoLogin(ticket as string);
+        const { data } = res;
+
+        localStorage.setItem("userData", JSON.stringify(data.user));
+        localStorage.setItem("accessToken", data.access_token);
+        localStorage.setItem("refreshToken", data.refresh_token);
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("loginMethod", "sso");
+
+        toast.success(`Welcome, ${data.user?.first_name!}!`, {
+          duration: 4500,
+          position: 'top-center',
+          icon: '👋',
+        });
         
         router.push('/');
       } catch (err) {

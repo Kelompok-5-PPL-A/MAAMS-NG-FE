@@ -1,7 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import NextAuth from "next-auth";
-import { googleLogin, ssoLogin } from "@/actions/auth";
+import { googleLogin } from "@/actions/auth";
 import axios from "axios";
 
 export default NextAuth({
@@ -13,31 +13,6 @@ export default NextAuth({
         params: {
           scope: "openid email profile",
         },
-      },
-    }),
-
-    CredentialsProvider({
-      name: "sso",
-      credentials: {
-        ticket: { label: "CAS Ticket", type: "text" },
-      },
-      async authorize(credentials) {
-        const ticket = credentials?.ticket;
-        try {
-          const res = await ssoLogin(ticket!);
-          const { user, access_token, refresh_token, is_new_user } = res.data;
-
-          return {
-            ...user,
-            id: user.uuid,
-            access_token,
-            refresh_token,
-            is_new_user,
-          };
-        } catch (err) {
-          console.error("SSO login failed:", err);
-          return null;
-        }
       },
     }),
   ],
@@ -73,29 +48,7 @@ export default NextAuth({
             error: "GoogleLoginFailed",
           };
         }
-      }
-
-      if (user?.provider === "sso") {
-        return {
-          ...token,
-          accessToken: user.access_token,
-          refreshToken: user.refresh_token,
-          user: {
-            uuid: user.uuid,
-            email: user.email,
-            username: user.username,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            is_active: user.is_active,
-            role: user.role,
-            npm: user.npm,
-            angkatan: user.angkatan,
-            is_new_user: user.is_new_user,
-          },
-          provider: "sso",
-        };
-      }
-      
+      }   
       return token;
     },
     async session({ session, token }) {

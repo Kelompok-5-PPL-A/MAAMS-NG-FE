@@ -34,20 +34,23 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      try {
-        localStorage.setItem("userData", JSON.stringify(user))
-        localStorage.setItem("accessToken", session?.access_token!)
-        localStorage.setItem("refreshToken", session?.refresh_token!)
-        toast.success(`Welcome, ${user?.first_name!}!`, {
-          duration: 4500,
-          position: 'top-center',
-          icon: '👋',
-        });
-        router.push("/");
-      } catch (error) {
-        toast.error('Gagal menyimpan data login');
-        console.error('Local storage error:', error);
+    const loginMethod = localStorage.getItem("loginMethod");
+    if (loginMethod === "google") {
+      if (!isLoading && isAuthenticated) {
+        try {
+          localStorage.setItem("userData", JSON.stringify(user))
+          localStorage.setItem("accessToken", session?.access_token!)
+          localStorage.setItem("refreshToken", session?.refresh_token!)
+          toast.success(`Welcome, ${user?.first_name!}!`, {
+            duration: 4500,
+            position: 'top-center',
+            icon: '👋',
+          });
+          router.push("/");
+        } catch (error) {
+          toast.error('Gagal menyimpan data login');
+          console.error('Local storage error:', error);
+        }
       }
     }
   }, [isAuthenticated, isLoading, router, session, user]);
