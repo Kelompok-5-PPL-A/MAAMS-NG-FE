@@ -197,7 +197,7 @@ describe('Login Page', () => {
       renderLoginPage()
 
       await waitFor(() => {
-        expect(mockPush).not.toHaveBeenCalled()
+        expect(mockPush).toHaveBeenCalledWith('/')
       })
     })
   })
