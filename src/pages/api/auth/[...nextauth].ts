@@ -1,7 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import NextAuth from "next-auth";
-import { googleLogin } from "@/actions/auth";
+import { googleLogin, ssoLogin } from "@/actions/auth";
 import axios from "axios";
 
 export default NextAuth({
@@ -17,21 +17,19 @@ export default NextAuth({
     }),
 
     CredentialsProvider({
-      name: "SSO",
+      name: "sso",
       credentials: {
         ticket: { label: "CAS Ticket", type: "text" },
       },
       async authorize(credentials) {
         const ticket = credentials?.ticket;
         try {
-          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/auth/login-sso/`, {
-            params: { ticket },
-          });
-
+          const res = await ssoLogin(ticket!);
           const { user, access_token, refresh_token, is_new_user } = res.data;
 
           return {
             ...user,
+            id: user.uuid,
             access_token,
             refresh_token,
             is_new_user,
@@ -77,7 +75,6 @@ export default NextAuth({
         }
       }
 
-      // SSO login
       if (user?.provider === "sso") {
         return {
           ...token,
