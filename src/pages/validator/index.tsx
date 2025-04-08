@@ -45,7 +45,11 @@ const QuestionAddPage: React.FC = () => {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && newTag.trim() !== '') {
+    if (e.key === 'Enter') {
+      if (newTag.trim() === '') {
+        toast.error('Kategori harus diisi')
+        return
+      }
       if (tags.length == 3) {
         toast.error('Kategori sudah ada 3')
         return
@@ -60,10 +64,8 @@ const QuestionAddPage: React.FC = () => {
       }
       setTags((prevCategories) => [...prevCategories, newTag.trim()])
       setNewTag('')
-    } else {
-      toast.error('Kategori harus diisi')
     }
-  }
+  }  
   
   const handleSubmit = async () => {
     setIsLoading(true)
