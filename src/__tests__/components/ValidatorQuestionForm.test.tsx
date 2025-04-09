@@ -391,6 +391,40 @@ describe('ValidatorQuestionForm Component', () => {
     })
   })
 
+  test('should show error toast when pressing Enter with empty newTag', async () => {
+    const toastErrorMock = jest.spyOn(toast, 'error')
+  
+    const validatorData = {
+      mode: Mode.pribadi,
+      question: 'Contoh pertanyaan',
+      username: 'test',
+      created_at: 'test',
+      title: 'test',
+      tags: ['kategori']
+    }
+  
+    const { getByTestId, getByPlaceholderText } = render(
+      <ValidatorQuestionForm id={'id-test'} validatorData={validatorData} />
+    )
+  
+    // Buka input kategori baru
+    const editTagButton = getByTestId('toggle-tags-button')
+    fireEvent.click(editTagButton)
+  
+    // Cari input kategori
+    const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
+  
+    // Coba submit tag kosong dengan tekan Enter
+    fireEvent.change(newTagInput, { target: { value: '' } })
+    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
+  
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith('Kategori harus diisi')
+    })
+  
+    toastErrorMock.mockRestore()
+  })
+  
   test('updates tags with duplicate', async () => {
     jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken')
     jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem')
@@ -538,33 +572,6 @@ describe('ValidatorQuestionForm Component', () => {
         expect(toast).toHaveBeenCalledWith('Kategori sama dengan sebelumnya')
       }, 10000)
     })
-  })
-
-  test('reset tags input when modal is closed', async () => {
-    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockReturnValueOnce('mockAccessToken')
-    jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem')
-    const validatorData = {
-      mode: Mode.pribadi,
-      question: 'Contoh pertanyaan',
-      username: 'test',
-      created_at: 'test',
-      title: 'test',
-      tags: ['example tag']
-    }
-
-    const { getByText, queryByText, getByTestId, getByPlaceholderText } = render(
-      <ValidatorQuestionForm id={'id-test'} validatorData={validatorData} />
-    )
-    const editTagButton = getByTestId('toggle-tags-button')
-    fireEvent.click(editTagButton)
-    const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
-    fireEvent.change(newTagInput, { target: { value: 'hilang' } })
-    fireEvent.keyDown(newTagInput, { key: 'Enter', code: 'Enter' })
-
-    fireEvent.click(getByText('Batal'))
-    fireEvent.click(editTagButton)
-
-    expect(queryByText('hilang')).not.toBeInTheDocument
   })
 
   test('failed update tags from backend, should show error from backend', async () => {

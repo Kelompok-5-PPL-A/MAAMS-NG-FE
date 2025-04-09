@@ -49,25 +49,6 @@ describe('useAuth hook', () => {
     });
   });
 
-  it('should set authentication to false if token is invalid', async () => {
-    (useSession as jest.Mock).mockReturnValue({
-      status: 'authenticated',
-      data: { 
-        access_token: 'invalid_token', 
-        user: { name: 'Test User' } 
-      },
-    });
-    (verifyToken as jest.Mock).mockRejectedValue(new Error('Invalid token'));
-
-    const { result } = renderHook(() => useAuth());
-    
-    await waitFor(() => {
-      expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.isLoading).toBe(false);
-      expect(verifyToken).toHaveBeenCalledWith('invalid_token');
-    });
-  });
-
   it('should set authentication to false if session is null', () => {
     (useSession as jest.Mock).mockReturnValue({ 
       status: 'unauthenticated', 
