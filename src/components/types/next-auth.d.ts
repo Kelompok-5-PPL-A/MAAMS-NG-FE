@@ -8,6 +8,7 @@ declare module "next-auth" {
     first_name: string
     last_name: string
     role: string
+    google_id: string
     npm: string
     angkatan: string
     date_joined?: string
@@ -25,6 +26,7 @@ declare module "next-auth" {
       username: string
       first_name: string
       last_name: string
+      google_id: string
       role: string
       npm: string
       angkatan: string
@@ -48,6 +50,7 @@ declare module "next-auth/jwt" {
     first_name: string
     last_name: string
     role: string
+    google_id: string
     npm: string
     angkatan: string
     is_active: boolean
