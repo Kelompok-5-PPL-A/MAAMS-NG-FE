@@ -27,7 +27,7 @@ const RecentAnalysis: React.FC = () => {
   useEffect(() => {
     const fetchRecentAnalysis = async () => {
       try {
-        const response = await axiosInstance.get(`/api/v1/validator/recent/`)
+        const response = await axiosInstance.get('/question/recent/')
         const receivedData: ValidatorData = response.data
         setRecentData(receivedData)
       } catch {
