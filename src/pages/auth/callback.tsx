@@ -1,4 +1,5 @@
 import { ssoLogin } from '@/actions/auth';
+import { getSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
@@ -12,16 +13,20 @@ const Callback = () => {
       if (!ticket) return;
 
       try {
-        const res = await ssoLogin(ticket as string);
-        const { data } = res;
+        await signIn('sso', {
+          ticket: ticket,
+          redirect: false, 
+        })
 
-        localStorage.setItem("userData", JSON.stringify(data.user));
-        localStorage.setItem("accessToken", data.access_token);
-        localStorage.setItem("refreshToken", data.refresh_token);
+        const newSession = await getSession();
+        
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("loginMethod", "sso");
+        localStorage.setItem("userData", JSON.stringify(newSession?.user));
+        localStorage.setItem("accessToken", newSession?.access_token!);
+        localStorage.setItem("refreshToken", newSession?.refresh_token!);
 
-        toast.success(`Welcome, ${data.user?.first_name!}!`, {
+        toast.success(`Welcome, ${newSession?.user.first_name!}!`, {
           duration: 4500,
           position: 'top-center',
           icon: '👋',

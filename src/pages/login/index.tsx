@@ -5,8 +5,9 @@ import ui from '../../assets/ui.png';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
-import { signIn, signOut } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useAuth } from "@/hooks/useAuth";
+
 
 const Login: React.FC = () => {
   const router = useRouter();
@@ -34,13 +35,12 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
-    const loginMethod = localStorage.getItem("loginMethod");
-    if (loginMethod === "google") {
+    if(localStorage.getItem('loginMethod')==='google'){
       if (!isLoading && isAuthenticated) {
         try {
-          localStorage.setItem("userData", JSON.stringify(user))
-          localStorage.setItem("accessToken", session?.access_token!)
-          localStorage.setItem("refreshToken", session?.refresh_token!)
+          localStorage.setItem("userData", JSON.stringify(user));
+          localStorage.setItem("accessToken", session?.access_token!);
+          localStorage.setItem("refreshToken", session?.refresh_token!);
           toast.success(`Welcome, ${user?.first_name!}!`, {
             duration: 4500,
             position: 'top-center',
