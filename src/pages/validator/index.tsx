@@ -8,10 +8,11 @@ import { CustomInput } from '@/components/customInput'
 import { Badge } from '@/badges'
 import ConfirmationPopup from '@/components/confirmationPopup'
 import axiosInstance from '../../services/axiosInstance'
+import { useAuth } from '@/hooks/useAuth'
 
 const QuestionAddPage: React.FC = () => {
   const router = useRouter()
-
+  const { isAuthenticated } = useAuth()
   const [mode, setMode] = useState<Mode>(Mode.pribadi)
   const [title, setTitle] = useState<string>('')
   const [question, setQuestion] = useState<string>('')
@@ -88,14 +89,32 @@ const QuestionAddPage: React.FC = () => {
     }
 
     try {
-      const { data } = await axiosInstance.post('/question/submit/', {
-        title: title,
-        question: question,
-        mode: mode,
-        tags: tags
-      })
-      toast.success('Analisis berhasil ditambahkan')
-      router.push(`/validator/${data.id}`)
+      if (isAuthenticated) {
+        const { data } = await axiosInstance.post('/question/submit/', {
+          title: title,
+          question: question,
+          mode: mode,
+          tags: tags
+        })
+        toast.success('Analisis berhasil ditambahkan')
+        router.push(`/validator/${data.id}`)
+      } else {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/submit/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: title,
+            question: question,
+            mode: mode,
+            tags: tags
+          })
+        })
+        const data = await response.json()
+        toast.success('Analisis berhasil ditambahkan')
+        router.push(`/validator/${data.id}`)
+     }
     } catch (error: any) {
       if (error.response) {
         toast.error(error.response.data.detail)
