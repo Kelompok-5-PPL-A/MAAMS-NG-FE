@@ -61,4 +61,22 @@ describe('useAuth hook', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.user).toBeUndefined();
   });
+
+  it('should handle error during token verification gracefully', async () => {
+    (useSession as jest.Mock).mockReturnValue({
+      status: 'unauthenticated',
+      data: { 
+        access_token: 'error_token',
+        user: { name: 'Test User' }
+      }
+    });
+    (verifyToken as jest.Mock).mockRejectedValue(new Error('Network error'));
+  
+    const { result } = renderHook(() => useAuth());
+  
+    await waitFor(() => {
+      expect(result.current.isTokenValid).toBe(false);
+      expect(result.current.isAuthenticated).toBe(false);
+    });
+  });
 });

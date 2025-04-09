@@ -1,47 +1,66 @@
 import axios from 'axios'
-import { refreshToken } from '../actions/auth'
-import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 
+let accessToken: string | null = null
+let refreshTokenValue: string | null = null
+
+export const setAuthTokens = (access: string, refresh: string) => {
+  accessToken = access
+  refreshTokenValue = refresh
+}
+
+export const clearAuthTokens = () => {
+  accessToken = null
+  refreshTokenValue = null
+}
+
+const refreshToken = async (refresh: string) => {
+  const res = await axios.post(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh/`,
+    { refresh }
+  )
+  return res.data
+}
+
 const axiosInstance = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}`
+  baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}`,
 })
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const access = localStorage.getItem('accessToken')
-
-    if (access) {
-      if (config.headers) config.headers.authorization = `Bearer ${access}`
+    if (accessToken) {
+      config.headers = config.headers || {};
+      (config.headers as any).set('Authorization', `Bearer ${accessToken}`);
     }
     return config
   },
-  (error) => {
-    return Promise.reject(error)
-  }
+  (error) => Promise.reject(error)
 )
 
 axiosInstance.interceptors.response.use(
-  (response) => {
-    return response
-  },
+  (response) => response,
   async (error) => {
-    const refresh = localStorage.getItem('refreshToken')
-
-    if (refresh && error.response.status == '401') {
+    if (
+      error.response?.status === 401 &&
+      refreshTokenValue
+    ) {
       try {
-        const responseRefresh = await refreshToken(refresh)
-        window.localStorage.setItem('accessToken', responseRefresh.data.access!)
-        toast.error('Sesi anda telah diperbaharui. Silakan coba lagi')
-        useRouter().reload()
-      } catch {
-        toast.error('Sesi anda telah berakhir. Silakan login kembali')
-        localStorage.clear()
-        useRouter().push('/login-google/')
+        const data = await refreshToken(refreshTokenValue)
+        accessToken = data.access
+        toast.success('Sesi diperbarui, silakan coba lagi')
+
+        const originalRequest = error.config
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`
+        return axiosInstance(originalRequest)
+      } catch (refreshErr) {
+        toast.error('Sesi telah berakhir. Silakan login kembali.')
+        clearAuthTokens()
+        window.location.href = '/login'
+        return Promise.reject(refreshErr)
       }
-    } else {
-      return Promise.reject(error)
     }
+
+    return Promise.reject(error)
   }
 )
 

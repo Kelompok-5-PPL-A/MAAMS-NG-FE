@@ -35,5 +35,6 @@ export const useAuth = () => {
     refreshToken: session?.refresh_token,
     isLoading: status === "loading" || isTokenValid === null,
     isAuthenticated,
+    isTokenValid,
   };
 };
