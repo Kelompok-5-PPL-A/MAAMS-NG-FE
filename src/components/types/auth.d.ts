@@ -10,6 +10,7 @@ export interface LoginResponse {
     date_joined: string;
     is_active: boolean;
     role: string;
+    google_id: string
     npm: string;
     angkatan: string;
   };
@@ -29,6 +30,7 @@ export interface TokenResponse {
     date_joined: string;
     is_active: boolean;
     role: string;
+    google_id: string
     npm: string;
     angkatan: string;
   };

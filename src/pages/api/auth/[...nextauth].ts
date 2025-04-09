@@ -53,8 +53,7 @@ export default NextAuth({
               last_name: user.last_name,
               is_active: user.is_active,
               role: user.role,
-              npm: user.npm,
-              angkatan: user.angkatan,
+              google_id: user.google_id,
               is_new_user: is_new_user,
             },
           };
