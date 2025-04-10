@@ -2,11 +2,10 @@ import * as React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import App from '@/pages/_app'
 import { useRouter } from 'next/router'
+import type { AppProps } from 'next/app'
 
-// Mock dynamic import for login page
 jest.mock('@/pages/login', () => () => <div>Masuk ke Akun</div>)
 
-// Mock the router
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
 }))
@@ -17,12 +16,11 @@ const mockPageProps = {
 
 const MockComponent = () => <div>Mock Component</div>
 
-// Helper to create mock NextRouter
 const createMockRouter = (pathname: string = '/'): any => ({
   pathname,
+  asPath: pathname,
   route: pathname,
   query: {},
-  asPath: pathname,
   push: jest.fn(),
   replace: jest.fn(),
   reload: jest.fn(),
@@ -36,18 +34,18 @@ const createMockRouter = (pathname: string = '/'): any => ({
   isReady: true,
 })
 
-// Helper to render <App />
+// Helper to render <App /> and provide required props
 const renderApp = (pathname = '/') => {
-  ;(useRouter as jest.Mock).mockReturnValue({ pathname })
   const mockRouter = createMockRouter(pathname)
+  ;(useRouter as jest.Mock).mockReturnValue(mockRouter)
 
-  return render(
-    <App
-      Component={MockComponent}
-      pageProps={mockPageProps}
-      router={mockRouter}
-    />
-  )
+  const appProps: AppProps = {
+    Component: MockComponent,
+    pageProps: mockPageProps,
+    router: mockRouter,
+  }
+
+  return render(<App {...appProps} />)
 }
 
 describe('App', () => {
@@ -63,18 +61,28 @@ describe('App', () => {
     expect(screen.getByText('Mock Component')).toBeInTheDocument()
   })
 
-  it('renders fallback loading in Suspense if needed', async () => {
-    const SuspenseApp = React.lazy(() => Promise.resolve({ default: () => <div>Lazy Component</div> }))
-
-    const FallbackTestApp = () => (
-      <App
-        Component={SuspenseApp}
-        pageProps={mockPageProps}
-        router={createMockRouter('/')}
-      />
+  it('renders fallback loading in Suspense then the lazy component', async () => {
+    const LazyComponent = React.lazy(() =>
+      new Promise<{ default: React.FC }>((resolve) =>
+        setTimeout(() => resolve({ default: () => <div>Lazy Component</div> }), 100)
+      )
     )
 
-    render(<FallbackTestApp />)
+    const mockRouter = createMockRouter('/')
+    ;(useRouter as jest.Mock).mockReturnValue(mockRouter)
+
+    const lazyAppProps: AppProps = {
+      Component: LazyComponent,
+      pageProps: mockPageProps,
+      router: mockRouter,
+    }
+
+    render(<App {...lazyAppProps} />)
+
     expect(screen.getByText('Loading...')).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.getByText('Lazy Component')).toBeInTheDocument()
+    })
   })
 })

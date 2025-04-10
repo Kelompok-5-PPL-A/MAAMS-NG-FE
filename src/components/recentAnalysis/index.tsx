@@ -6,6 +6,7 @@ import Mode from '../../constants/mode'
 import { formatTimestamp } from '../../utils/dateFormatter'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/hooks/useAuth'
+import { useSession } from 'next-auth/react'
 
 const defaultValidatorData: ValidatorData = {
   title: '',
@@ -19,28 +20,24 @@ const defaultValidatorData: ValidatorData = {
 
 const RecentAnalysis: React.FC = () => {
   const [recentData, setRecentData] = useState<ValidatorData>(defaultValidatorData)
-  const { isAuthenticated, isLoading } = useAuth()
-
-  // Fallback untuk login SSO sementara
-  const isSSODummyLoggedIn = typeof window !== 'undefined' && localStorage.getItem('isSSOLoggedIn') === 'true'
+  const {data: session} = useSession()
 
   useEffect(() => {
-    const fetchRecentAnalysis = async () => {
-      try {
-        const response = await axiosInstance.get('/question/recent/')
-        const receivedData: ValidatorData = response.data
-        setRecentData(receivedData)
-      } catch {
-        toast.error('Gagal mengambil data')
+    if (session?.access_token) {
+      const fetchRecentAnalysis = async () => {
+        try {
+          const response = await axiosInstance.get(`/question/recent/`)
+          const receivedData: ValidatorData = response.data
+          setRecentData(receivedData)
+        } catch {
+          toast.error('Gagal mengambil data')
+        }
       }
-    }
-
-    if (!isLoading && (isAuthenticated || isSSODummyLoggedIn)) {
       fetchRecentAnalysis()
     }
-  }, [isAuthenticated, isLoading])
+  }, [session?.access_token])
 
-  const shouldShow = !isLoading && (isAuthenticated || isSSODummyLoggedIn) && recentData?.id
+  const shouldShow = session?.access_token && recentData?.id
 
   return (
     <>

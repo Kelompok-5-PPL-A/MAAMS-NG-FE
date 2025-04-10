@@ -87,28 +87,6 @@ describe('RecentAnalysis component', () => {
     })
   })
 
-  it('renders correctly when user is logged in via SSO (dummy)', async () => {
-    localStorage.setItem('isSSOLoggedIn', 'true')
-    mockedUseAuth.mockReturnValue({ isAuthenticated: false, isLoading: false })
-
-    mockedAxios.get.mockResolvedValue({
-      data: {
-        id: 'mockId',
-        title: 'mock',
-        mode: 'mock',
-        question: 'mock',
-        created_at: 'mock',
-        username: 'mock'
-      }
-    })
-
-    renderWithSession(<RecentAnalysis />)
-
-    await waitFor(() => {
-      expect(screen.getByText(/analisis terbaru/i)).toBeInTheDocument()
-    })
-  })
-
   it('shows toast when failed to get data', async () => {
     localStorage.setItem('isSSOLoggedIn', 'false')
     mockedUseAuth.mockReturnValue({ isAuthenticated: true, isLoading: false })

@@ -5,14 +5,13 @@ import ui from '../../assets/ui.png';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useAuth } from "@/hooks/useAuth";
+import { signIn, useSession } from 'next-auth/react';
 
 
 const Login: React.FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { user, session, isAuthenticated } = useAuth();
+  const { data: session } = useSession();
 
   const handleSSOLogin = async () => {
     setIsLoading(true);
@@ -35,25 +34,30 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
-    if(localStorage.getItem('loginMethod')==='google'){
-      if (!isLoading && isAuthenticated) {
-        try {
-          localStorage.setItem("userData", JSON.stringify(user));
-          localStorage.setItem("accessToken", session?.access_token!);
-          localStorage.setItem("refreshToken", session?.refresh_token!);
-          toast.success(`Welcome, ${user?.first_name!}!`, {
-            duration: 4500,
-            position: 'top-center',
-            icon: '👋',
-          });
-          router.push("/");
-        } catch (error) {
-          toast.error('Gagal menyimpan data login');
-          console.error('Local storage error:', error);
-        }
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+      router.push('/');
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (session?.access_token) {
+      localStorage.setItem("accessToken", session.access_token);
+      localStorage.setItem("refreshToken", session.refresh_token ?? "");
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (localStorage.getItem('loginMethod') === 'google') {
+      if (!isLoading && session) {
+        toast.success(`Welcome, ${session?.user.username}!`, {
+          duration: 4500,
+          position: 'top-center',
+          icon: '👋',
+        });
+        router.push('/');
       }
     }
-  }, [isAuthenticated, isLoading, router, session, user]);
+  }, [session, isLoading, router]);
 
   return (
     <MainLayout>
