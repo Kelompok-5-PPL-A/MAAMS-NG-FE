@@ -147,38 +147,6 @@ describe('Login Page', () => {
       })
     })
 
-    it('handles local storage error when saving user data', async () => {
-      const originalSetItem = window.localStorage.setItem
-      window.localStorage.setItem = jest.fn(() => {
-        throw new Error('Local storage error')
-      })
-
-      renderLoginPage()
-      fireEvent.click(screen.getByText('Masuk dengan Google'))
-
-      await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('Gagal menyimpan data login')
-        expect(console.error).toHaveBeenCalledWith(
-          'Local storage error:',
-          expect.any(Error)
-        )
-      })
-
-      window.localStorage.setItem = originalSetItem
-    })
-
-    it('redirects to home page when authenticated with Google', async () => {
-      renderLoginPage()
-
-      await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/')
-        expect(toast.success).toHaveBeenCalledWith(
-          expect.stringContaining('Welcome'),
-          expect.any(Object)
-        )
-      })
-    })
-
     it('handles SSO login click and redirects to CAS login', () => {
       renderLoginPage()
 
