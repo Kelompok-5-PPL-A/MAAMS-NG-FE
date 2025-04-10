@@ -17,7 +17,7 @@ const Callback = () => {
       
       try {
         await signIn('sso', {
-          ticket: ticket.toString(),
+          ticket: ticket,
           redirect: false,
         });
         localStorage.setItem('loginMethod','sso')
