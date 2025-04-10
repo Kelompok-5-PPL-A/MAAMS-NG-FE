@@ -23,7 +23,7 @@ const RecentAnalysis: React.FC = () => {
   const {data: session} = useSession()
 
   useEffect(() => {
-    if (session?.access_token) {
+    if (session?.accessToken) {
       const fetchRecentAnalysis = async () => {
         try {
           const response = await axiosInstance.get(`/question/recent/`)
@@ -35,9 +35,9 @@ const RecentAnalysis: React.FC = () => {
       }
       fetchRecentAnalysis()
     }
-  }, [session?.access_token])
+  }, [session?.accessToken])
 
-  const shouldShow = session?.access_token && recentData?.id
+  const shouldShow = session?.accessToken && recentData?.id
 
   return (
     <>
