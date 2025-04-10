@@ -22,6 +22,7 @@ const Login: React.FC = () => {
     setIsLoading(true);
     try {
       await signIn('google');
+      localStorage.setItem('loginMethod','google')
     } catch (error) {
       toast.error('Failed to login with Google');
       console.error('Google login error:', error);
@@ -30,14 +31,12 @@ const Login: React.FC = () => {
     }
   };
 
-  // Redirect to home if already authenticated
   useEffect(() => {
     if (status === 'authenticated' && session) {
       router.push('/');
     }
   }, [session, status, router]);
 
-  // Show welcome toast when successfully logged in
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.username) {
       toast.success(`Welcome, ${session.user.username}!`, {

@@ -28,7 +28,9 @@ const Navbar = () => {
   const logoutUser = async () => {
     try {
       // Check if SSO user before signing out
-      const isSsoUser = session?.user?.npm !== undefined;
+      const isSsoUser = localStorage.getItem('loginMethod') === 'sso'
+      
+      localStorage.clear()
       
       // Sign out from NextAuth
       await signOut({ redirect: false });

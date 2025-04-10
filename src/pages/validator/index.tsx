@@ -9,6 +9,7 @@ import { Badge } from '@/badges';
 import ConfirmationPopup from '@/components/confirmationPopup';
 import axiosInstance from '../../services/axiosInstance'; // Import the updated axiosInstance
 import { useSession } from 'next-auth/react';
+import { UserDataProps } from '@/components/types/userData';
 
 const QuestionAddPage: React.FC = () => {
   const router = useRouter();
@@ -91,17 +92,30 @@ const QuestionAddPage: React.FC = () => {
       return;
     }
 
-    const payload = {
+    let payload;
+
+    payload = {
       title: title,
       question: question,
       mode: mode,
       tags: tags
     };
 
+    if (session?.access_token){
+      payload = {
+        title: title,
+        question: question,
+        mode: mode,
+        tags: tags,
+        user: session?.user as UserDataProps
+      };
+    }
+
     try {
       let response;
       if (session) {
         console.log('YES KEPANGGIL');
+        console.log(payload)
         response = await axiosInstance.post('/question/submit/', payload);
       } else {
         console.log('YAH GA KEPANGGIL');

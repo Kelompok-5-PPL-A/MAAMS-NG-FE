@@ -16,15 +16,11 @@ const Callback = () => {
       if (!ticket) return;
       
       try {
-        const result = await signIn('sso', {
+        await signIn('sso', {
           ticket: ticket.toString(),
           redirect: false,
         });
-        
-        if (result?.error) {
-          throw new Error(result.error);
-        }
-        
+        localStorage.setItem('loginMethod','sso')
         setIsVerifying(false);
       } catch (err) {
         console.error('SSO verification error:', err);
