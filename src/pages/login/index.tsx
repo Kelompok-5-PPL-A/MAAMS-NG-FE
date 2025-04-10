@@ -7,11 +7,10 @@ import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 
-
 const Login: React.FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const handleSSOLogin = async () => {
     setIsLoading(true);
@@ -23,8 +22,6 @@ const Login: React.FC = () => {
     setIsLoading(true);
     try {
       await signIn('google');
-      localStorage.setItem('loginMethod', 'google');
-      localStorage.setItem('isLoggedIn', 'true');
     } catch (error) {
       toast.error('Failed to login with Google');
       console.error('Google login error:', error);
@@ -33,61 +30,52 @@ const Login: React.FC = () => {
     }
   };
 
+  // Redirect to home if already authenticated
   useEffect(() => {
-    if (localStorage.getItem('isLoggedIn') === 'true') {
+    if (status === 'authenticated' && session) {
       router.push('/');
     }
-  }, [router]);
+  }, [session, status, router]);
 
+  // Show welcome toast when successfully logged in
   useEffect(() => {
-    if (session?.access_token) {
-      localStorage.setItem("accessToken", session.access_token);
-      localStorage.setItem("refreshToken", session.refresh_token ?? "");
+    if (status === 'authenticated' && session?.user?.username) {
+      toast.success(`Welcome, ${session.user.username}!`, {
+        duration: 4500,
+        position: 'top-center',
+        icon: '👋',
+      });
     }
-  }, [session]);
-
-  useEffect(() => {
-    if (localStorage.getItem('loginMethod') === 'google') {
-      if (!isLoading && session) {
-        toast.success(`Welcome, ${session?.user.username}!`, {
-          duration: 4500,
-          position: 'top-center',
-          icon: '👋',
-        });
-        router.push('/');
-      }
-    }
-  }, [session, isLoading, router]);
+  }, [session, status]);
 
   return (
     <MainLayout>
       <a href='/' className='mb-6 flex items-center justify-center'>
         <img src={maams.src} className='h-386 w-386' alt='Maams Auth' loading='lazy' />
       </a>
-
-       <div className='flex flex-col items-center justify-center'>
-         <h1 className='text-2xl font-bold'>Masuk ke Akun</h1>
-       </div>
-
-       <div className='flex flex-col items-center justify-center mt-5'>
-         <button 
-         onClick={handleGoogleLogin}
-         className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-white md:border-0 md:p-2 md:rounded-xl md:w-80'
-         >
-           <img src={google.src} alt='Google Logo' className='w-10 h-10' loading='lazy' />{' '}
-           Masuk dengan Google
-         </button>
-
-         <div className='flex flex-col items-center justify-center mt-4'>
-         <button 
-         onClick={handleSSOLogin}
-         className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-white md:border-0 md:p-2 md:rounded-xl md:w-80'>
-           <img src={ui.src} alt='UI Logo' className='w-10 h-10' loading='lazy' />{' '}
-             Masuk dengan SSO UI
-           </button>
-         </div>
-       </div>
-     </MainLayout>
+      <div className='flex flex-col items-center justify-center'>
+        <h1 className='text-2xl font-bold'>Masuk ke Akun</h1>
+      </div>
+      <div className='flex flex-col items-center justify-center mt-5'>
+        <button
+          onClick={handleGoogleLogin}
+          disabled={isLoading}
+          className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-white md:border-0 md:p-2 md:rounded-xl md:w-80'
+        >
+          <img src={google.src} alt='Google Logo' className='w-10 h-10' loading='lazy' />{' '}
+          Masuk dengan Google
+        </button>
+        <div className='flex flex-col items-center justify-center mt-4'>
+          <button
+            onClick={handleSSOLogin}
+            disabled={isLoading}
+            className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-white md:border-0 md:p-2 md:rounded-xl md:w-80'>
+            <img src={ui.src} alt='UI Logo' className='w-10 h-10' loading='lazy' />{' '}
+            Masuk dengan SSO UI
+          </button>
+        </div>
+      </div>
+    </MainLayout>
   );
 };
 

@@ -7,13 +7,12 @@ import { useRouter } from 'next/router';
 import { CustomInput } from '@/components/customInput';
 import { Badge } from '@/badges';
 import ConfirmationPopup from '@/components/confirmationPopup';
-import { useAuthAxios } from '../../services/axiosInstance'; // Import the custom hook
+import axiosInstance from '../../services/axiosInstance'; // Import the updated axiosInstance
 import { useSession } from 'next-auth/react';
 
 const QuestionAddPage: React.FC = () => {
   const router = useRouter();
-  const { data: session } = useSession();
-  const authAxios = useAuthAxios(); 
+  const { data: session, status } = useSession();
   
   const [mode, setMode] = useState<Mode>(Mode.pribadi);
   const [title, setTitle] = useState<string>('');
@@ -101,10 +100,9 @@ const QuestionAddPage: React.FC = () => {
 
     try {
       let response;
-      
       if (session) {
         console.log('YES KEPANGGIL');
-        response = await authAxios.post('/question/submit/', payload);
+        response = await axiosInstance.post('/question/submit/', payload);
       } else {
         console.log('YAH GA KEPANGGIL');
         const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/submit/`, {

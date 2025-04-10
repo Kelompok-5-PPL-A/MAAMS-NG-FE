@@ -1,47 +1,62 @@
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useSession } from "next-auth/react";
-
 
 const Callback = () => {
   const router = useRouter();
   const { ticket } = router.query;
+  const { data: session, status } = useSession();
+  const [isVerifying, setIsVerifying] = useState(true);
 
+  // Handle SSO ticket verification
   useEffect(() => {
     const verifyTicket = async () => {
       if (!ticket) return;
-
+      
       try {
-        await signIn('sso', {
-          ticket: ticket,
-          redirect: false, 
+        const result = await signIn('sso', {
+          ticket: ticket.toString(),
+          redirect: false,
         });
-
-        const { data: session } = useSession();
-
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("loginMethod", "sso");
-
-        toast.success(`Welcome, ${session?.user.username}!`, {
-          duration: 4500,
-          position: 'top-center',
-          icon: '👋',
-        });
-
-        router.push('/');
+        
+        if (result?.error) {
+          throw new Error(result.error);
+        }
+        
+        setIsVerifying(false);
       } catch (err) {
-        console.error(err);
+        console.error('SSO verification error:', err);
         toast.error('Gagal login lewat SSO UI');
         router.push('/login');
       }
     };
 
-    verifyTicket();
-  }, [ticket]);
+    if (ticket) {
+      verifyTicket();
+    }
+  }, [ticket, router]);
 
-  return <p className="text-center mt-10">Memverifikasi login dari SSO UI...</p>;
+  // Handle redirect after successful authentication
+  useEffect(() => {
+    if (!isVerifying && status === 'authenticated' && session) {
+      toast.success(`Welcome, ${session.user.username || 'User'}!`, {
+        duration: 4500,
+        position: 'top-center',
+        icon: '👋',
+      });
+      router.push('/');
+    }
+  }, [session, status, isVerifying, router]);
+
+  // Show loading message
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+      <p className="text-center text-lg">Memverifikasi login dari SSO UI...</p>
+      <div className="mt-4 animate-spin w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full"></div>
+    </div>
+  );
 };
 
 export default Callback;
