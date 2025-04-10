@@ -13,8 +13,8 @@ declare module "next-auth" {
     angkatan: string
     date_joined?: string
     is_active: boolean
-    access_token?: string
-    refresh_token?: string
+    accessToken?: string
+    refreshToken?: string
     is_new_user?: boolean;
     provider?: string;
   }
@@ -31,12 +31,12 @@ declare module "next-auth" {
       npm: string
       angkatan: string
       is_active: boolean
-      access_token?: string
-      refresh_token?: string
+      accessToken?: string
+      refreshToken?: string
     } & DefaultSession["user"]
 
-    access_token?: string
-    refresh_token?: string
+    accessToken?: string
+    refreshToken?: string
     provider?: string
     error?: string
   }
@@ -54,8 +54,8 @@ declare module "next-auth/jwt" {
     npm: string
     angkatan: string
     is_active: boolean
-    access_token?: string
-    refresh_token?: string
+    accessToken?: string
+    refreshToken?: string
     provider?: string
   }
 }

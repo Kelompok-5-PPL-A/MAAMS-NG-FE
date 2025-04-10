@@ -101,13 +101,12 @@ const QuestionAddPage: React.FC = () => {
       tags: tags
     };
 
-    if (session?.access_token){
+    if (session?.accessToken){
       payload = {
         title: title,
         question: question,
         mode: mode,
         tags: tags,
-        user: session?.user as UserDataProps
       };
     }
 

@@ -3,7 +3,8 @@ import { getSession, signOut } from 'next-auth/react'
 import toast from 'react-hot-toast'
 
 const axiosInstance = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}`
+  baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}`,
+  
 })
 
 axiosInstance.interceptors.request.use(
@@ -11,8 +12,8 @@ axiosInstance.interceptors.request.use(
     // Get session from NextAuth instead of localStorage
     const session = await getSession()
     
-    if (session?.access_token) {
-      if (config.headers) config.headers.authorization = `Bearer ${session.access_token}`
+    if (session?.accessToken) {
+      if (config.headers) config.headers.authorization = `Bearer ${session.accessToken}`
     }
     
     return config
