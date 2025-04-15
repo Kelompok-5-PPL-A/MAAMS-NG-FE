@@ -10,12 +10,11 @@ const Navbar = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Update user data when session changes
   useEffect(() => {
     if (session?.user) {
       setUserData(session.user as UserDataProps);
     }
-  }, [session]);
+  }, [session?.accessToken]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);

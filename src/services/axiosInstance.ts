@@ -37,18 +37,36 @@ axiosInstance.interceptors.response.use(
         
         // Sign out user from NextAuth
         await signOut({ redirect: false })
+
+        const isSsoUser = localStorage.getItem('loginMethod') === 'sso'
+
+        localStorage.clear()
+
+        if (isSsoUser) {
+          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
+          window.location.href = casLogoutURL;
+        } else {
+          window.location.href = '/login'
+        }
+       
         
-        // Redirect to login page
-        window.location.href = '/login'
       } catch (refreshError) {
         console.error('Session refresh error:', refreshError)
         toast.error('Terjadi kesalahan. Silakan login kembali')
         
         // Sign out user from NextAuth
         await signOut({ redirect: false })
-        
-        // Redirect to login page
-        window.location.href = '/login'
+
+        const isSsoUser = localStorage.getItem('loginMethod') === 'sso'
+
+        localStorage.clear()
+
+        if (isSsoUser) {
+          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
+          window.location.href = casLogoutURL;
+        } else {
+          window.location.href = '/login'
+        }
       }
     }
     

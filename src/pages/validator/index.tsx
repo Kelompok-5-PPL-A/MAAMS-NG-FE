@@ -9,7 +9,6 @@ import { Badge } from '@/badges';
 import ConfirmationPopup from '@/components/confirmationPopup';
 import axiosInstance from '../../services/axiosInstance'; // Import the updated axiosInstance
 import { useSession } from 'next-auth/react';
-import { UserDataProps } from '@/components/types/userData';
 
 const QuestionAddPage: React.FC = () => {
   const router = useRouter();
@@ -113,11 +112,8 @@ const QuestionAddPage: React.FC = () => {
     try {
       let response;
       if (session) {
-        console.log('YES KEPANGGIL');
-        console.log(payload)
         response = await axiosInstance.post('/question/submit/', payload);
       } else {
-        console.log('YAH GA KEPANGGIL');
         const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/submit/`, {
           method: 'POST',
           headers: {
