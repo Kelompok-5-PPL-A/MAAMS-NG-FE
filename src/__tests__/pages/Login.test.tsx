@@ -39,24 +39,6 @@ jest.mock('next-auth/react', () => {
   }
 })
 
-jest.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({
-    user: {
-      name: 'Test User',
-      access_token: 'test-token',
-      refresh_token: 'refresh-token',
-      first_name: 'Test',
-    },
-    session: {
-      user: { name: 'Test User' },
-      access_token: 'access-token',
-      refresh_token: 'refresh-token',
-    },
-    isAuthenticated: true,
-    isLoading: false,
-  }),
-}))
-
 // Mock localStorage
 const mockLocalStorage = {
   getItem: jest.fn(),

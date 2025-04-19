@@ -5,7 +5,6 @@ import { ValidatorData } from '../../components/types/validatorQuestionFormProps
 import Mode from '../../constants/mode'
 import { formatTimestamp } from '../../utils/dateFormatter'
 import toast from 'react-hot-toast'
-import { useAuth } from '@/hooks/useAuth'
 import { useSession } from 'next-auth/react'
 
 const defaultValidatorData: ValidatorData = {
