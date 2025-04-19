@@ -4,79 +4,54 @@ import '@testing-library/jest-dom'
 import RecentAnalysis from '../../components/recentAnalysis'
 import axiosInstance from '../../services/axiosInstance'
 import toast from 'react-hot-toast'
-import { SessionProvider } from 'next-auth/react'
-import { useAuth } from '@/hooks/useAuth'
+import { SessionProvider, useSession } from 'next-auth/react'
 
-// Mock module
+// Mock modules
 jest.mock('../../services/axiosInstance')
 jest.mock('react-hot-toast')
-jest.mock('@/hooks/useAuth')
+jest.mock('next-auth/react', () => ({
+  ...jest.requireActual('next-auth/react'),
+  useSession: jest.fn(),
+}))
 
 const mockedAxios = axiosInstance as jest.Mocked<typeof axiosInstance>
 const mockedToast = toast as jest.Mocked<typeof toast>
-const mockedUseAuth = useAuth as jest.Mock
-
-// Mock localStorage
-class LocalStorageMock {
-  store: { [key: string]: string } = {}
-  length = 0
-
-  getItem(key: string) {
-    return this.store[key] || null
-  }
-
-  setItem(key: string, value: string) {
-    this.store[key] = value.toString()
-    this.length = Object.keys(this.store).length
-  }
-
-  removeItem(key: string) {
-    delete this.store[key]
-    this.length = Object.keys(this.store).length
-  }
-
-  clear() {
-    this.store = {}
-    this.length = 0
-  }
-
-  key(index: number) {
-    return Object.keys(this.store)[index] || null
-  }
-}
-global.localStorage = new LocalStorageMock()
+const mockedUseSession = useSession as jest.Mock
 
 // Helper to render with mocked session
-const mockSession = {
-  user: { name: 'Mock User', email: 'mock@example.com' },
-  expires: '2099-01-01T00:00:00Z',
-}
-const renderWithSession = (ui: React.ReactElement, session: any = mockSession) => {
+const renderWithSession = (ui: React.ReactElement, sessionData: any = null) => {
   return render(
-    <SessionProvider session={session}>
+    <SessionProvider session={sessionData}>
       {ui}
     </SessionProvider>
   )
 }
 
 describe('RecentAnalysis component', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks()
-    localStorage.clear()
   })
 
-  it('renders correctly when user is logged in via Google login', async () => {
-    localStorage.setItem('isSSOLoggedIn', 'false')
-    mockedUseAuth.mockReturnValue({ isAuthenticated: true, isLoading: false })
+  it('renders correctly with recent analysis data', async () => {
+    // Mock session data
+    mockedUseSession.mockReturnValue({
+      data: {
+        accessToken: 'mock-token',
+        user: { name: 'Test User' }
+      },
+      status: 'authenticated'
+    })
 
+    // Mock API response
     mockedAxios.get.mockResolvedValue({
       data: {
-        id: 'mockId',
-        title: 'mock',
-        mode: 'mock',
-        question: 'mock',
-        created_at: 'mock',
-        username: 'mock'
+        id: '123',
+        title: 'Test Analysis',
+        question: 'Test question content',
+        tags: ['tag1', 'tag2'],
+        mode: 'pribadi',
+        created_at: '2023-01-01T00:00:00Z',
+        username: 'testuser'
       }
     })
 
@@ -84,36 +59,19 @@ describe('RecentAnalysis component', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/analisis terbaru/i)).toBeInTheDocument()
+      expect(screen.getByText(/Test Analysis/)).toBeInTheDocument()
     })
   })
 
-  it('renders correctly when user is logged in via SSO (dummy)', async () => {
-    localStorage.setItem('isSSOLoggedIn', 'true')
-    mockedUseAuth.mockReturnValue({ isAuthenticated: false, isLoading: false })
-
-    mockedAxios.get.mockResolvedValue({
+  it('shows error toast when API call fails', async () => {
+    mockedUseSession.mockReturnValue({
       data: {
-        id: 'mockId',
-        title: 'mock',
-        mode: 'mock',
-        question: 'mock',
-        created_at: 'mock',
-        username: 'mock'
-      }
+        accessToken: 'mock-token'
+      },
+      status: 'authenticated'
     })
 
-    renderWithSession(<RecentAnalysis />)
-
-    await waitFor(() => {
-      expect(screen.getByText(/analisis terbaru/i)).toBeInTheDocument()
-    })
-  })
-
-  it('shows toast when failed to get data', async () => {
-    localStorage.setItem('isSSOLoggedIn', 'false')
-    mockedUseAuth.mockReturnValue({ isAuthenticated: true, isLoading: false })
-
-    mockedAxios.get.mockRejectedValueOnce(new Error('Fetch error'))
+    mockedAxios.get.mockRejectedValue(new Error('API Error'))
 
     renderWithSession(<RecentAnalysis />)
 
@@ -122,13 +80,41 @@ describe('RecentAnalysis component', () => {
     })
   })
 
-  it('does not render when user is not logged in (normal or SSO)', () => {
-    localStorage.setItem('isSSOLoggedIn', 'false')
-    mockedUseAuth.mockReturnValue({ isAuthenticated: false, isLoading: false })
+  it('does not render when user is not authenticated', () => {
+    mockedUseSession.mockReturnValue({
+      data: null,
+      status: 'unauthenticated'
+    })
 
     renderWithSession(<RecentAnalysis />)
 
-    const element = screen.queryByText(/analisis terbaru/i)
-    expect(element).toBeNull()
+    expect(screen.queryByText(/analisis terbaru/i)).not.toBeInTheDocument()
+  })
+
+  it('does not render when there is no recent data', async () => {
+    mockedUseSession.mockReturnValue({
+      data: {
+        accessToken: 'mock-token'
+      },
+      status: 'authenticated'
+    })
+
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        id: '',
+        title: '',
+        question: '',
+        tags: [],
+        mode: '',
+        created_at: '',
+        username: ''
+      }
+    })
+
+    renderWithSession(<RecentAnalysis />)
+
+    await waitFor(() => {
+      expect(screen.queryByText(/analisis terbaru/i)).not.toBeInTheDocument()
+    })
   })
 })
