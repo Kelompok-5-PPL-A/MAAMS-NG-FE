@@ -1,14 +1,7 @@
 import React, { useState } from 'react'
 import { AutoComplete, AutoCompleteChangeEvent, AutoCompleteCompleteEvent } from 'primereact/autocomplete'
 import SearchFilter from '../searchFilter'
-
-interface UserSearchBarProps {
-  keyword: string
-  suggestions: string[]
-  onSelect: (value: string) => void
-  onChange: (value: string) => void
-  onSubmit: () => void
-}
+import { UserSearchBarProps } from './types/userSearchBarProps'
 
 export const SearchBar: React.FC<UserSearchBarProps> = ({
   keyword,
