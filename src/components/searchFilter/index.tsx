@@ -2,8 +2,8 @@ import React from 'react'
 import dynamic from 'next/dynamic'
 import { SearchFilterProps } from '../../components/types/searchFilterProps'
 
-const NoSSRSearchFilter: React.FC<SearchFilterProps> = ({ updateFilter }) => {
-  const filterValues = ['Semua', 'Judul', 'Topik']
+const NoSSRSearchFilter: React.FC<SearchFilterProps> = ({ updateFilter, isAdmin, publicAnalyses }) => {
+  const filterValues = ['Semua', 'Pengguna', 'Judul', 'Topik']
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFilter = e.target.value
@@ -19,11 +19,18 @@ const NoSSRSearchFilter: React.FC<SearchFilterProps> = ({ updateFilter }) => {
           className='rounded-bl-[10px] rounded-tl-[10px] px-4 py-3.5 flex bg-inherit justify-center items-center mr-3'
           onChange={handleChange}
         >
-          {filterValues.map((value, index) => (
-            <option className='bg-white' key={index} value={value}>
-              {value}
-            </option>
-          ))}
+          {filterValues.map((value, index) => {
+            if (value == 'Pengguna') {
+              if (!isAdmin || !publicAnalyses) {
+                return null
+              }
+            }
+            return (
+              <option className='bg-white' key={index} value={value}>
+                {value}
+              </option>
+            )
+          })}
         </select>
       </div>
       <div data-testid='suggestion-list'></div>
