@@ -28,4 +28,24 @@ describe('User version - Tests for search filter component', () => {
 
     expect(mockUpdateFilter).toHaveBeenCalledWith('Judul')
   })
+
+  test('renders correctly without Pengguna option when isAdmin is false', async () => {
+    const { getByRole, queryByText } = render(
+      <NoSSRSearchFilter isAdmin={false} updateFilter={mockUpdateFilter} publicAnalyses={true} />
+    )
+    const selectElement = await waitFor(() => getByRole('combobox'))
+    expect(selectElement).toBeInTheDocument()
+
+    expect(queryByText('Pengguna')).toBeNull()
+  })
+
+  test('renders correctly without Pengguna option when publicAnalyses is false', async () => {
+    const { getByRole, queryByText } = render(
+      <NoSSRSearchFilter isAdmin={true} updateFilter={mockUpdateFilter} publicAnalyses={false} />
+    )
+    const selectElement = await waitFor(() => getByRole('combobox'))
+    expect(selectElement).toBeInTheDocument()
+
+    expect(queryByText('Pengguna')).toBeNull()
+  })
 })
