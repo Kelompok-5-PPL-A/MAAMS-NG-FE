@@ -111,13 +111,11 @@ const PastWeek: React.FC = () => {
           Riwayat Analisis
         </h1>
         <SearchBar
-          isAdmin={isAdmin}
-          publicAnalyses={false}
-          keyword={keyword}
-          suggestions={suggestion}
-          onSelect={handleFilterSelect}
-          onSubmit={handleSubmit}
-          onChange={(value) => setKeyword(value)}
+            keyword={keyword}
+            suggestions={suggestion}
+            onSelect={handleFilterSelect}
+            onChange={(value) => setKeyword(value)}
+            onSubmit={handleSubmit}
         />
         <Section title='Lebih lama' items={older} showModeButton={true} showDeleteButton={true} keyword='' />
         {totalPages >= 1 && (
