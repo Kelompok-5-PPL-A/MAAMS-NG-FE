@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../services/axiosInstance'
 import { ValidatorData } from '../../components/types/validatorQuestionFormProps'
-import Mode from '../../constants/mode'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
@@ -20,17 +19,17 @@ const History: React.FC = () => {
   const [suggestion, setSuggestion] = useState<string[]>([])
   const [filterData, setFilterData] = useState<any>()
 
-  const fetchData = async (additionalParam: string) => {
+  const fetchData = async (queryParams: string) => {
     try {
       const [lastWeekRes, olderRes, filterRes] = await Promise.all([
-        axiosInstance.get(`/question/last_week/${additionalParam}`),
-        axiosInstance.get(`/question/older/${additionalParam}`),
+        axiosInstance.get(`/question/last_week/${queryParams}`),
+        axiosInstance.get(`/question/older/${queryParams}`),
         axiosInstance.get(`/question/filter/`),
       ])
       setLastWeek(lastWeekRes.data.processedData)
       setOlder(olderRes.data.processedData)
       setFilterData(filterRes.data)
-    } catch (error: any) {
+    } catch (error) {
       toast.error('Terjadi kesalahan saat mengambil data')
       router.push('/')
     }
@@ -64,24 +63,28 @@ const History: React.FC = () => {
     })
   }
 
-  const isAdmin = typeof window !== 'undefined'
-    ? JSON.parse(window.localStorage.getItem('userData')!)?.is_staff
-    : false
+  if (!session) {
+    return (
+      <MainLayout marginOverride='lg:mx-10 mx-0'>
+        <div className='min-h-screen flex items-center justify-center'>
+          <p className='text-lg font-medium'>Mohon login terlebih dahulu untuk melihat riwayat.</p>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout marginOverride='lg:mx-10 mx-0'>
       <div className='min-h-screen lg:m-12'>
-        <h1 className='text-2xl font-bold mb-4 text-center mt-7 mb-7'>
+        <h1 className='text-2xl font-bold text-center mt-7 mb-7'>
           Riwayat Analisis
         </h1>
         <SearchBar
-          isAdmin={isAdmin}
-          publicAnalyses={false}
           keyword={keyword}
           suggestions={suggestion}
           onSelect={handleFilterSelect}
-          onSubmit={handleSubmit}
           onChange={(value) => setKeyword(value)}
+          onSubmit={handleSubmit}
         />
         {lastweek.length > 0 && (
           <Section
