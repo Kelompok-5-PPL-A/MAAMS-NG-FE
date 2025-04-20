@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react'
 import MainLayout from '../../../layout/MainLayout'
 import Section from '../../../components/sectionHistory'
 import Pagination from '../../../components/pagination'
-import { Item } from 'components/types/historyPage'
+import { Item } from '../../../components/types/historyPage'
 import { SearchBar } from '../../../components/searchBar'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
 import axiosInstance from '../../../services/axiosInstance'
 import { formatTimestamp } from '../../../utils/dateFormatter'
-import { FilterData } from 'components/types/filterData'
+import { FilterData } from '../../../components/types/filterData'
 
 const PastWeek: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1)
