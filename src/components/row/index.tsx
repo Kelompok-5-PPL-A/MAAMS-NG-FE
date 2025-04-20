@@ -10,7 +10,9 @@ export const Row: React.FC<RowProps> = ({
   causeStatuses,
   disabledCells,
   onCauseAndStatusChanges,
-  feedbacks
+  feedbacks,
+  activeColumns = [0, 1, 2],
+  currentWorkingColumn = 0
 }) => {
   const alphabet = 'ABCDE'
   const [localCauses, setLocalCauses] = useState<string[]>(causes)
@@ -35,6 +37,25 @@ export const Row: React.FC<RowProps> = ({
     onCauseAndStatusChanges(causeIndex, newValue, newStatus)
   }
 
+  // Helper function untuk menentukan apakah sel harus ditampilkan
+  const shouldShowCell = (index: number): boolean => {
+    // Baris 1: Selalu tampilkan 3 kolom pertama
+    if (rowNumber === 1 && index < 3) {
+      return true;
+    }
+    
+    // Baris 2+: Hanya tampilkan sel jika:
+    // 1. Kolom ini sedang dikerjakan (currentWorkingColumn)
+    // 2. Kolom ini ada dalam activeColumns
+    // 3. Kolom sebelumnya memiliki akar masalah
+    if (rowNumber > 1) {
+      return index === currentWorkingColumn && 
+             activeColumns.includes(index);
+    }
+    
+    return false;
+  }
+
   let gridClass = ''
   if (cols === 3) {
     gridClass = 'grid grid-cols-3 gap-0 items-stretch my-8'
@@ -48,19 +69,46 @@ export const Row: React.FC<RowProps> = ({
     <div>
       {cols >= 3 && cols <= 5 && (
         <div className={gridClass} data-testid='row-container'>
-          {causes.map((cause, index) => (
-            <div data-testid='cell' key={`${alphabet[index]}${rowNumber}`}>
-              <Cell
-                cellName={`${alphabet[index]}${rowNumber}`}
-                cause={cause}
-                onChange={(newValue) => handleLocalCauseChange(index, newValue, localCauseStatuses[index])}
-                causeStatus={causeStatuses[index]}
-                disabled={disabledCells[index]}
-                placeholder={disabledCells[index] ? '' : 'Isi sebab..'}
-                feedback={feedbacks[index]}
-              />
-            </div>
-          ))}
+          {Array.from({ length: cols }).map((_, index) => {
+            // Apakah sel ini harus ditampilkan?
+            const isVisible = (rowNumber === 1 && index < 3) || shouldShowCell(index);
+            
+            if (isVisible) {
+              // Tampilkan sel biasa jika visible
+              return (
+                <div data-testid='cell' key={`${alphabet[index]}${rowNumber}`}>
+                  <Cell
+                    cellName={`${alphabet[index]}${rowNumber}`}
+                    cause={index < causes.length ? causes[index] : ''}
+                    onChange={(newValue) => handleLocalCauseChange(index, newValue, causeStatuses[index])}
+                    causeStatus={index < causeStatuses.length ? causeStatuses[index] : CauseStatus.Unchecked}
+                    disabled={index < disabledCells.length ? disabledCells[index] : true}
+                    placeholder={index < disabledCells.length && !disabledCells[index] ? 'Isi sebab..' : ''}
+                    feedback={index < feedbacks.length ? feedbacks[index] : ''}
+                  />
+                </div>
+              );
+            } else {
+              // Tampilkan sel invisible untuk mempertahankan layout grid
+              return (
+                <div 
+                  data-testid='empty-cell' 
+                  key={`empty-${alphabet[index]}${rowNumber}`}
+                  className="invisible" // Sel transparan untuk layout
+                >
+                  <Cell
+                    cellName={`${alphabet[index]}${rowNumber}`}
+                    cause=""
+                    onChange={() => {}}
+                    causeStatus={CauseStatus.Unchecked}
+                    disabled={true}
+                    placeholder=""
+                    feedback=""
+                  />
+                </div>
+              );
+            }
+          })}
         </div>
       )}
     </div>
