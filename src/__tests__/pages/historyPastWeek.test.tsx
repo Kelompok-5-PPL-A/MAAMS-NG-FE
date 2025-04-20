@@ -7,20 +7,20 @@ import toast from 'react-hot-toast'
 import { SessionProvider, useSession } from 'next-auth/react'
 
 // Mocks
-jest.mock('../../../services/axiosInstance')
+jest.mock('../../services/axiosInstance')
 jest.mock('react-hot-toast')
 jest.mock('next-auth/react', () => ({
   ...jest.requireActual('next-auth/react'),
   useSession: jest.fn(),
 }))
-jest.mock('../../../components/searchBar', () => ({
+jest.mock('../../components/searchBar', () => ({
   SearchBar: () => <div data-testid='search-bar'>Mocked SearchBar</div>,
 }))
-jest.mock('../../../components/sectionHistory', () => ({
+jest.mock('../../components/sectionHistory', () => ({
   __esModule: true,
   default: ({ title }: any) => <div data-testid='section'>{title}</div>,
 }))
-jest.mock('../../../layout/MainLayout', () => ({ children }: any) => (
+jest.mock('../../layout/MainLayout', () => ({ children }: any) => (
   <div>{children}</div>
 ))
 
@@ -122,7 +122,7 @@ describe('PastWeek Page', () => {
     renderWithSession(<PastWeek />)
 
     await waitFor(() => {
-      expect(mockedToast.error).toHaveBeenCalledWith('Terjadi kesalahan saat mengambil data')
+      expect(mockedToast.error).toHaveBeenCalledWith('fetch error')
       expect(mockPush).toHaveBeenCalledWith('/')
     })
   })

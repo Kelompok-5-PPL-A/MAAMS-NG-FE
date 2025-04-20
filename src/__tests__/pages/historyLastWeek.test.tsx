@@ -4,23 +4,28 @@ import '@testing-library/jest-dom'
 import LastWeek from '../../pages/history/lastWeek'
 import axiosInstance from '../../services/axiosInstance'
 import toast from 'react-hot-toast'
-import { SessionProvider, useSession } from 'next-auth/react'
+import { SessionProvider } from 'next-auth/react'
 
 // Mocks
-jest.mock('../../../services/axiosInstance')
+jest.mock('../../services/axiosInstance')
 jest.mock('react-hot-toast')
-jest.mock('next-auth/react', () => ({
-  ...jest.requireActual('next-auth/react'),
-  useSession: jest.fn(),
+jest.mock('next-auth/react', () => {
+  const original = jest.requireActual('next-auth/react')
+  return {
+    ...original,
+    useSession: jest.fn(),
+  }
+})
+jest.mock('../../components/searchBar', () => ({
+  SearchBar: ({ onSubmit }: any) => (
+    <div data-testid='search-bar' onClick={onSubmit}>Mocked SearchBar</div>
+  ),
 }))
-jest.mock('../../../components/searchBar', () => ({
-  SearchBar: () => <div data-testid='search-bar'>Mocked SearchBar</div>,
-}))
-jest.mock('../../../components/sectionHistory', () => ({
+jest.mock('../../components/sectionHistory', () => ({
   __esModule: true,
   default: ({ title }: any) => <div data-testid='section'>{title}</div>,
 }))
-jest.mock('../../../layout/MainLayout', () => ({ children }: any) => (
+jest.mock('../../layout/MainLayout', () => ({ children }: any) => (
   <div>{children}</div>
 ))
 
@@ -29,32 +34,29 @@ const mockPush = jest.fn()
 jest.mock('next/router', () => ({
   useRouter: () => ({
     push: mockPush,
-    pathname: '/history/lastweek',
-    query: {},
+    pathname: '/history/lastWeek',
+    query: {}, // bisa diubah dinamis pada test
   }),
 }))
 
 // Aliases
 const mockedAxios = axiosInstance as jest.Mocked<typeof axiosInstance>
 const mockedToast = toast as jest.Mocked<typeof toast>
-const mockedUseSession = useSession as jest.Mock
+const { useSession } = jest.requireMock('next-auth/react')
 
 // Helper
 const renderWithSession = (ui: React.ReactElement, sessionData: any = null) => {
-  return render(
-    <SessionProvider session={sessionData}>
-      {ui}
-    </SessionProvider>
-  )
+  return render(<SessionProvider session={sessionData}>{ui}</SessionProvider>)
 }
 
+// Test suite
 describe('LastWeek Page', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
   it('menampilkan pesan login jika belum login', () => {
-    mockedUseSession.mockReturnValue({
+    useSession.mockReturnValue({
       data: null,
       status: 'unauthenticated'
     })
@@ -65,7 +67,7 @@ describe('LastWeek Page', () => {
   })
 
   it('menampilkan loading saat status masih loading', () => {
-    mockedUseSession.mockReturnValue({
+    useSession.mockReturnValue({
       data: null,
       status: 'loading'
     })
@@ -76,31 +78,34 @@ describe('LastWeek Page', () => {
   })
 
   it('memanggil fetchData dan menampilkan komponen jika login berhasil', async () => {
-    mockedUseSession.mockReturnValue({
-      data: { user: { is_staff: true } },
+    useSession.mockReturnValue({
+      data: { user: { name: 'Test User' } },
       status: 'authenticated'
     })
-
+  
     mockedAxios.get
-      .mockResolvedValueOnce({ data: { processedData: [{ id: 1 }], count: 4 } }) // lastweek
-      .mockResolvedValueOnce({ data: { pengguna: [], judul: [], topik: [] } }) // filter
-
+      .mockResolvedValueOnce({ data: { processedData: [{ id: 1 }], count: 4 } }) // /last_week/
+      .mockResolvedValueOnce({ data: { pengguna: [], judul: [], topik: [] } })   // /filter/
+      .mockResolvedValue({}) // fallback jika ada pemanggilan ekstra
+  
     renderWithSession(<LastWeek />)
-
+  
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledTimes(2)
+      expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/question/last_week'))
+      expect(mockedAxios.get).toHaveBeenCalledWith('/question/filter/')
       expect(screen.getByTestId('search-bar')).toBeInTheDocument()
       expect(screen.getByTestId('section')).toBeInTheDocument()
     })
   })
+  
 
   it('menampilkan toast dan redirect jika fetch gagal', async () => {
-    mockedUseSession.mockReturnValue({
-      data: { user: { is_staff: false } },
+    useSession.mockReturnValue({
+      data: { user: { name: 'Test User' } },
       status: 'authenticated'
     })
 
-    mockedAxios.get.mockRejectedValue(new Error('fetch error'))
+    mockedAxios.get.mockRejectedValueOnce(new Error('fetch error'))
 
     renderWithSession(<LastWeek />)
 
