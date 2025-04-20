@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { AutoComplete, AutoCompleteChangeEvent, AutoCompleteCompleteEvent } from 'primereact/autocomplete'
 import SearchFilter from '../searchFilter'
-import { UserSearchBarProps } from './types/userSearchBarProps'
+import { UserSearchBarProps } from './types/searchBar'
 
 export const SearchBar: React.FC<UserSearchBarProps> = ({
   keyword,
