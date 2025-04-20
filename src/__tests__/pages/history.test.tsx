@@ -1,13 +1,12 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import History from '../../pages/history'
-import axiosInstance from '../../services/axiosInstance'
+import History from '@/components/history'
+import axiosInstance from '@/services/axiosInstance'
 import toast from 'react-hot-toast'
 import { SessionProvider, useSession } from 'next-auth/react'
 
-// Mocks
-jest.mock('../../services/axiosInstance')
+jest.mock('@/services/axiosInstance')
 jest.mock('react-hot-toast')
 jest.mock('next-auth/react', () => ({
   ...jest.requireActual('next-auth/react'),
@@ -26,53 +25,89 @@ const renderWithSession = (ui: React.ReactElement, sessionData: any = null) => {
   )
 }
 
-describe('History Component', () => {
+describe('History component', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('renders and fetches history data', async () => {
-    mockedUseSession.mockReturnValue({
-      data: { accessToken: 'mock-token', user: { name: 'Test User' } },
-      status: 'authenticated',
-    })
+  const mockSession = {
+    data: {
+      accessToken: 'mock-token',
+      user: { name: 'Test User' }
+    },
+    status: 'authenticated'
+  }
 
-    mockedAxios.get.mockResolvedValueOnce({
+  it('renders with history data and search bar', async () => {
+    mockedUseSession.mockReturnValue(mockSession)
+
+    mockedAxios.get.mockResolvedValue({
       data: {
-        count: 1,
-        processedData: [
+        pribadi: [
           {
             id: '1',
-            title: 'Test Question',
-            displayed_title: 'Test Question',
-            timestamp: '2023-01-01T00:00:00Z',
-            mode: 'public',
-            user: 'testuser',
+            title: 'History 1',
+            displayed_title: 'History 1',
             tags: ['tag1'],
+            timestamp: '2023-01-01T00:00:00Z',
+            mode: 'pribadi',
+            user: 'user1'
           }
-        ]
+        ],
+        publik: []
       }
     })
 
     renderWithSession(<History />)
 
     await waitFor(() => {
-      expect(screen.getByText('Test Question')).toBeInTheDocument()
+      expect(screen.getByText(/History 1/i)).toBeInTheDocument()
+      expect(screen.getByPlaceholderText(/cari analisis/i)).toBeInTheDocument()
     })
   })
 
-  it('shows toast error if API fails', async () => {
-    mockedUseSession.mockReturnValue({
-      data: { accessToken: 'mock-token', user: { name: 'Test User' } },
-      status: 'authenticated',
+  it('can search and show filtered result', async () => {
+    mockedUseSession.mockReturnValue(mockSession)
+
+    mockedAxios.get.mockResolvedValueOnce({
+      data: {
+        pribadi: [
+          {
+            id: '1',
+            title: 'Filtered History',
+            displayed_title: 'Filtered History',
+            tags: [],
+            timestamp: '2023-01-01T00:00:00Z',
+            mode: 'pribadi',
+            user: 'user1'
+          }
+        ],
+        publik: []
+      }
     })
 
-    mockedAxios.get.mockRejectedValueOnce(new Error('API Error'))
+    renderWithSession(<History />)
+
+    const input = screen.getByPlaceholderText(/cari analisis/i)
+    fireEvent.change(input, { target: { value: 'filtered' } })
+
+    const searchBtn = screen.getByTestId('search-button')
+    fireEvent.click(searchBtn)
+
+    await waitFor(() => {
+      expect(screen.getByText(/Filtered History/i)).toBeInTheDocument()
+    })
+  })
+
+  it('handles API error with toast', async () => {
+    mockedUseSession.mockReturnValue(mockSession)
+
+    mockedAxios.get.mockRejectedValue(new Error('API Error'))
 
     renderWithSession(<History />)
 
     await waitFor(() => {
-      expect(mockedToast.error).toHaveBeenCalled()
+      expect(mockedToast.error).toHaveBeenCalledWith('Gagal mengambil data riwayat')
     })
   })
 
@@ -81,37 +116,24 @@ describe('History Component', () => {
 
     renderWithSession(<History />)
 
-    expect(screen.queryByText(/history/i)).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText(/cari analisis/i)).not.toBeInTheDocument()
   })
 
-  it('handles search with keyword and filter', async () => {
-    mockedUseSession.mockReturnValue({
-      data: { accessToken: 'mock-token' },
-      status: 'authenticated',
-    })
+  it('shows empty state when no history found', async () => {
+    mockedUseSession.mockReturnValue(mockSession)
 
     mockedAxios.get.mockResolvedValue({
       data: {
-        count: 0,
-        processedData: []
+        pribadi: [],
+        publik: []
       }
     })
 
     renderWithSession(<History />)
 
-    // Tunggu komponen siap
-    await waitFor(() => screen.getByPlaceholderText('Cari analisis..'))
-
-    const input = screen.getByPlaceholderText('Cari analisis..')
-    const select = screen.getByRole('combobox')
-    const button = screen.getByTestId('search-button')
-
-    fireEvent.change(input, { target: { value: 'Keyword' } })
-    fireEvent.change(select, { target: { value: 'Pengguna' } })
-    fireEvent.click(button)
-
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalled()
+      expect(screen.queryByRole('pribadi')).not.toBeInTheDocument()
+      expect(screen.queryByRole('publik')).not.toBeInTheDocument()
     })
   })
 })
