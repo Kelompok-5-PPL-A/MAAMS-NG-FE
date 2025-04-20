@@ -8,6 +8,7 @@ import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { SearchBar } from '../../../components/searchBar'
 import { FilterData } from 'components/types/filterData'
+import axiosInstance from '../../../services/axiosInstance'
 
 const LastWeek: React.FC = () => {
   const { data: session, status } = useSession()
@@ -106,13 +107,11 @@ const LastWeek: React.FC = () => {
           Riwayat Analisis
         </h1>
         <SearchBar
-          isAdmin={session?.user?.is_staff ?? false}
-          publicAnalyses={false}
-          keyword={keyword}
-          suggestions={suggestion}
-          onSelect={handleFilterSelect}
-          onSubmit={handleSubmit}
-          onChange={(value) => setKeyword(value)}
+            keyword={keyword}
+            suggestions={suggestion}
+            onSelect={handleFilterSelect}
+            onChange={(value) => setKeyword(value)}
+            onSubmit={handleSubmit}
         />
         <Section
           title='7 hari terakhir'
