@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import LastWeek from '../../pages/history/lastWeek'
+import PastWeek from '../../pages/history/pastWeek'
 import axiosInstance from '../../services/axiosInstance'
 import toast from 'react-hot-toast'
 import { SessionProvider, useSession } from 'next-auth/react'
@@ -29,7 +29,7 @@ const mockPush = jest.fn()
 jest.mock('next/router', () => ({
   useRouter: () => ({
     push: mockPush,
-    pathname: '/history/lastweek',
+    pathname: '/history/pastweek',
     query: {},
   }),
 }))
@@ -48,7 +48,7 @@ const renderWithSession = (ui: React.ReactElement, sessionData: any = null) => {
   )
 }
 
-describe('LastWeek Page', () => {
+describe('PastWeek Page', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -59,7 +59,7 @@ describe('LastWeek Page', () => {
       status: 'unauthenticated'
     })
 
-    renderWithSession(<LastWeek />)
+    renderWithSession(<PastWeek />)
 
     expect(screen.getByText(/mohon login terlebih dahulu/i)).toBeInTheDocument()
   })
@@ -70,7 +70,7 @@ describe('LastWeek Page', () => {
       status: 'loading'
     })
 
-    renderWithSession(<LastWeek />)
+    renderWithSession(<PastWeek />)
 
     expect(screen.getByText(/memuat/i)).toBeInTheDocument()
   })
@@ -82,10 +82,27 @@ describe('LastWeek Page', () => {
     })
 
     mockedAxios.get
-      .mockResolvedValueOnce({ data: { processedData: [{ id: 1 }], count: 4 } }) // lastweek
-      .mockResolvedValueOnce({ data: { pengguna: [], judul: [], topik: [] } }) // filter
+      .mockResolvedValueOnce({
+        data: {
+          count: 4,
+          results: [
+            {
+              id: 1,
+              question: 'Apa itu UI?',
+              title: 'Apa itu UI?',
+              created_at: new Date().toISOString(),
+              mode: 'Manual',
+              username: 'admin',
+              tags: ['UI']
+            }
+          ]
+        }
+      }) // past_week/older
+      .mockResolvedValueOnce({
+        data: { pengguna: [], judul: [], topik: [] }
+      }) // filter
 
-    renderWithSession(<LastWeek />)
+    renderWithSession(<PastWeek />)
 
     await waitFor(() => {
       expect(mockedAxios.get).toHaveBeenCalledTimes(2)
@@ -102,7 +119,7 @@ describe('LastWeek Page', () => {
 
     mockedAxios.get.mockRejectedValue(new Error('fetch error'))
 
-    renderWithSession(<LastWeek />)
+    renderWithSession(<PastWeek />)
 
     await waitFor(() => {
       expect(mockedToast.error).toHaveBeenCalledWith('Terjadi kesalahan saat mengambil data')
