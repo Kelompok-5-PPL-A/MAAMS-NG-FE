@@ -1,6 +1,6 @@
 import React from 'react'
 import dynamic from 'next/dynamic'
-import { SearchFilterProps } from '../../components/types/searchFilterProps'
+import { SearchFilterProps } from '../../components/types/searchFilter'
 
 const NoSSRSearchFilter: React.FC<SearchFilterProps> = ({ updateFilter, isAdmin, publicAnalyses }) => {
   const filterValues = ['Semua', 'Pengguna', 'Judul', 'Topik']
