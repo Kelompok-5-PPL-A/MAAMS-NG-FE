@@ -37,31 +37,28 @@ export const Row: React.FC<RowProps> = ({
     onCauseAndStatusChanges(causeIndex, newValue, newStatus)
   }
 
-  // Determine if cell should be visible
   const shouldShowCell = (index: number): boolean => {
     // For row 1, always show columns A, B, C
     if (rowNumber === 1 && index < 3) {
       return true;
     }
     
-    // For rows > 1:
-    
-    // Always show cells that have content or feedback
-    if (causes[index]?.trim() !== '' || feedbacks[index]?.trim() !== '') {
+    if (causes[index]?.trim() !== '') {
       return true;
     }
-    
-    // For the current working column, always show cells that are in active rows
+
+    if (feedbacks[index]?.trim() !== '') {
+      return true;
+    }
+
     if (index === currentWorkingColumn && activeColumns.includes(index)) {
-      // Check if previous row in this column has a valid cause (for rows > 2)
+      if (rowNumber === 2) {
+        return true;
+      }
+
       if (rowNumber > 2) {
-        // We need to determine this from props since we don't have access to the full causes data
-        // This is a simplification; the real logic should respect the disabled state
         return !disabledCells[index];
       }
-      
-      // For row 2, we show it if column is active and working column
-      return true;
     }
     
     return false;
@@ -81,10 +78,11 @@ export const Row: React.FC<RowProps> = ({
       {cols >= 3 && cols <= 5 && (
         <div className={gridClass} data-testid='row-container'>
           {Array.from({ length: cols }).map((_, index) => {
-            // Check if this cell should be visible
             const isVisible = shouldShowCell(index);
             
             if (isVisible) {
+              const placeholder = index < disabledCells.length && !disabledCells[index] ? 'Isi sebab..' : '';
+              
               return (
                 <div data-testid='cell' key={`${alphabet[index]}${rowNumber}`}>
                   <Cell
@@ -93,18 +91,17 @@ export const Row: React.FC<RowProps> = ({
                     onChange={(newValue) => handleLocalCauseChange(index, newValue, causeStatuses[index])}
                     causeStatus={index < causeStatuses.length ? causeStatuses[index] : CauseStatus.Unchecked}
                     disabled={index < disabledCells.length ? disabledCells[index] : true}
-                    placeholder={index < disabledCells.length && !disabledCells[index] ? 'Isi sebab..' : ''}
+                    placeholder={placeholder}
                     feedback={index < feedbacks.length ? feedbacks[index] : ''}
                   />
                 </div>
               );
             } else {
-              // Create empty cell for layout (invisible)
               return (
                 <div 
                   data-testid='empty-cell' 
                   key={`empty-${alphabet[index]}${rowNumber}`}
-                  className="invisible" // Make cell transparent for layout
+                  className="invisible"
                 >
                   <Cell
                     cellName={`${alphabet[index]}${rowNumber}`}

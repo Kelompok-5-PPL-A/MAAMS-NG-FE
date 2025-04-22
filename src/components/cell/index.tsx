@@ -34,6 +34,10 @@ export const Cell: React.FC<CellProps> = ({
     let color = ''
     let feedbackText = feedback || ''
     
+    if (cause.trim() === '' && causeStatus === CauseStatus.Unchecked) {
+      return null;
+    }
+    
     switch (causeStatus) {
       case CauseStatus.CorrectRoot:
         emoji = '☑️'
@@ -53,7 +57,7 @@ export const Cell: React.FC<CellProps> = ({
       default:
         return null
     }
-
+  
     return (
       <div className='feedback-text mt-4' style={{ color: color }}>
         {emoji} {feedbackText}
