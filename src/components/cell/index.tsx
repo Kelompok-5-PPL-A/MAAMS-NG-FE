@@ -32,10 +32,15 @@ export const Cell: React.FC<CellProps> = ({
   const renderFeedback = () => {
     let emoji = ''
     let color = ''
+    let feedbackText = feedback || ''
+    
     switch (causeStatus) {
       case CauseStatus.CorrectRoot:
         emoji = '☑️'
         color = 'purple'
+        if (!feedbackText.includes('Akar Masalah')) {
+          feedbackText = `Akar Masalah Kolom ${cellName[0]} ditemukan: ${feedbackText}`
+        }
         break
       case CauseStatus.CorrectNotRoot:
         emoji = '✅'
@@ -46,13 +51,12 @@ export const Cell: React.FC<CellProps> = ({
         color = 'red'
         break
       default:
-        emoji = '\u00A0'
-        color = 'black'
+        return null
     }
 
     return (
       <div className='feedback-text mt-4' style={{ color: color }}>
-        {emoji} {feedback ?? ' '} {color === 'purple' && `Akar Masalah Kolom ${cellName[0]} ditemukan`}
+        {emoji} {feedbackText}
       </div>
     )
   }
@@ -69,7 +73,7 @@ export const Cell: React.FC<CellProps> = ({
         }}
         rows={1}
         maxLength={148}
-        className={`w-full h-22 text-xs resize-none flex pt-4 px-4 pb-16 items-center bg-[#ececec] border-solid border ${outlineClass} relative z-[1]`}
+        className={`w-full h-22 text-xs resize-none flex pt-4 px-4 pb-16 items-center bg-[#ececec] border-solid border-2 ${outlineClass} relative z-[1]`}
         placeholder={placeholder}
         disabled={disabled}
       ></textarea>

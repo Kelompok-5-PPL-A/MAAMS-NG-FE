@@ -1,8 +1,10 @@
+import { CauseStatus } from '../../lib/enum'
+
 export interface Rows {
-    id: number
-    causes: any[]
-    causesId: any[]
-    statuses: any[]
-    feedbacks: any[]
-    disabled: any[]
+  id: number
+  causes: string[]
+  causesId: string[]
+  statuses: CauseStatus[]
+  feedbacks: string[]
+  disabled: boolean[]
 }
