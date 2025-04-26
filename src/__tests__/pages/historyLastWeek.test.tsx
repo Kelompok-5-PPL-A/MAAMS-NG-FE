@@ -99,8 +99,8 @@ describe('LastWeek Page', () => {
     renderWithSession(<LastWeek />)
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/question/last_week'))
-      expect(mockedAxios.get).toHaveBeenCalledWith('/question/filter/')
+      expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/question/history/'))
+      expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/question/history/?filter'))
       expect(screen.getByTestId('search-bar')).toBeInTheDocument()
       expect(screen.getByTestId('section')).toBeInTheDocument()
     })
@@ -219,7 +219,7 @@ describe('LastWeek Page', () => {
     fireEvent.change(select, { target: { value: 'Topik' } })
   
     // Optional: cek bahwa axios.get dipanggil minimal sekali untuk filter
-    expect(mockedAxios.get).toHaveBeenCalledWith('/question/filter/')
+    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/question/history/?filter'))
   })
   
 
@@ -284,7 +284,7 @@ describe('LastWeek Page', () => {
           data: { processedData: [], count: 5 },
         })
       }
-      if (url.includes('/question/filter/')) {
+      if (url.includes('/question/history/filter/')) {
         return Promise.resolve({
           data: { judul: ['A'], pengguna: ['B'], topik: ['C'] },
         })
@@ -296,12 +296,8 @@ describe('LastWeek Page', () => {
   
     await waitFor(() => {
         expect(mockedAxios.get).toHaveBeenCalledWith(
-        '/question/last_week/search/?filter=semua&count=5&keyword=dummy&p=1'
+          `/question/history/search/?filter=semua&count=5&keyword=dummy&p=1&time_range=last_week`
         )  
     })
   })
-  
-  
-
-  
 })
