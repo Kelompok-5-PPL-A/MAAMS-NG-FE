@@ -8,7 +8,8 @@ import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { SearchBar } from '../../../components/searchBar'
 import { FilterData } from '../../../components/types/filterData'
-import axiosInstance from '../../../services/axiosInstance'
+import { fetchQuestions } from '@/actions/fetchQuestion'
+import fetchFilters from '@/actions/fetchFilters'
 
 const LastWeek: React.FC = () => {
   const { data: session, status } = useSession()
@@ -24,14 +25,17 @@ const LastWeek: React.FC = () => {
 
   const router = useRouter()
 
-  const fetchData = async (additionalParam: string) => {
+  const fetchData = async (queryParams: string) => {
     try {
-      const resQuestions = await axiosInstance.get(`/question/last_week/${additionalParam}`)
-      setLastWeek(resQuestions.data.processedData)
-      setTotalPages(Math.ceil(resQuestions.data.count / 4))
+      const [lastWeekData] = await Promise.all([
+        await fetchQuestions('last_week', queryParams),
+      ])
+      
+      setLastWeek(lastWeekData.processedData)
+      setTotalPages(Math.ceil(lastWeekData.count / 4))
 
-      const resFilters = await axiosInstance.get('/question/filter/')
-      setFilterData(resFilters.data)
+      const filterRes = await fetchFilters()
+      setFilterData(filterRes)
     } catch (error: any) {
       toast.error('Terjadi kesalahan saat mengambil data')
       router.push('/')
