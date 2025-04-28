@@ -72,4 +72,78 @@ describe('AdminTable Component', () => {
     const { queryByText } = render(<AdminTable data={emptyData} />)
     expect(queryByText('Test Title 1')).not.toBeInTheDocument()
   })
+
+  it('truncates displayed_title correctly if longer than 60 characters', () => {
+    const longTitle = 'A'.repeat(65) // panjang 65
+    const mockData = [
+      {
+        id: '2',
+        title: longTitle,
+        displayed_title: '',
+        user: 'ShortUser',
+        tags: [],
+        timestamp: '2024-04-29'
+      }
+    ]
+  
+    const { getByText } = render(<AdminTable data={mockData} />)
+  
+    // Harus hanya 60 karakter + "..."
+    expect(getByText(`${longTitle.slice(0, 60)}...`)).toBeInTheDocument()
+  })
+  
+  it('displays full displayed_title if 60 characters or less', () => {
+    const shortTitle = 'Short title'
+    const mockData = [
+      {
+        id: '3',
+        title: shortTitle,
+        displayed_title: '',
+        user: 'ShortUser',
+        tags: [],
+        timestamp: '2024-04-29'
+      }
+    ]
+  
+    const { getByText } = render(<AdminTable data={mockData} />)
+  
+    expect(getByText(shortTitle)).toBeInTheDocument()
+  })
+  
+  it('truncates user correctly if longer than 10 characters', () => {
+    const longUser = 'VeryLongUsernameHere'
+    const mockData = [
+      {
+        id: '4',
+        title: 'Title',
+        displayed_title: '',
+        user: longUser,
+        tags: [],
+        timestamp: '2024-04-29'
+      }
+    ]
+  
+    const { getByText } = render(<AdminTable data={mockData} />)
+  
+    expect(getByText(`${longUser.slice(0, 10)}...`)).toBeInTheDocument()
+  })
+  
+  it('displays full user if 10 characters or less', () => {
+    const shortUser = 'User10Char' // exactly 10 characters
+    const mockData = [
+      {
+        id: '5',
+        title: 'Title',
+        displayed_title: '',
+        user: shortUser,
+        tags: [],
+        timestamp: '2024-04-29'
+      }
+    ]
+  
+    const { getByText } = render(<AdminTable data={mockData} />)
+  
+    expect(getByText(shortUser)).toBeInTheDocument()
+  })
+  
 })
