@@ -111,12 +111,11 @@ const LastWeek: React.FC = () => {
           Riwayat Analisis
         </h1>
         <SearchBar
-            keyword={keyword}
-            suggestions={suggestion}
-            onSelect={handleFilterSelect}
-            onChange={(value) => setKeyword(value)}
-            onSubmit={handleSubmit}
-        />
+          keyword={keyword}
+          suggestions={suggestion}
+          onSelect={handleFilterSelect}
+          onChange={(value) => setKeyword(value)}
+          onSubmit={handleSubmit} isAdmin={false} publicAnalyses={false}        />
         <Section
           title='7 hari terakhir'
           items={lastweek}

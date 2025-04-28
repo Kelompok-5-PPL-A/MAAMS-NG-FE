@@ -6,7 +6,7 @@ import MainLayout from '../../layout/MainLayout'
 import { SearchBar } from '../../components/searchBar'
 import AdminTable from '../../components/adminTable'
 import Pagination from '../../components/pagination'
-import { fetchQuestions } from '@/actions/fetchQuestion'
+import { fetchPublicQuestions } from '@/actions/fetchPublicQuestion'
 import fetchFilters from '@/actions/fetchFilters'
 import { Item } from '@/components/types/historyPage'
 
@@ -26,7 +26,7 @@ const AnalisisPublik: React.FC = () => {
 
   const fetchData = async (queryParams: string) => {
     try {
-      const processedData = await fetchQuestions(`pengawasan&${queryParams}`, session?.accessToken)
+      const processedData = await fetchPublicQuestions(queryParams, session?.accessToken)
       setData(processedData.processedData)
       setTotalPages(Math.ceil(processedData.count / 5))
 
@@ -50,13 +50,13 @@ const AnalisisPublik: React.FC = () => {
 
       if (keyword && typeof keyword === 'string') {
         setKeyword(keyword)
-        fetchData(`?filter=${filter}&count=5&keyword=${keyword}&p=${page}`)
+        fetchData(`privileged/?filter=${filter}&count=5&keyword=${keyword}&p=${page}`)
         if (submitted) {
           setSubmitted(false)
           setCurrentPage(1)
         }
       } else {
-        fetchData(`?count=5&p=${currentPage}`)
+        fetchData(`privileged/?count=5&p=${currentPage}`)
       }
     }
   }, [session?.accessToken, router.query, currentPage])
@@ -80,6 +80,9 @@ const AnalisisPublik: React.FC = () => {
       pathname: router.pathname,
       query: { keyword },
     })
+
+    const query = `search/?filter=${filter}&count=4&keyword=${keyword}`
+    fetchData(query)
   }
 
   if (!session) {
