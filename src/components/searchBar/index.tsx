@@ -4,6 +4,8 @@ import SearchFilter from '../searchFilter'
 import { UserSearchBarProps } from '../types/searchBar'
 
 export const SearchBar: React.FC<UserSearchBarProps> = ({
+  isAdmin,
+  publicAnalyses,
   keyword,
   suggestions,
   onSelect,
@@ -31,7 +33,7 @@ export const SearchBar: React.FC<UserSearchBarProps> = ({
   return (
     <div className='md:mx-12 max-md:flex-wrap max-md:px-5'>
       <div className='flex gap-0 self-stretch shadow-lg rounded-[10px]'>
-        <SearchFilter updateFilter={onSelect} />
+        <SearchFilter updateFilter={onSelect} isAdmin={isAdmin} publicAnalyses={publicAnalyses}></SearchFilter>
         <AutoComplete
           className='w-full text-base bg-white rounded-bl-none rounded-tl-none rounded-tr-none rounded-br-none rounded-bl-[10px] border border-yellow-400 border-solid text-slate-400 max-md:max-w-full placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400'
           inputClassName='w-full p-4 text-base bg-white text-slate-400 max-md:max-w-full placeholder-gray-500 focus:outline-none focus:outline-none focus:ring-2 focus:ring-yellow-400'

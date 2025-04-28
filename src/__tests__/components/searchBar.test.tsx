@@ -127,6 +127,55 @@ describe('SearchBar component', () => {
   
     expect(mockOnChange).toHaveBeenCalledWith('xyz')
   })
+
+  test('passes isAdmin=true and publicAnalyses=true to SearchFilter', () => {
+    const { rerender } = render(
+      <SearchBar
+        suggestions={mockSuggestions}
+        keyword={keyword}
+        onSelect={mockOnSelect}
+        onChange={mockOnChange}
+        onSubmit={mockOnSubmit}
+        isAdmin={true}
+        publicAnalyses={true}
+      />
+    )
+  
+    const mockedFilter = require('../../components/searchFilter')
+    expect(mockedFilter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        updateFilter: mockOnSelect,
+        isAdmin: true,
+        publicAnalyses: true
+      }),
+      {}
+    )
+  })
+  
+  test('passes isAdmin=false and publicAnalyses=false to SearchFilter', () => {
+    render(
+      <SearchBar
+        suggestions={mockSuggestions}
+        keyword={keyword}
+        onSelect={mockOnSelect}
+        onChange={mockOnChange}
+        onSubmit={mockOnSubmit}
+        isAdmin={false}
+        publicAnalyses={false}
+      />
+    )
+  
+    const mockedFilter = require('../../components/searchFilter')
+    expect(mockedFilter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        updateFilter: mockOnSelect,
+        isAdmin: false,
+        publicAnalyses: false
+      }),
+      {}
+    )
+  })
+  
   
 })
 
