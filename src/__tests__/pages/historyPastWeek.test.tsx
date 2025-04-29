@@ -127,7 +127,7 @@ describe('PastWeek Page', () => {
     renderWithSession(<PastWeek />)
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledTimes(2)
+      expect(mockedAxios.get).toHaveBeenCalledTimes(1)
       expect(screen.getByTestId('search-bar')).toBeInTheDocument()
       expect(screen.getByTestId('section')).toBeInTheDocument()
     })
@@ -159,7 +159,7 @@ describe('PastWeek Page', () => {
     }
   
     mockedAxios.get.mockImplementation((url) => {
-      if (url.startsWith('/question/last_week')) {
+      if (url.startsWith('/question/history')) {
         return Promise.resolve({
           data: {
             processedData: [],
@@ -167,7 +167,7 @@ describe('PastWeek Page', () => {
           },
         })
       }
-      if (url.startsWith('/question/filter/')) {
+      if (url.startsWith('/question/history/?filter')) {
         return Promise.resolve({ data: filterDataMock })
       }
       return Promise.reject(new Error('Unexpected URL'))
@@ -190,7 +190,7 @@ describe('PastWeek Page', () => {
     fireEvent.change(select, { target: { value: 'Topik' } })
   
     // Optional: cek bahwa axios.get dipanggil minimal sekali untuk filter
-    expect(mockedAxios.get).toHaveBeenCalledWith('/question/filter/')
+    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining(`/question/history/?filter`))
   })
 
   it('mengatur suggestion menjadi kosong untuk filter lainnya', async () => {
@@ -246,7 +246,7 @@ describe('PastWeek Page', () => {
           data: { processedData: [], count: 5 },
         })
       }
-      if (url.includes('/question/filter/')) {
+      if (url.includes('filter')) {
         return Promise.resolve({
           data: { judul: ['A'], pengguna: ['B'], topik: ['C'] },
         })
@@ -261,8 +261,7 @@ describe('PastWeek Page', () => {
       
         expect(calls).toEqual(
           expect.arrayContaining([
-            '/question/last_week/older/search/?filter=semua&count=5&keyword=dummy&p=1',
-            '/question/filter/',
+            '/question/history/search/?filter=semua&count=5&keyword=dummy&p=1&time_range=older'
           ])
         );
       });      
@@ -281,6 +280,4 @@ describe('PastWeek Page', () => {
     fireEvent.change(input, { target: { value: 'test keyword' } })
     expect(input).toHaveValue('test keyword')
   })
-  
-  
 })

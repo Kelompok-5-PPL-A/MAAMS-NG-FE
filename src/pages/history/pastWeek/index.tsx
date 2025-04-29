@@ -7,9 +7,9 @@ import { SearchBar } from '../../../components/searchBar'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
-import axiosInstance from '../../../services/axiosInstance'
-import { formatTimestamp } from '../../../utils/dateFormatter'
 import { FilterData } from '../../../components/types/filterData'
+import { fetchQuestions } from '@/actions/fetchQuestion'
+import fetchFilters from '@/actions/fetchFilters'
 
 const PastWeek: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1)
@@ -32,26 +32,16 @@ const PastWeek: React.FC = () => {
     setCurrentPage(page)
   }
 
-  const fetchData = async (additional_param: string) => {
+  const fetchData = async (queryParams: string) => {
     try {
-      const [pastWeekRes, filterRes] = await Promise.all([
-        axiosInstance.get(`/question/last_week/older/${additional_param}`),
-        axiosInstance.get(`/question/filter/`)
+      const [pastWeekRes] = await Promise.all([
+        await fetchQuestions('older', queryParams),
       ])
+      setOlder(pastWeekRes.processedData)
+      setTotalPages(Math.ceil(pastWeekRes.count / 4))
 
-      const pastWeekData = pastWeekRes.data
-      const processedData: Item[] = pastWeekData.results.map((item: any) => ({
-        id: item.id,
-        title: item.question,
-        displayed_title: item.title,
-        timestamp: formatTimestamp(item.created_at),
-        mode: item.mode,
-        user: item.username,
-        tags: item.tags
-      }))
-      setOlder(processedData)
-      setTotalPages(Math.ceil(pastWeekData.count / 4))
-      setFilterData(filterRes.data)
+      const filterRes = await fetchFilters()
+      setFilterData(filterRes)
     } catch (error: any) {
       toast.error(error.response?.data?.detail || error.message || 'Terjadi kesalahan')
       router.push('/')
@@ -111,12 +101,11 @@ const PastWeek: React.FC = () => {
           Riwayat Analisis
         </h1>
         <SearchBar
-            keyword={keyword}
-            suggestions={suggestion}
-            onSelect={handleFilterSelect}
-            onChange={(value) => setKeyword(value)}
-            onSubmit={handleSubmit}
-        />
+          keyword={keyword}
+          suggestions={suggestion}
+          onSelect={handleFilterSelect}
+          onChange={(value) => setKeyword(value)}
+          onSubmit={handleSubmit} isAdmin={false} publicAnalyses={false}        />
         <Section title='Lebih lama' items={older} showModeButton={true} showDeleteButton={true} keyword='' />
         {totalPages >= 1 && (
           <Pagination currentPage={currentPage} onPageChange={handlePageChange} totalPages={totalPages} />

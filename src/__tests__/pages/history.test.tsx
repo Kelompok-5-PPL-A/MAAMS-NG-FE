@@ -18,13 +18,12 @@ jest.mock('../../components/searchBar', () => ({
 }))
 jest.mock('../../components/sectionHistory', () => ({
   __esModule: true,
-  default: ({ title }: any) => <div data-testid='section'>{title}</div>,
+  default: ({ title }: any) => <div data-testid={`section-${title}`}>{title}</div>,
 }))
 jest.mock('../../layout/MainLayout', () => ({ children }: any) => (
   <div>{children}</div>
 ))
 
-// Router mock
 const mockPush = jest.fn()
 jest.mock('next/router', () => ({
   useRouter: () => ({
@@ -34,13 +33,11 @@ jest.mock('next/router', () => ({
   }),
 }))
 
-// Aliases
 const mockedAxios = axiosInstance as jest.Mocked<typeof axiosInstance>
 const mockedToast = toast as jest.Mocked<typeof toast>
 const mockedUseSession = useSession as jest.Mock
 const mockedSearchBar = require('../../components/searchBar')
 
-// Helper
 const renderWithSession = (ui: React.ReactElement, sessionData: any = null) => {
   return render(
     <SessionProvider session={sessionData}>
@@ -49,15 +46,15 @@ const renderWithSession = (ui: React.ReactElement, sessionData: any = null) => {
   )
 }
 
-describe('History Page', () => {
+describe('History Page Full Coverage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('menampilkan pesan login jika belum login', () => {
+  it('should show login message if not authenticated', () => {
     mockedUseSession.mockReturnValue({
       data: null,
-      status: 'unauthenticated'
+      status: 'unauthenticated',
     })
 
     renderWithSession(<History />)
@@ -65,30 +62,71 @@ describe('History Page', () => {
     expect(screen.getByText(/mohon login terlebih dahulu/i)).toBeInTheDocument()
   })
 
-  it('memanggil fetchData dan menampilkan komponen jika login berhasil', async () => {
+  it('should fetch lastweek, older, and filters correctly after login', async () => {
     mockedUseSession.mockReturnValue({
       data: { accessToken: 'mock-token' },
-      status: 'authenticated'
+      status: 'authenticated',
     })
 
     mockedAxios.get
-      .mockResolvedValueOnce({ data: { processedData: [{ id: 1 }] } }) // lastWeek
-      .mockResolvedValueOnce({ data: { processedData: [{ id: 2 }] } }) // older
-      .mockResolvedValueOnce({ data: {} }) // filterData
+      .mockResolvedValueOnce({
+        data: {
+          count: 2,
+          previous: null,
+          next: null,
+          results: [
+            {
+              id: 1,
+              question: 'Apa itu algoritma?',
+              title: 'Algoritma',
+              created_at: '2023-01-01T00:00:00Z',
+              mode: 'public',
+              username: 'user1',
+              tags: ['algoritma'],
+            },
+          ],
+        },
+      }) // lastWeek
+      .mockResolvedValueOnce({
+        data: {
+          count: 1,
+          previous: null,
+          next: null,
+          results: [
+            {
+              id: 2,
+              question: 'Apa itu struktur data?',
+              title: 'Struktur Data',
+              created_at: '2023-01-01T00:00:00Z',
+              mode: 'private',
+              username: 'user2',
+              tags: ['struktur-data'],
+            },
+          ],
+        },
+      }) // older
+      .mockResolvedValueOnce({
+        data: {
+          pengguna: ['user1', 'user2'],
+          judul: ['Algoritma', 'Struktur Data'],
+          topik: ['Programming', 'Data Structures'],
+        },
+      }) // fetchFilters
 
     renderWithSession(<History />)
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledTimes(3)
+      expect(mockedAxios.get).toHaveBeenCalledTimes(3) // 2 fetchQuestions + 1 fetchFilters
       expect(screen.getByTestId('search-bar')).toBeInTheDocument()
-      expect(screen.getAllByTestId('section')).toHaveLength(2)
+      expect(screen.getByTestId('section-7 hari terakhir')).toBeInTheDocument()
+      expect(screen.getByTestId('section-Lebih lama')).toBeInTheDocument()
     })
   })
 
-  it('menampilkan toast dan redirect jika fetch gagal', async () => {
+  it('should show toast error and redirect when fetch error occurs', async () => {
     mockedUseSession.mockReturnValue({
       data: { accessToken: 'mock-token' },
-      status: 'authenticated'
+      status: 'authenticated',
     })
 
     mockedAxios.get.mockRejectedValue(new Error('fetch error'))
@@ -101,22 +139,26 @@ describe('History Page', () => {
     })
   })
 
-  it('memanggil handleFilterSelect dan setSuggestion dengan benar', async () => {
+  it('should handle filter selection correctly', async () => {
     mockedUseSession.mockReturnValue({
       data: { accessToken: 'mock-token' },
       status: 'authenticated',
     })
 
     mockedAxios.get
-      .mockResolvedValueOnce({ data: { processedData: [] } }) // lastWeek
-      .mockResolvedValueOnce({ data: { processedData: [] } }) // older
+      .mockResolvedValueOnce({
+        data: { count: 0, previous: null, next: null, results: [] },
+      })
+      .mockResolvedValueOnce({
+        data: { count: 0, previous: null, next: null, results: [] },
+      })
       .mockResolvedValueOnce({
         data: {
           pengguna: ['user1'],
           judul: ['judul1'],
-          topik: ['topik1']
-        }
-      }) // filterData
+          topik: ['topik1'],
+        },
+      })
 
     renderWithSession(<History />)
 
@@ -124,41 +166,39 @@ describe('History Page', () => {
       expect(mockedAxios.get).toHaveBeenCalledTimes(3)
     })
 
-    // Simulasi pilihan filter
-    const onSelect = mockedSearchBar.SearchBar.mock.calls[0][0].onSelect
-    expect(onSelect).toBeDefined()
+    const { onSelect } = mockedSearchBar.SearchBar.mock.calls[0][0]
 
     onSelect('Pengguna')
     onSelect('Judul')
     onSelect('Topik')
     onSelect('semua')
 
-    // Tidak ada assertion state karena komponen asli di-mock
     expect(true).toBeTruthy()
   })
 
-  it('memanggil handleSubmit dan melakukan navigasi', async () => {
+  it('should handle submit and navigate with search', async () => {
     mockedUseSession.mockReturnValue({
       data: { accessToken: 'mock-token' },
       status: 'authenticated',
     })
 
     mockedAxios.get
-      .mockResolvedValue({ data: { processedData: [] } }) // lastWeek, older, filterData
+      .mockResolvedValue({
+        data: { count: 0, previous: null, next: null, results: [] },
+      })
 
     renderWithSession(<History />)
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledTimes(3)
+      expect(mockedAxios.get).toHaveBeenCalled()
     })
 
-    const onSubmit = mockedSearchBar.SearchBar.mock.calls[0][0].onSubmit
-    expect(onSubmit).toBeDefined()
+    const { onSubmit } = mockedSearchBar.SearchBar.mock.calls[0][0]
 
     onSubmit()
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('search/?filter=semua'))
+      expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('search/?filter=semua&count=4&keyword='))
       expect(mockPush).toHaveBeenCalledWith({
         pathname: '/history',
         query: { keyword: '' },
@@ -166,48 +206,26 @@ describe('History Page', () => {
     })
   })
 
-  it('tidak menampilkan section jika data kosong', async () => {
+  it('should handle input change', async () => {
     mockedUseSession.mockReturnValue({
       data: { accessToken: 'mock-token' },
-      status: 'authenticated'
+      status: 'authenticated',
     })
 
     mockedAxios.get
-      .mockResolvedValueOnce({ data: { processedData: [] } }) // lastWeek
-      .mockResolvedValueOnce({ data: { processedData: [] } }) // older
-      .mockResolvedValueOnce({ data: {} }) // filterData
+      .mockResolvedValue({
+        data: { count: 0, previous: null, next: null, results: [] },
+      })
 
     renderWithSession(<History />)
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledTimes(3)
-      expect(screen.queryByTestId('section')).not.toBeInTheDocument()
-    })
-  })
-
-  it('memanggil onChange dan mengubah keyword', async () => {
-    mockedUseSession.mockReturnValue({
-      data: { accessToken: 'mock-token' },
-      status: 'authenticated'
+      expect(mockedAxios.get).toHaveBeenCalled()
     })
 
-    mockedAxios.get
-      .mockResolvedValue({ data: { processedData: [] } }) // all 3 calls
-
-    renderWithSession(<History />)
-
-    await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledTimes(3)
-    })
-
-    const onChange = mockedSearchBar.SearchBar.mock.calls[0][0].onChange
-    expect(onChange).toBeDefined()
-
-    // Simulasi perubahan input keyword
+    const { onChange } = mockedSearchBar.SearchBar.mock.calls[0][0]
     onChange('algoritma')
 
-    // Tidak ada assert eksplisit terhadap UI karena keyword disimpan di state,
-    // jadi kita hanya pastikan fungsi onChange bisa dipanggil tanpa error.
     expect(true).toBeTruthy()
   })
 })

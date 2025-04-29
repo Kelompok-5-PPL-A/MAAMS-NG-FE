@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react'
-import axiosInstance from '../../services/axiosInstance'
-import { ValidatorData } from '../../components/types/validatorQuestionFormProps'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { SearchBar } from '../../components/searchBar'
 import Section from '../../components/sectionHistory'
 import MainLayout from '../../layout/MainLayout'
+import { fetchQuestions } from '@/actions/fetchQuestion'
+import fetchFilters from '@/actions/fetchFilters'
+import { Item } from '@/components/types/historyPage'
 
 const History: React.FC = () => {
   const { data: session } = useSession()
   const router = useRouter()
 
-  const [lastweek, setLastWeek] = useState<ValidatorData[]>([])
-  const [older, setOlder] = useState<ValidatorData[]>([])
+  const [lastweek, setLastWeek] = useState<Item[]>([])
+  const [older, setOlder] = useState<Item[]>([])
   const [filter, setFilter] = useState<string>('semua')
   const [keyword, setKeyword] = useState<string>('')
   const [suggestion, setSuggestion] = useState<string[]>([])
@@ -21,14 +22,15 @@ const History: React.FC = () => {
 
   const fetchData = async (queryParams: string) => {
     try {
-      const [lastWeekRes, olderRes, filterRes] = await Promise.all([
-        axiosInstance.get(`/question/last_week/${queryParams}`),
-        axiosInstance.get(`/question/older/${queryParams}`),
-        axiosInstance.get(`/question/filter/`),
+      const [lastWeekRes, olderRes] = await Promise.all([
+        (await fetchQuestions('last_week', queryParams)).processedData,
+        (await fetchQuestions('older', queryParams)).processedData,
       ])
-      setLastWeek(lastWeekRes.data.processedData)
-      setOlder(olderRes.data.processedData)
-      setFilterData(filterRes.data)
+      setLastWeek(lastWeekRes)
+      setOlder(olderRes)
+
+      const filterRes = await fetchFilters()
+      setFilterData(filterRes)
     } catch (error) {
       toast.error('Terjadi kesalahan saat mengambil data')
       router.push('/')
@@ -55,12 +57,13 @@ const History: React.FC = () => {
   }
 
   const handleSubmit = () => {
-    const query = `search/?filter=${filter}&count=4&keyword=${keyword}`
-    fetchData(query)
     router.push({
       pathname: router.pathname,
       query: { keyword },
     })
+
+    const query = `search/?filter=${filter}&count=4&keyword=${keyword}`
+    fetchData(query)
   }
 
   if (!session) {
@@ -84,8 +87,7 @@ const History: React.FC = () => {
           suggestions={suggestion}
           onSelect={handleFilterSelect}
           onChange={(value) => setKeyword(value)}
-          onSubmit={handleSubmit}
-        />
+          onSubmit={handleSubmit} isAdmin={false} publicAnalyses={false}        />
         {lastweek.length > 0 && (
           <Section
             title='7 hari terakhir'
