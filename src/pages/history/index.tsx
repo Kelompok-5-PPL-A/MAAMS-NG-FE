@@ -87,8 +87,7 @@ const History: React.FC = () => {
           suggestions={suggestion}
           onSelect={handleFilterSelect}
           onChange={(value) => setKeyword(value)}
-          onSubmit={handleSubmit}
-        />
+          onSubmit={handleSubmit} isAdmin={false} publicAnalyses={false}        />
         {lastweek.length > 0 && (
           <Section
             title='7 hari terakhir'

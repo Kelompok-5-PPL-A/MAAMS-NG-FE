@@ -1,5 +1,5 @@
 import { formatTimestamp } from '../utils/dateFormatter'
-import { Item } from '../components/types/historyPage'
+import { Item } from '@/components/types/historyPage'
 import axiosInstance from '@/services/axiosInstance'
 
 interface historyData {
@@ -9,13 +9,12 @@ interface historyData {
   results: Item[]
 }
 
-export const fetchQuestions = async (time_range?: string, additional_param?: string) => {
-  let url = `/question/history/${additional_param}&time_range=${time_range}`
+export const fetchPublicQuestions = async (queryParams?: string, token?: string) => {
+  let url = `/question/privileged/${queryParams}`
 
   const response = await axiosInstance.get(url)
 
   const data: historyData = response.data
-  console.log(data)
 
   const processedData: Item[] = data.results.map((item: any) => ({
     id: item.id,
@@ -29,8 +28,6 @@ export const fetchQuestions = async (time_range?: string, additional_param?: str
 
   return {
     count: data.count,
-    processedData: processedData
+    processedData
   }
 }
-
-
