@@ -3,7 +3,6 @@ import {
   googleLogin,
   refreshToken,
   ssoLogin,
-  verifyToken
 } from '@/actions/auth';
 import { LoginResponse, TokenResponse } from '@/components/types/auth';
 
@@ -32,6 +31,7 @@ describe('Auth API Service', () => {
           first_name: 'Test',
           last_name: 'User',
           is_active: true,
+          google_id: 'google-id-123',
           role: 'mahasiswa',
           npm: '1234567890',
           angkatan: '2020',
@@ -99,6 +99,7 @@ describe('Auth API Service', () => {
           first_name: 'Test',
           last_name: 'User',
           is_active: true,
+          google_id: 'google-id-123',
           role: 'mahasiswa',
           npm: '1234567890',
           angkatan: '2020',
@@ -143,53 +144,6 @@ describe('Auth API Service', () => {
     });
   });
 
-  describe('verifyToken', () => {
-    const mockToken = 'access-token-123';
-
-    const createSuccessfulVerifyResponse = (): AxiosResponse<{ detail: string }> => ({
-      data: {
-        detail: 'Token is valid'
-      },
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {} as any
-    });
-
-    it('should successfully verify token', async () => {
-      const mockResponse = createSuccessfulVerifyResponse();
-      mockedAxios.get.mockResolvedValue(mockResponse);
-
-      const response = await verifyToken(mockToken);
-
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        `${mockBaseUrl}api/v1/auth/token/verify/`,
-        {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${mockToken}`
-          }
-        }
-      );
-      expect(response.data).toEqual(mockResponse.data);
-    });
-
-    it('should handle token verification failure', async () => {
-      const errorResponse = {
-        response: {
-          status: 401,
-          data: {
-            detail: 'Token is invalid'
-          }
-        }
-      };
-      mockedAxios.get.mockRejectedValue(errorResponse);
-
-      await expect(verifyToken(mockToken)).rejects.toEqual(errorResponse);
-    });
-  });
-
   describe('Error Handling', () => {
     it('should handle unexpected error formats', async () => {
       const unexpectedError = {
@@ -216,6 +170,7 @@ describe('Auth API Service', () => {
           first_name: 'Test',
           last_name: 'User',
           is_active: true,
+          google_id: 'google-id-123',
           role: 'mahasiswa',
           npm: '1234567890',
           angkatan: '2020',
