@@ -1,47 +1,55 @@
-import React, { useState, useEffect } from 'react'
-import { UserDataProps } from '../types/userData'
-import { signOut } from 'next-auth/react'
+import React, { useState, useEffect } from 'react';
+import { UserDataProps } from '../types/userData';
+import { signOut, useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [Role, setRole] = useState("")
-  const [userData, setUserData] = useState<UserDataProps | null>(null)
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [userData, setUserData] = useState<UserDataProps | null>(null);
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
-    const refresh_token = localStorage.getItem('isLoggedIn')
-    const userDataString = localStorage.getItem('userData')
-    if (userDataString) {
-      setUserData(JSON.parse(userDataString))
+    if (session?.user) {
+      setUserData(session.user as UserDataProps);
     }
-    setIsLoggedIn(refresh_token === 'true')
-  }, [])
-
-  useEffect(() => {
-    setRole(userData?.role!)
-  }, [userData])
+  }, [session?.accessToken]);
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
-  }
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen)
-  }
+    setIsDropdownOpen(!isDropdownOpen);
+  };
 
   const logoutUser = async () => {
-    const loginMethod = localStorage.getItem("loginMethod");
-    localStorage.clear();
-    if (loginMethod === "sso") {
+    try {
+      // Check if SSO user before signing out
+      const isSsoUser = localStorage.getItem('loginMethod') === 'sso'
+      
+      localStorage.clear()
+      
+      // Sign out from NextAuth
       await signOut({ redirect: false });
-      const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
-      window.location.href = casLogoutURL;
-    } else {
-      await signOut({ redirect: false });
-      window.location.href = "/";
+      
+      // If SSO user, redirect to SSO logout
+      if (isSsoUser) {
+        const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
+        window.location.href = casLogoutURL;
+      } else {
+        // For other users, redirect to home
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      router.push('/');
     }
-  }
+  };
+
+  // Check if user is authenticated
+  const isAuthenticated = status === 'authenticated' && !!session;
 
   return (
     <nav className="bg-[#FBC707] border-b-2 border-gray-200">
@@ -50,7 +58,7 @@ const Navbar = () => {
           <img src="/icons/maams.svg" className="h-8" alt="MAAMS Logo" />
         </a>
 
-        {isLoggedIn ? (
+        {isAuthenticated ? (
           <>
             <button
               onClick={toggleMenu}
@@ -85,7 +93,7 @@ const Navbar = () => {
                     Riwayat
                   </a>
                 </li>
-                {Role && (
+                {userData?.role && (
                   <li>
                     <a
                       href="/analisisPublik"
@@ -101,7 +109,7 @@ const Navbar = () => {
                     id="dropdownNavbarLink"
                     className="flex md:items-center justify-between w-full py-2 md:px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0 md:w-auto "
                   >
-                    {userData?.first_name}
+                    {userData?.username || 'User'}
                     <svg
                       className="w-2.5 h-2.5 ms-2.5"
                       aria-hidden="true"
@@ -199,7 +207,7 @@ const Navbar = () => {
         )}
       </div>
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

@@ -4,6 +4,7 @@ import '@testing-library/jest-dom'
 import ValidatorDetailPage from '../../pages/validator/[id]'
 import axiosInstance from '../../services/axiosInstance'
 import { toast } from 'react-hot-toast'
+import { SessionProvider } from 'next-auth/react'
 
 jest.mock('../../services/axiosInstance', () => ({
     post: jest.fn(),
@@ -39,14 +40,20 @@ jest.mock('react-hot-toast', () => ({
     loading: jest.fn()
 }))
 
+const WrappedValidatorDetailPage = () => (
+    <SessionProvider session={null}>
+      <ValidatorDetailPage />
+    </SessionProvider>
+  );
+
 describe('ValidatorDetailPage', () => {
     test('renders without crashing', () => {
-        render(<ValidatorDetailPage />)
+        render(<WrappedValidatorDetailPage />)
         expect(screen.getByText('Sebab:')).toBeInTheDocument()
     })
 
     test('renders validatorPage page with CounterButton and initial Row', () => {
-        const { getByText, getAllByTestId } = render(<ValidatorDetailPage />)
+        const { getByText, getAllByTestId } = render(<WrappedValidatorDetailPage />)
     
         expect(getByText('Sebab:')).toBeInTheDocument()
         expect(getByText('3')).toBeInTheDocument()
@@ -54,7 +61,7 @@ describe('ValidatorDetailPage', () => {
     })
 
     test('Adjusting column count updates all rows', () => {
-        render(<ValidatorDetailPage />)
+        render(<WrappedValidatorDetailPage />)
     
         fireEvent.click(screen.getByRole('button', { name: '+' }))
         
@@ -63,7 +70,7 @@ describe('ValidatorDetailPage', () => {
     })
 
     test('should increment and decrement column count', () => {
-        render(<ValidatorDetailPage />)
+        render(<WrappedValidatorDetailPage />)
     
         const incrementButton = screen.getByRole('button', { name: /\+/i })
         const decrementButton = screen.getByRole('button', { name: /-/i })
@@ -76,7 +83,7 @@ describe('ValidatorDetailPage', () => {
     })
 
     test('does not allow incrementing beyond 5 columns', () => {
-        const { getByText } = render(<ValidatorDetailPage />)
+        const { getByText } = render(<WrappedValidatorDetailPage />)
     
         const incrementButton = screen.getByRole('button', { name: '+' })
         for (let i = 0; i < 5; i++) {
@@ -90,7 +97,7 @@ describe('ValidatorDetailPage', () => {
     })
 
     test('does not allow decrementing below 3 columns', () => {
-        const { getByText } = render(<ValidatorDetailPage />)
+        const { getByText } = render(<WrappedValidatorDetailPage />)
     
         const decrementButton = getByText('-')
         for (let i = 0; i < 3; i++) {
@@ -104,14 +111,14 @@ describe('ValidatorDetailPage', () => {
     })
 
     test('prevents submitting if causes are empty', () => {
-        render(<ValidatorDetailPage />)
+        render(<WrappedValidatorDetailPage />)
         const submitButton = screen.getByRole('button', { name: 'Kirim Sebab' })
         expect(submitButton).toBeDisabled()
     })
 
     test('submits causes successfully', async () => {
         mockedAxios.get.mockResolvedValueOnce({ data: { success: true } })
-        render(<ValidatorDetailPage />)
+        render(<WrappedValidatorDetailPage />)
         const submitButton = screen.getByRole('button', { name: 'Kirim Sebab' })
         fireEvent.click(submitButton)
         await waitFor(() => 
@@ -130,7 +137,7 @@ describe('ValidatorDetailPage', () => {
         }
         mockedAxios.get.mockResolvedValueOnce({ data: mockResponseData })
     
-        render(<ValidatorDetailPage />)
+        render(<WrappedValidatorDetailPage />)
     
         screen.debug()
     

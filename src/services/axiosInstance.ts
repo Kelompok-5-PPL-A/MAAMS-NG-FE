@@ -1,65 +1,75 @@
 import axios from 'axios'
+import { getSession, signOut } from 'next-auth/react'
 import toast from 'react-hot-toast'
-
-let accessToken: string | null = null
-let refreshTokenValue: string | null = null
-
-export const setAuthTokens = (access: string, refresh: string) => {
-  accessToken = access
-  refreshTokenValue = refresh
-}
-
-export const clearAuthTokens = () => {
-  accessToken = null
-  refreshTokenValue = null
-}
-
-const refreshToken = async (refresh: string) => {
-  const res = await axios.post(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh/`,
-    { refresh }
-  )
-  return res.data
-}
 
 const axiosInstance = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}`,
+  
 })
 
 axiosInstance.interceptors.request.use(
-  (config) => {
-    if (accessToken) {
-      config.headers = config.headers || {};
-      (config.headers as any).set('Authorization', `Bearer ${accessToken}`);
+  async (config) => {
+    // Get session from NextAuth instead of localStorage
+    const session = await getSession()
+    
+    if (session?.accessToken) {
+      if (config.headers) config.headers.authorization = `Bearer ${session.accessToken}`
     }
+    
     return config
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error)
+  }
 )
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response
+  },
   async (error) => {
-    if (
-      error.response?.status === 401 &&
-      refreshTokenValue
-    ) {
+    // Check if error is due to unauthorized access
+    if (error.response?.status === 401) {
       try {
-        const data = await refreshToken(refreshTokenValue)
-        accessToken = data.access
-        toast.success('Sesi diperbarui, silakan coba lagi')
+        // We'll let NextAuth handle token refreshing via its built-in mechanisms
+        // Instead of manually refreshing, we'll notify the user and trigger a session check
+        toast.error('Sesi anda telah berakhir. Silakan login kembali')
+        
+        // Sign out user from NextAuth
+        await signOut({ redirect: false })
 
-        const originalRequest = error.config
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`
-        return axiosInstance(originalRequest)
-      } catch (refreshErr) {
-        toast.error('Sesi telah berakhir. Silakan login kembali.')
-        clearAuthTokens()
-        window.location.href = '/login'
-        return Promise.reject(refreshErr)
+        const isSsoUser = localStorage.getItem('loginMethod') === 'sso'
+
+        localStorage.clear()
+
+        if (isSsoUser) {
+          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
+          window.location.href = casLogoutURL;
+        } else {
+          window.location.href = '/login'
+        }
+       
+        
+      } catch (refreshError) {
+        console.error('Session refresh error:', refreshError)
+        toast.error('Terjadi kesalahan. Silakan login kembali')
+        
+        // Sign out user from NextAuth
+        await signOut({ redirect: false })
+
+        const isSsoUser = localStorage.getItem('loginMethod') === 'sso'
+
+        localStorage.clear()
+
+        if (isSsoUser) {
+          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
+          window.location.href = casLogoutURL;
+        } else {
+          window.location.href = '/login'
+        }
       }
     }
-
+    
     return Promise.reject(error)
   }
 )

@@ -3,7 +3,7 @@ import type { AppProps } from "next/app";
 import { SessionProvider } from 'next-auth/react';
 import { ChakraProvider } from "@chakra-ui/react";
 import { Toaster } from "react-hot-toast";
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 
@@ -14,6 +14,12 @@ const Login = dynamic(() => import('./login'), {
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
+  useEffect(() => {
+    if (router.asPath.includes('/undefined/')) {
+      const fixedPath = router.asPath.replace('/undefined/', '/');
+      router.replace(fixedPath);
+    }
+  }, [router.asPath]);
   return (
     <ChakraProvider>
       <Toaster />
