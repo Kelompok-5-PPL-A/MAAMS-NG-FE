@@ -10,7 +10,9 @@ export const Row: React.FC<RowProps> = ({
   causeStatuses,
   disabledCells,
   onCauseAndStatusChanges,
-  feedbacks
+  feedbacks,
+  activeColumns = [0, 1, 2],
+  currentWorkingColumn = 0
 }) => {
   const alphabet = 'ABCDE'
   const [localCauses, setLocalCauses] = useState<string[]>(causes)
@@ -35,6 +37,33 @@ export const Row: React.FC<RowProps> = ({
     onCauseAndStatusChanges(causeIndex, newValue, newStatus)
   }
 
+  const shouldShowCell = (index: number): boolean => {
+    // For row 1, always show columns A, B, C
+    if (rowNumber === 1 && index < 3) {
+      return true;
+    }
+    
+    if (causes[index]?.trim() !== '') {
+      return true;
+    }
+
+    if (feedbacks[index]?.trim() !== '') {
+      return true;
+    }
+
+    if (index === currentWorkingColumn && activeColumns.includes(index)) {
+      if (rowNumber === 2) {
+        return true;
+      }
+
+      if (rowNumber > 2) {
+        return !disabledCells[index];
+      }
+    }
+    
+    return false;
+  }
+
   let gridClass = ''
   if (cols === 3) {
     gridClass = 'grid grid-cols-3 gap-0 items-stretch my-8'
@@ -48,19 +77,45 @@ export const Row: React.FC<RowProps> = ({
     <div>
       {cols >= 3 && cols <= 5 && (
         <div className={gridClass} data-testid='row-container'>
-          {causes.map((cause, index) => (
-            <div data-testid='cell' key={`${alphabet[index]}${rowNumber}`}>
-              <Cell
-                cellName={`${alphabet[index]}${rowNumber}`}
-                cause={cause}
-                onChange={(newValue) => handleLocalCauseChange(index, newValue, localCauseStatuses[index])}
-                causeStatus={causeStatuses[index]}
-                disabled={disabledCells[index]}
-                placeholder={disabledCells[index] ? '' : 'Isi sebab..'}
-                feedback={feedbacks[index]}
-              />
-            </div>
-          ))}
+          {Array.from({ length: cols }).map((_, index) => {
+            const isVisible = shouldShowCell(index);
+            
+            if (isVisible) {
+              const placeholder = index < disabledCells.length && !disabledCells[index] ? 'Isi sebab..' : '';
+              
+              return (
+                <div data-testid='cell' key={`${alphabet[index]}${rowNumber}`}>
+                  <Cell
+                    cellName={`${alphabet[index]}${rowNumber}`}
+                    cause={index < causes.length ? causes[index] : ''}
+                    onChange={(newValue) => handleLocalCauseChange(index, newValue, causeStatuses[index])}
+                    causeStatus={index < causeStatuses.length ? causeStatuses[index] : CauseStatus.Unchecked}
+                    disabled={index < disabledCells.length ? disabledCells[index] : true}
+                    placeholder={placeholder}
+                    feedback={index < feedbacks.length ? feedbacks[index] : ''}
+                  />
+                </div>
+              );
+            } else {
+              return (
+                <div 
+                  data-testid='empty-cell' 
+                  key={`empty-${alphabet[index]}${rowNumber}`}
+                  className="invisible"
+                >
+                  <Cell
+                    cellName={`${alphabet[index]}${rowNumber}`}
+                    cause=""
+                    onChange={() => {}}
+                    causeStatus={CauseStatus.Unchecked}
+                    disabled={true}
+                    placeholder=""
+                    feedback=""
+                  />
+                </div>
+              );
+            }
+          })}
         </div>
       )}
     </div>
