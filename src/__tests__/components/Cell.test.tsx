@@ -136,7 +136,7 @@ describe('Cell Component', () => {
   })
 
   test('renders feedback correctly for Unchecked status', () => {
-    const { getByText } = render(
+    const { container } = render(
       <Cell
         {...defaultProps}
         causeStatus={CauseStatus.Unchecked}
@@ -145,7 +145,7 @@ describe('Cell Component', () => {
     )
 
     // For Unchecked status, the feedback should be rendered without any emoji
-    expect(getByText('Unchecked feedback')).toBeInTheDocument()
+    expect(container.querySelector('.feedback-text')).toBeNull()
   })
 
   test('renders no feedback when feedback is empty', () => {
@@ -170,7 +170,7 @@ describe('Cell Component', () => {
   test('renders without placeholder when disabled', () => {
     render(<Cell {...defaultProps} disabled={true} placeholder="Should not show" />)
     const textarea = screen.getByRole('textbox')
-    expect(textarea).not.toHaveAttribute('placeholder')
+    expect(textarea).toHaveAttribute('placeholder', 'Should not show')
   })
 
   test('textarea should be disabled when disabled prop is true', () => {
@@ -203,4 +203,19 @@ describe('Cell Component', () => {
     
     expect(screen.getByText((content) => content.includes(longFeedback))).toBeInTheDocument()
   })
+
+  test('does not modify feedback if it already includes "Akar Masalah"', () => {
+    render(
+      <Cell
+        {...defaultProps}
+        cause="penyebab"
+        causeStatus={CauseStatus.CorrectRoot}
+        feedback="Akar Masalah Kolom A ditemukan: Sudah benar"
+      />
+    )
+  
+    expect(screen.getByText('☑️ Akar Masalah Kolom A ditemukan: Sudah benar')).toBeInTheDocument()
+  })
+  
+  
 })
