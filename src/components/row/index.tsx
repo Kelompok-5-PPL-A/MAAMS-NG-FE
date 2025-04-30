@@ -47,10 +47,6 @@ export const Row: React.FC<RowProps> = ({
       return true;
     }
 
-    if (feedbacks[index]?.trim() !== '') {
-      return true;
-    }
-
     if (index === currentWorkingColumn && activeColumns.includes(index)) {
       if (rowNumber === 2) {
         return true;
