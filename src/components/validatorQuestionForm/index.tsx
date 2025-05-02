@@ -56,7 +56,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
       if (!id) {
         setMode(validatorData?.mode || pendingMode)
       } else {
-        const { data } = await axiosInstance.patch(`/api/v1/validator/ubah/${id}/`, {
+        const { data } = await axiosInstance.patch(`/question/ubah/${id}/`, {
           mode: pendingMode
         })
         setMode(data.mode)
@@ -97,20 +97,20 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
   }
 
   const handleTagsChangeConfirm = async () => {
-    if (arraysAreEqual(tagsModal, tags)) {
+    if (arraysAreEqual(tagsModal, validatorData?.tags)) {
       toast('Kategori sama dengan sebelumnya', {
         icon: <HiOutlineInformationCircle className='text-blue-500 w-6 h-6' />
       })
       return
     }
-
+  
     if (tagsModal?.length == 0) {
       toast.error('Minimal mengisi 1 kategori')
       return
     }
-
+  
     try {
-      const { data } = await axiosInstance.patch(`/api/v1/validator/ubah/tags/${id}/`, {
+      const { data } = await axiosInstance.patch(`/question/ubah/tags/${id}/`, {
         tags: tagsModal
       })
       setTags(data.tags)
@@ -125,6 +125,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
       }
     }
   }
+  
 
   const arraysAreEqual = (arr1: string[] | undefined, arr2: string[] | undefined) => {
     if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false; // Ensure both are valid arrays
@@ -154,7 +155,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
         toast.error('Kategori sudah ada. Masukan kategori lain')
         return
       }
-      setTags((prevCategories) => [...prevCategories, newTag.trim()])
+      setTagsModal((prevCategories) => [...prevCategories, newTag.trim()])
       setNewTag('')
     }
   }  

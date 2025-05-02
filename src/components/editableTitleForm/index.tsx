@@ -60,7 +60,7 @@ export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id,
 
     try {
       setIsLoading(true)
-      await axiosInstance.patch(`/api/v1/validator/ubah/judul/${id}/`, {
+      await axiosInstance.patch(`/question/ubah/judul/${id}/`, {
         title: titleInput
       })
       toast.success('Judul analisis berhasil diubah')
