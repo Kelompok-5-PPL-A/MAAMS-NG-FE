@@ -93,7 +93,7 @@ const Navbar = () => {
                     Riwayat
                   </a>
                 </li>
-                {userData?.role && (
+                {userData?.role === 'admin' && (
                   <li>
                     <a
                       href="/analisisPublik"
