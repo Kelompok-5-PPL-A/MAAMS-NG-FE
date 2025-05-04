@@ -1,42 +1,135 @@
-import MockAdapter from 'axios-mock-adapter'
 import axiosInstance from '../../services/axiosInstance'
+import MockAdapter from 'axios-mock-adapter'
+import toast from 'react-hot-toast'
+import { getSession, signOut } from 'next-auth/react'
+
+jest.mock('next-auth/react')
+jest.mock('react-hot-toast', () => ({
+  error: jest.fn(),
+  success: jest.fn(),
+  dismiss: jest.fn(),
+  loading: jest.fn()
+}))
+
+const mock = new MockAdapter(axiosInstance)
 
 describe('axiosInstance', () => {
-    let mock: MockAdapter
-  
-    beforeEach(() => {
-      mock = new MockAdapter(axiosInstance) 
+  beforeEach(() => {
+    mock.reset()
+    jest.clearAllMocks()
+    delete (window as any).location
+    ;(window as any).location = { href: '' }
+  })
+
+  describe('request interceptor', () => {
+    it('should not set Authorization header if no access token exists', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce(null)
+
+      mock.onGet('/open').reply((config) => {
+        expect(config.headers?.Authorization).toBeUndefined()
+        return [200, { open: true }]
+      })
+
+      await axiosInstance.get('/open')
     })
-  
-    afterEach(() => {
-      mock.reset()
+
+    it('should not throw if config.headers is undefined', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'abc-token' })
+    
+      const requestInterceptor = (axiosInstance.interceptors.request as any).handlers[0].fulfilled
+    
+      const config = await requestInterceptor({})  
+      expect(config.headers?.authorization).toBeUndefined()
     })
-  
-    test('should successfully make a GET request', async () => {
-      const mockData = { message: 'Success' }
-      mock.onGet('/test-endpoint').reply(200, mockData)
-  
-      const response = await axiosInstance.get('/test-endpoint')
-      
-      expect(response.status).toBe(200)
-      expect(response.data).toEqual(mockData)
+  })
+
+  describe('response interceptor', () => {
+    it('should handle 401 error by logging out and redirecting', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'expired-token' })
+      const signOutMock = signOut as jest.Mock
+      signOutMock.mockResolvedValueOnce(undefined)
+
+      mock.onGet('/unauthorized').reply(401)
+
+      await expect(axiosInstance.get('/unauthorized')).rejects.toMatchObject({
+        response: { status: 401 }
+      })
+
+      expect(toast.error).toHaveBeenCalledWith('Sesi anda telah berakhir. Silakan login kembali')
+      expect(signOutMock).toHaveBeenCalledWith({ redirect: false })
+      expect(window.location.href).toBe('/login')
     })
-  
-    test('should handle a 404 error response', async () => {
-      mock.onGet('/not-found').reply(404, { error: 'Not Found' })
-  
-      await expect(axiosInstance.get('/not-found')).rejects.toThrow('Request failed with status code 404')
+
+    it('should pass through non-401 errors', async () => {
+      mock.onGet('/error').reply(500, { error: 'Server error' })
+
+      await expect(axiosInstance.get('/error')).rejects.toMatchObject({
+        response: {
+          status: 500,
+          data: { error: 'Server error' }
+        }
+      })
+
+      expect(toast.error).not.toHaveBeenCalled()
+      expect(signOut).not.toHaveBeenCalled()
     })
-  
-    test('should handle a POST request successfully', async () => {
-      const postData = { title: 'Test' }
-      const mockResponse = { message: 'Created' }
-      
-      mock.onPost('/create', postData).reply(201, mockResponse)
-  
-      const response = await axiosInstance.post('/create', postData)
-  
-      expect(response.status).toBe(201)
-      expect(response.data).toEqual(mockResponse)
+
+    it('should redirect to CAS logout if SSO user', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'expired-token' })
+      const signOutMock = signOut as jest.Mock
+      signOutMock.mockResolvedValueOnce(undefined)
+      localStorage.setItem('loginMethod', 'sso')
+    
+      mock.onGet('/unauthorized').reply(401)
+    
+      await expect(axiosInstance.get('/unauthorized')).rejects.toMatchObject({
+        response: { status: 401 }
+      })
+    
+      expect(window.location.href).toContain('https://sso.ui.ac.id/cas2/logout?service=')
     })
+
+    it('should handle errors in the 401 error handler catch block', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'expired-token' })
+    
+      // Bikin signOut lempar error
+      const signOutMock = signOut as jest.Mock
+      signOutMock.mockRejectedValueOnce(new Error('signOut failed'))
+    
+      localStorage.setItem('loginMethod', 'sso')
+    
+      mock.onGet('/unauthorized').reply(401)
+    
+      await expect(axiosInstance.get('/unauthorized')).rejects.toMatchObject({
+        response: { status: 401 }
+      })
+    
+      expect(toast.error).toHaveBeenCalledWith('Terjadi kesalahan. Silakan login kembali')
+      expect(window.location.href).toContain('https://sso.ui.ac.id/cas2/logout?service=')
+    })    
+  })
+
+  describe('successful request', () => {
+    it('should return data correctly', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'abc-token' })
+
+      const responseData = { message: 'OK' }
+      mock.onGet('/success').reply(200, responseData)
+
+      const res = await axiosInstance.get('/success')
+      expect(res.status).toBe(200)
+      expect(res.data).toEqual(responseData)
+    })
+
+    it('should set Authorization header if access token exists', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'test-token' })
+    
+      mock.onGet('/auth-required').reply((config) => {
+        expect(config.headers?.authorization).toBe('Bearer test-token')
+        return [200, { authorized: true }]
+      })
+    
+      await axiosInstance.get('/auth-required')
+    })
+  })
 })

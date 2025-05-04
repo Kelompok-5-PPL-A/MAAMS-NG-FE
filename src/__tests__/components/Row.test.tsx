@@ -1,169 +1,276 @@
-import '@testing-library/jest-dom'
 import React from 'react'
-import { render, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
+import '@testing-library/jest-dom'
 import { Row } from '../../components/row'
 import { CauseStatus } from '../../lib/enum'
 
+jest.mock('../../components/cell', () => ({
+  Cell: ({ cellName, cause, onChange, disabled }: any) => (
+    <div data-testid={`cell-${cellName}`}>
+      <input
+        data-testid={`cell-input-${cellName}`}
+        value={cause}
+        disabled={disabled}
+        placeholder={!disabled ? 'Isi sebab..' : undefined}
+        onChange={(e) => !disabled && onChange(e.target.value)}
+      />
+    </div>
+  )
+}))
+
 describe('Row Component', () => {
-  const rowNumber = 1
-  const cols = 3
-  const causes = ['', '', '']
-  const causeStatuses = [CauseStatus.Unchecked, CauseStatus.Unchecked, CauseStatus.Unchecked]
-  const disabledCells = [false, false, false]
-  const feedbacks = ['Feedback 1', 'Feedback 2', 'Feedback 3']
-  const mockOnCauseAndStatusChanges = jest.fn()
+  const defaultProps = {
+    rowNumber: 1,
+    cols: 3,
+    causes: ['Sebab A', '', ''],
+    causeStatuses: [CauseStatus.Unchecked, CauseStatus.Unchecked, CauseStatus.Unchecked],
+    disabledCells: [false, false, false],
+    onCauseAndStatusChanges: jest.fn(),
+    feedbacks: ['', '', ''],
+    activeColumns: [0, 1, 2],
+    currentWorkingColumn: 0
+  }
 
-  test('renders correctly with the given number of columns, causes, and statuses', () => {
-    const { getByTestId, getAllByTestId } = render(
-      <Row
-        rowNumber={rowNumber}
-        cols={cols}
-        causes={causes}
-        causeStatuses={causeStatuses}
-        disabledCells={disabledCells}
-        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
-        feedbacks={feedbacks} causesId={[]}      />
-    )
-
-    expect(getByTestId('row-container')).toHaveClass(`grid grid-cols-${cols}`)
-    const cellElements = getAllByTestId('cell')
-    expect(cellElements).toHaveLength(cols)
+  beforeEach(() => {
+    jest.clearAllMocks()
   })
 
-  test('renders with disabled cells based on disabledCells prop', () => {
-    const disabledCellsTest = [true, false, true]
-    const { getAllByTestId } = render(
-      <Row
-        rowNumber={rowNumber}
-        cols={cols}
-        causes={causes}
-        causeStatuses={causeStatuses}
-        disabledCells={disabledCellsTest}
-        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
-        feedbacks={feedbacks} causesId={[]}      />
-    )
-
-    const cellElements = getAllByTestId('cell')
-    expect(cellElements[0].querySelector('textarea')).toBeDisabled()
-    expect(cellElements[1].querySelector('textarea')).not.toBeDisabled()
-    expect(cellElements[2].querySelector('textarea')).toBeDisabled()
-  })
-
-  test('does not render with an invalid number of columns', () => {
-    const invalidCols = 6
-
-    const { queryByTestId } = render(
-      <Row
-        rowNumber={rowNumber}
-        cols={invalidCols}
-        causes={Array(invalidCols).fill('')}
-        causeStatuses={Array(invalidCols).fill(CauseStatus.Unchecked)}
-        disabledCells={Array(invalidCols).fill(false)}
-        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
-        feedbacks={Array(invalidCols).fill('')} causesId={[]}      />
-    )
-
-    expect(queryByTestId('row-container')).toBeNull()
-  })
-
-  test('correctly updates causes and statuses', () => {
-    const initialCauses = ['Cause 1', 'Cause 2', 'Cause 3']
-    const initialStatuses = [CauseStatus.CorrectNotRoot, CauseStatus.Incorrect, CauseStatus.Unchecked]
-
-    const { getAllByTestId } = render(
-      <Row
-        rowNumber={rowNumber}
-        cols={cols}
-        causes={initialCauses}
-        causeStatuses={initialStatuses}
-        disabledCells={disabledCells}
-        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
-        feedbacks={feedbacks} causesId={[]}      />
-    )
-
-    const cellElements = getAllByTestId('cell')
-    cellElements.forEach((cell, index) => {
-      const textarea = cell.querySelector('textarea')
-      expect(textarea).toHaveValue(initialCauses[index])
-    })
-  })
-
-  test('matches snapshot', () => {
-    const { asFragment } = render(
-      <Row
-        rowNumber={rowNumber}
-        cols={cols}
-        causes={causes}
-        causeStatuses={causeStatuses}
-        disabledCells={disabledCells}
-        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
-        feedbacks={feedbacks} causesId={[]}      />
-    )
-
-    expect(asFragment()).toMatchSnapshot()
-  })
-
-  test('renders feedback text correctly', () => {
-    const { getAllByTestId } = render(
-      <Row
-        rowNumber={rowNumber}
-        cols={cols}
-        causes={causes}
-        causeStatuses={causeStatuses}
-        disabledCells={disabledCells}
-        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
-        feedbacks={feedbacks}
-        causesId={[]}      
-      />
-    )
+  it('renders visible cells correctly (row 1, cols 3)', () => {
+    render(<Row {...defaultProps} />)
   
-    const feedbackElements = getAllByTestId('cell')
-    feedbackElements.forEach((cell, index) => {
-      expect(cell).toHaveTextContent(feedbacks[index])
+    const expectedTestIds = ['cell-A1', 'cell-B1', 'cell-C1']
+    expectedTestIds.forEach((testId) => {
+      expect(screen.getByTestId(testId)).toBeInTheDocument()
     })
   })
   
-  test('does not render feedback when empty', () => {
-    const emptyFeedbacks = ['', '', '']
-    
-    const { queryAllByTestId } = render(
+
+  it('hides cells if not visible (row > 1)', () => {
+    render(
       <Row
-        rowNumber={rowNumber}
-        cols={cols}
-        causes={causes}
-        causeStatuses={causeStatuses}
-        disabledCells={disabledCells}
-        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
-        feedbacks={emptyFeedbacks}
-        causesId={[]}      
+        {...defaultProps}
+        rowNumber={3}
+        causes={['', '', '']}
+        feedbacks={['', '', '']}
+        disabledCells={[true, true, true]}
+        currentWorkingColumn={0}
+      />
+    )
+    const emptyCells = screen.getAllByTestId('empty-cell')
+    expect(emptyCells.length).toBe(3)
+  })
+
+  it('calls onCauseAndStatusChanges when text is entered', () => {
+    render(<Row {...defaultProps} />)
+
+    const input = screen.getByTestId('cell-input-A1')
+    fireEvent.change(input, { target: { value: 'Updated Cause' } })
+
+    expect(defaultProps.onCauseAndStatusChanges).toHaveBeenCalledWith(
+      0,
+      'Updated Cause',
+      CauseStatus.Unchecked
+    )
+  })
+
+  it('does not trigger onChange if disabled', () => {
+    render(
+      <Row
+        {...defaultProps}
+        disabledCells={[true, true, true]}
+      />
+    )
+
+    const input = screen.getByTestId('cell-input-A1')
+    fireEvent.change(input, { target: { value: 'Should not work' } })
+
+    expect(defaultProps.onCauseAndStatusChanges).not.toHaveBeenCalled()
+  })
+
+  it('shows placeholder only if not disabled', () => {
+    render(
+      <Row
+        {...defaultProps}
+        causes={['', '', '']}
+        disabledCells={[false, true, false]}
+      />
+    )
+
+    const inputA = screen.getByTestId('cell-input-A1')
+    const inputB = screen.getByTestId('cell-input-B1')
+    const inputC = screen.getByTestId('cell-input-C1')
+
+    expect(inputA).toHaveAttribute('placeholder', 'Isi sebab..')
+    expect(inputB).not.toHaveAttribute('placeholder')
+    expect(inputC).toHaveAttribute('placeholder', 'Isi sebab..')
+  })
+
+  it('uses default activeColumns and currentWorkingColumn (rowNumber 2)', () => {
+    render(
+      <Row
+        {...defaultProps}
+        rowNumber={2}
+        causes={['', '', '']}
+        feedbacks={['', '', '']}
+        disabledCells={[true, true, true]}
+        activeColumns={undefined as any}
+        currentWorkingColumn={undefined as any}
       />
     )
   
-    const feedbackElements = queryAllByTestId('cell')
-    feedbackElements.forEach((cell) => {
-      expect(cell).not.toHaveTextContent('Feedback')
+    // Dengan rowNumber = 2, semua cell seharusnya tetap terlihat meskipun disabled
+    const expectedTestIds = ['cell-A2', 'cell-B2', 'cell-C2']
+    expectedTestIds.forEach((testId) => {
+      expect(screen.getByTestId(testId)).toBeInTheDocument()
     })
   })
   
-  test('calls onCauseAndStatusChanges when a cause is updated', () => {
-    const { getAllByTestId } = render(
+
+  it('shows column for row > 2 if currentWorkingColumn is active and not disabled', () => {
+    render(
       <Row
-        rowNumber={rowNumber}
+        {...defaultProps}
+        rowNumber={4}
+        currentWorkingColumn={1}
+        activeColumns={[1]}
+        disabledCells={[true, false, true]}
+        causes={['', '', '']}
+        feedbacks={['', '', '']}
+      />
+    )
+
+    const visibleCells = screen.getAllByTestId('cell-B4')
+    expect(visibleCells.length).toBe(1)
+    expect(screen.getByTestId('cell-B4')).toBeInTheDocument()
+  })
+
+  it('uses fallback values if index exceeds array lengths', () => {
+    const cols = 5
+
+    render(
+      <Row
+        {...defaultProps}
+        rowNumber={2}
         cols={cols}
-        causes={causes}
-        causeStatuses={causeStatuses}
-        disabledCells={disabledCells}
-        onCauseAndStatusChanges={mockOnCauseAndStatusChanges}
-        feedbacks={feedbacks}
-        causesId={[]}      
+        causes={Array(cols).fill('')}
+        causeStatuses={[]} // intentionally shorter
+        feedbacks={Array(cols).fill('')}
+        disabledCells={[true, false, true, true, true]}
+        activeColumns={[1]}
+        currentWorkingColumn={1}
+      />
+    )
+
+    const visibleCells = screen.getAllByTestId('cell-B2')
+    expect(visibleCells.length).toBe(1)
+
+    const input = screen.getByTestId('cell-input-B2')
+    expect(input).toHaveAttribute('placeholder', 'Isi sebab..')
+  })
+
+  it('should only render cells that are not disabled when rowNumber > 2', () => {
+    const props = {
+      ...defaultProps,
+      rowNumber: 3,
+      cols: 5,
+      causes: ['', '', '', '', ''],
+      causeStatuses: Array(5).fill(CauseStatus.Unchecked),
+      disabledCells: [true, false, true, false, true],
+      feedbacks: ['', '', '', '', ''],
+      activeColumns: [0, 1, 2, 3, 4],
+      currentWorkingColumn: 3
+    }
+
+    render(<Row {...props} />)
+
+    const visibleCells = screen.getAllByTestId('cell-D3')
+    const invisibleCells = screen.getAllByTestId('empty-cell')
+
+    expect(visibleCells).toHaveLength(1)
+    expect(invisibleCells).toHaveLength(4)
+  })
+
+  it('should render <Cell /> and call onChange handler correctly', () => {
+    const props = {
+      ...defaultProps,
+      rowNumber: 3,
+      cols: 3,
+      causes: ['', '', ''],
+      causeStatuses: [CauseStatus.Unchecked, CauseStatus.Unchecked, CauseStatus.Unchecked],
+      disabledCells: [false, true, true],
+      currentWorkingColumn: 0,
+      activeColumns: [0, 1, 2]
+    }
+
+    render(<Row {...props} />)
+
+    const input = screen.getByTestId('cell-input-A3')
+    fireEvent.change(input, { target: { value: 'New Cause' } })
+
+    expect(props.onCauseAndStatusChanges).toHaveBeenCalledWith(0, 'New Cause', CauseStatus.Unchecked)
+  })
+
+  it('does not show cell D1 visibly when rowNumber is 1 and index >= 3', () => {
+    render(
+      <Row
+        {...defaultProps}
+        rowNumber={1}
+        cols={4}
+        causes={['', '', '', '']}
+        disabledCells={[false, false, false, false]}
+        currentWorkingColumn={0}
+        activeColumns={[0, 1, 2]}
       />
     )
   
-    const textareas = getAllByTestId('cell').map(cell => cell.querySelector('textarea'))
+    const emptyCells = screen.getAllByTestId('empty-cell')
+    const targetCell = emptyCells.find((el) =>
+      within(el).getByTestId('cell-D1') // pastikan `cell-D1` ada di dalam `empty-cell`
+    )
+
+    expect(targetCell).toHaveClass('invisible')
+  })
+
+  it('does not render placeholder if cell is disabled', () => {
+    render(
+      <Row
+        {...defaultProps}
+        rowNumber={3}
+        cols={3}
+        disabledCells={[true, true, true]}
+      />
+    )
   
-    fireEvent.change(textareas[1]!, { target: { value: 'Updated Cause' } })
+    const input = screen.getByTestId('cell-input-A3')
+    expect(input).not.toHaveAttribute('placeholder')
+  })
+
+  it('uses empty placeholder if index >= disabledCells.length', () => {
+    render(
+      <Row
+        {...defaultProps}
+        rowNumber={3}
+        cols={4}
+        disabledCells={[false, false]} // intentionally shorter
+      />
+    )
   
-    expect(mockOnCauseAndStatusChanges).toHaveBeenCalledWith(1, 'Updated Cause', CauseStatus.Unchecked)
+    const input = screen.getByTestId('cell-input-C3')
+    expect(input).not.toHaveAttribute('placeholder')
+  })
+
+  it('renders empty feedback when index exceeds feedbacks array', () => {
+    render(
+      <Row
+        {...defaultProps}
+        rowNumber={2}
+        cols={3}
+        feedbacks={['Only one']} // deliberately short
+      />
+    )
+  
+    const input = screen.getByTestId('cell-input-B2')
+    expect(input).toHaveValue('')
   })
   
 })

@@ -1,12 +1,18 @@
 import React from 'react'
-import { render, fireEvent, waitFor, screen } from '@testing-library/react'
+import { render, fireEvent, waitFor, screen, act } from '@testing-library/react'
 import QuestionAddPage from '@/pages/validator'
 import axiosInstance from '@/services/axiosInstance'
-import { toast } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import Mode from '@/constants/mode'
 import '@testing-library/jest-dom'
+import { SessionProvider } from 'next-auth/react'
 
 jest.mock('@/services/axiosInstance')
+jest.mock('react-hot-toast', () => ({
+  error: jest.fn(),
+  success: jest.fn()
+}))
+
 const mockPush = jest.fn()
 const mockReload = jest.fn()
 
@@ -22,13 +28,30 @@ jest.mock('next/router', () => ({
   })
 }))
 
+jest.mock('next-auth/react', () => ({
+  ...jest.requireActual('next-auth/react'),
+  useSession: () => ({
+    data: {
+      user: { name: 'Test User', email: 'test@example.com' },
+      accessToken: 'dummy-access',
+    },
+    status: 'authenticated',
+  }),
+}))
+
+const WrappedQuestionAddPage = () => (
+  <SessionProvider session={null}>
+    <QuestionAddPage />
+  </SessionProvider>
+)
+
 describe('QuestionAddPage', () => {
   afterEach(() => {
     jest.clearAllMocks()
   })
 
   test('renders correctly with default values', () => {
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     expect(getByText('Ingin menganalisis masalah apa hari ini?')).toBeInTheDocument()
     expect(getByPlaceholderText('Ingin menganalisis apa hari ini ...')).toBeInTheDocument()
     expect(getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')).toBeInTheDocument()
@@ -36,7 +59,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('handleConfirmModeChange updates mode and hides confirmation', () => {
-    render(<QuestionAddPage />)
+    render(<WrappedQuestionAddPage />)
 
     fireEvent.click(screen.getByText(/pribadi/i)) 
     fireEvent.click(screen.getByText(/pengawasan/i)) 
@@ -47,7 +70,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('handleCancelModeChange reverts mode change and hides confirmation', () => {
-    render(<QuestionAddPage />)
+    render(<WrappedQuestionAddPage />)
 
     fireEvent.click(screen.getByText(/pribadi/i))
     fireEvent.click(screen.getByText(/pengawasan/i)) 
@@ -60,7 +83,7 @@ describe('QuestionAddPage', () => {
   test('prevents form submission if API call fails', async () => {
     jest.spyOn(axiosInstance, 'post').mockRejectedValueOnce(new Error('Network Error'))
 
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     
     fireEvent.change(getByPlaceholderText('Ingin menganalisis apa hari ini ...'), {
       target: { value: 'Sample Title' }
@@ -89,7 +112,7 @@ describe('QuestionAddPage', () => {
       useRouter: () => ({ push: mockPush, reload: jest.fn(), query: {} })
     }))
 
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     
     fireEvent.change(getByPlaceholderText('Ingin menganalisis apa hari ini ...'), {
       target: { value: 'Sample Title' }
@@ -123,7 +146,7 @@ describe('QuestionAddPage', () => {
   test('handles API error and does not redirect', async () => {
     jest.spyOn(axiosInstance, 'post').mockRejectedValueOnce(new Error('Request failed'))
 
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     fireEvent.change(getByPlaceholderText('Ingin menganalisis apa hari ini ...'), {
       target: { value: 'Error Case Title' }
     })
@@ -146,7 +169,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('does not submit if title, question, and tags are empty', async () => {
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
   
     fireEvent.change(getByPlaceholderText('Ingin menganalisis apa hari ini ...'), {
       target: { value: '' }
@@ -171,7 +194,7 @@ describe('QuestionAddPage', () => {
   test('prevents multiple API calls when clicking submit multiple times', async () => {
     const mockPost = jest.spyOn(axiosInstance, 'post').mockResolvedValueOnce({ data: { success: true } })
   
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     fireEvent.change(getByPlaceholderText('Ingin menganalisis apa hari ini ...'), { target: { value: 'Title' } })
     fireEvent.change(getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...'), { target: { value: 'Question' } })
     fireEvent.change(getByPlaceholderText('Berikan maksimal 3 kategori ...'), { target: { value: 'Tag1' } })
@@ -188,7 +211,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('updates title, question, and newTag state variables on input change', () => {
-    const { getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     const titleInput = getByPlaceholderText('Ingin menganalisis apa hari ini ...')
     const questionInput = getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')
     const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
@@ -203,7 +226,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('adds a tag when Enter key is pressed', () => {
-    const { getByPlaceholderText, getByText } = render(<QuestionAddPage />)
+    const { getByPlaceholderText, getByText } = render(<WrappedQuestionAddPage />)
     const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
 
     fireEvent.change(newTagInput, { target: { value: 'Sample Tag' } })
@@ -213,7 +236,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('removes an entered tag when remove button is clicked', () => {
-    const { getByPlaceholderText, getByText, getByTestId, queryByText } = render(<QuestionAddPage />)
+    const { getByPlaceholderText, getByText, getByTestId, queryByText } = render(<WrappedQuestionAddPage />)
     const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
 
     fireEvent.change(newTagInput, { target: { value: 'Sample Tag' } })
@@ -228,7 +251,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('prevents adding more than 3 tags', async () => {
-    const { getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
 
     for (let i = 0; i < 4; i++) {
@@ -244,7 +267,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('displays error messages for missing title on form submission', async () => {
-    const { getByText } = render(<QuestionAddPage />)
+    const { getByText } = render(<WrappedQuestionAddPage />)
     const submitButton = getByText('Kirim')
     fireEvent.click(submitButton)
 
@@ -256,7 +279,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('displays error messages for too long title on submission', async () => {
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     const titleInput = getByPlaceholderText('Ingin menganalisis apa hari ini ...')
     const questionInput = getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')
     const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
@@ -281,7 +304,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('displays error messages for missing question on form submission', async () => {
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     const titleInput = getByPlaceholderText('Ingin menganalisis apa hari ini ...')
     const submitButton = getByText('Kirim')
 
@@ -296,7 +319,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('displays error messages for missing tags on form submission', async () => {
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     const titleInput = getByPlaceholderText('Ingin menganalisis apa hari ini ...')
     const questionInput = getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')
     const submitButton = getByText('Kirim')
@@ -321,7 +344,7 @@ describe('QuestionAddPage', () => {
     const mockPost = jest.fn().mockRejectedValueOnce({ response: errorResponse })
     axiosInstance.post = mockPost
 
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
 
     const titleInput = getByPlaceholderText('Ingin menganalisis apa hari ini ...')
     const questionInput = getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')
@@ -346,7 +369,7 @@ describe('QuestionAddPage', () => {
     const mockPost = jest.fn().mockRejectedValueOnce({ status: 400 })
     axiosInstance.post = mockPost
 
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
 
     const titleInput = getByPlaceholderText('Ingin menganalisis apa hari ini ...')
     const questionInput = getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')
@@ -369,7 +392,7 @@ describe('QuestionAddPage', () => {
 
   test('submits form with valid data and redirects to correct route', async () => {
     const mockPost = jest.fn().mockResolvedValueOnce({ data: { id: 123 } })
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     axiosInstance.post = mockPost
 
     const titleInput = getByPlaceholderText('Ingin menganalisis apa hari ini ...')
@@ -400,7 +423,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('submits form with a long category', async () => {
-    const { getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
 
     fireEvent.change(newTagInput, { target: { value: 'Kategori yang panjang' } })
@@ -414,7 +437,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('submits form with duplicate category', async () => {
-    const { getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByPlaceholderText } = render(<WrappedQuestionAddPage />)
     const newTagInput = getByPlaceholderText('Berikan maksimal 3 kategori ...')
 
     fireEvent.change(newTagInput, { target: { value: 'Kategori' } })
@@ -430,7 +453,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('changes the mode from PRIBADI to PENGAWASAN', () => {
-    const { getByText } = render(<QuestionAddPage />)
+    const { getByText } = render(<WrappedQuestionAddPage />)
 
     fireEvent.click(getByText(Mode.pribadi))
     fireEvent.click(getByText(Mode.pengawasan))
@@ -439,7 +462,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('should set question state when router query parameter is present', async () => {
-    const { getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByPlaceholderText } = render(<WrappedQuestionAddPage />)
 
     await waitFor(() => {
       const questionInput = getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...') as HTMLInputElement
@@ -448,7 +471,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('should reset question if input is deleted', async () => {
-    const { getByText, getByPlaceholderText } = render(<QuestionAddPage />)
+    const { getByText, getByPlaceholderText } = render(<WrappedQuestionAddPage />)
 
     await waitFor(() => {
       const questionInput = getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...') as HTMLInputElement
@@ -475,7 +498,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('changes the mode from PRIBADI to PENGAWASAN', () => {
-    const { getByText } = render(<QuestionAddPage />)
+    const { getByText } = render(<WrappedQuestionAddPage />)
 
     fireEvent.click(getByText(Mode.pribadi))
     fireEvent.click(getByText(Mode.pengawasan))
@@ -484,7 +507,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('changes the mode from PRIBADI to PENGAWASAN', () => {
-    const { getByText } = render(<QuestionAddPage />)
+    const { getByText } = render(<WrappedQuestionAddPage />)
 
     fireEvent.click(getByText(Mode.pribadi))
     fireEvent.click(getByText(Mode.pengawasan))
@@ -493,7 +516,7 @@ describe('QuestionAddPage', () => {
   })
 
   test('toggles mode between PRIBADI and PENGAWASAN', () => {
-    const { getByText } = render(<QuestionAddPage />)
+    const { getByText } = render(<WrappedQuestionAddPage />)
   
     fireEvent.click(getByText(Mode.pribadi))
     fireEvent.click(getByText(Mode.pengawasan))
@@ -502,5 +525,170 @@ describe('QuestionAddPage', () => {
     fireEvent.click(getByText(Mode.pengawasan))
     fireEvent.click(getByText(Mode.pribadi))
     expect(getByText(Mode.pribadi)).toBeInTheDocument()
+  })
+
+  test('sets question from router.query.question', async () => {
+    const mockRouter = {
+      query: { question: 'Test Question?' }
+    }
+    
+    // Update the router mock before rendering
+    jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => mockRouter)
+    
+    render(<WrappedQuestionAddPage />)
+    
+    // Wait for the question to be set
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')).toHaveValue('Test Question?')
+    })
+  })
+
+  test('displays confirmation popup when mode changes', async () => {
+    render(<WrappedQuestionAddPage />)
+
+    // Click mode button to open dropdown
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pribadi))
+    })
+
+    // Wait for and click the pengawasan option
+    await waitFor(() => {
+      expect(screen.getByText(Mode.pengawasan)).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pengawasan))
+    })
+
+    // Verify confirmation popup is shown
+    expect(screen.getByText('Apakah Anda yakin ingin menampilkan analisis ini kepada Admin?')).toBeInTheDocument()
+  })
+
+  test('confirms and updates mode', async () => {
+    render(<WrappedQuestionAddPage />)
+
+    // Click mode button to open dropdown
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pribadi))
+    })
+
+    // Wait for and click the pengawasan option
+    await waitFor(() => {
+      expect(screen.getByText(Mode.pengawasan)).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pengawasan))
+    })
+
+    // Click confirm button
+    await act(async () => {
+      fireEvent.click(screen.getByText('Simpan'))
+    })
+
+    // Verify mode is updated
+    expect(screen.getByText(Mode.pengawasan)).toBeInTheDocument()
+  })
+
+  test('cancels mode change', async () => {
+    render(<WrappedQuestionAddPage />)
+
+    // Click mode button to open dropdown
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pribadi))
+    })
+
+    // Wait for and click the pengawasan option
+    await waitFor(() => {
+      expect(screen.getByText(Mode.pengawasan)).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByText(Mode.pengawasan))
+    })
+
+    // Click cancel button
+    await act(async () => {
+      fireEvent.click(screen.getByText('Batal'))
+    })
+
+    // Verify mode remains unchanged
+    expect(screen.getByText(Mode.pribadi)).toBeInTheDocument()
+  })
+
+  test('prevents adding more than 3 categories', async () => {
+    render(<WrappedQuestionAddPage />)
+
+    const categoryInput = screen.getByPlaceholderText('Berikan maksimal 3 kategori ...')
+
+    // Add 3 categories
+    await act(async () => {
+      fireEvent.change(categoryInput, { target: { value: 'Category1' } })
+      fireEvent.keyDown(categoryInput, { key: 'Enter' })
+      fireEvent.change(categoryInput, { target: { value: 'Category2' } })
+      fireEvent.keyDown(categoryInput, { key: 'Enter' })
+      fireEvent.change(categoryInput, { target: { value: 'Category3' } })
+      fireEvent.keyDown(categoryInput, { key: 'Enter' })
+
+      // Try to add a fourth category
+      fireEvent.change(categoryInput, { target: { value: 'Category4' } })
+      fireEvent.keyDown(categoryInput, { key: 'Enter' })
+    })
+
+    // Verify error message
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Kategori sudah ada 3')
+    })
+  })
+
+  test('prevents adding empty category', async () => {
+    render(<WrappedQuestionAddPage />)
+
+    const categoryInput = screen.getByPlaceholderText('Berikan maksimal 3 kategori ...')
+
+    await act(async () => {
+      fireEvent.change(categoryInput, { target: { value: '' } })
+      fireEvent.keyDown(categoryInput, { key: 'Enter' })
+    })
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Kategori harus diisi')
+    })
+  })
+
+  test('handles question query parameter changes', async () => {
+    // Mock router with initial query
+    const mockRouter = {
+      query: { question: 'Initial Question' } as { question: string | undefined | null }
+    }
+    jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => mockRouter)
+    
+    const { rerender } = render(<WrappedQuestionAddPage />)
+    
+    // Verify initial question is set
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')).toHaveValue('Initial Question')
+    })
+
+    mockRouter.query = { question: 'Updated Question' }
+    rerender(<WrappedQuestionAddPage />)
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')).toHaveValue('Updated Question')
+    })
+  })
+
+  test('does not set question when router.query.question is falsy', async () => {
+    // Mock router with falsy question query
+    const mockRouter = {
+      query: { question: '' } as { question: string | undefined | null }
+    }
+    jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => mockRouter)
+    
+    render(<WrappedQuestionAddPage />)
+    
+    // Verify question is not set
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Pertanyaan apa yang ingin ditanyakan ...')).toHaveValue('')
+    })
   })
 })

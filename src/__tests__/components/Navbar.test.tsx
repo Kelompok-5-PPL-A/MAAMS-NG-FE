@@ -1,119 +1,189 @@
-import React from 'react'
-import { render, fireEvent, act } from '@testing-library/react'
-import Navbar from '../../components/navbar/navbar'
-import '@testing-library/jest-dom'
+import React from 'react';
+import { render, fireEvent, screen, act } from '@testing-library/react';
+import Navbar from '../../components/navbar/navbar';
+import '@testing-library/jest-dom';
+import { SessionProvider, signOut, useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 
-const sampleUserData = {
-  uuid: '123e4567-e89b-12d3-a456-426614174000',
-  date_joined: '2024-04-27T08:00:00Z',
-  is_active: true,
-  is_staff: true,
-  name: 'John Doe',
-  email: 'john.doe@gmail.com',
-  given_name: 'John',
-  family_name: 'Doe',
-  picture: 'https://gmail.com/avatar.jpg',
-  googleId: '1234567890'
-}
+// Mocks
+jest.mock('next/router', () => ({
+  useRouter: jest.fn(),
+}));
 
-const nonStaffUserData = {
-  ...sampleUserData,
-  is_staff: false
-}
+jest.mock('next-auth/react', () => {
+  const actual = jest.requireActual('next-auth/react');
+  return {
+    ...actual,
+    useSession: jest.fn(),
+    signOut: jest.fn(() => Promise.resolve()),
+  };
+});
 
-describe('Navbar component additional tests', () => {
+// Mock fetch
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({}),
+  })
+) as jest.Mock;
+
+// Helper to render within <SessionProvider>
+const renderWithSession = (ui: React.ReactElement) => {
+  return render(<SessionProvider>{ui}</SessionProvider>);
+};
+
+// Sample users
+const userData = {
+  uuid: '123',
+  username: 'johndoe',
+  email: 'john@example.com',
+  role: 'staff',
+};
+
+// Mocks for localStorage
+beforeAll(() => {
+  const localStorageMock = (() => {
+    let store: Record<string, string> = {};
+    return {
+      getItem: jest.fn((key: string) => store[key] || null),
+      setItem: jest.fn((key: string, value: string) => {
+        store[key] = value;
+      }),
+      removeItem: jest.fn((key: string) => {
+        delete store[key];
+      }),
+      clear: jest.fn(() => {
+        store = {};
+      }),
+    };
+  })();
+  Object.defineProperty(window, 'localStorage', {
+    value: localStorageMock,
+  });
+});
+
+describe('Navbar Component', () => {
+  const push = jest.fn();
+  let windowLocation: Location;
+
   beforeEach(() => {
-    localStorage.clear();
     jest.clearAllMocks();
+    (useRouter as jest.Mock).mockReturnValue({ push });
+    
+    // Save original window.location
+    windowLocation = window.location;
+    
+    // Mock window.location
+    Object.defineProperty(window, 'location', {
+      value: {
+        ...window.location,
+        href: '',
+      },
+      writable: true,
+    });
   });
 
-  test('handles case when userData is not in localStorage', () => {
-    localStorage.setItem('isLoggedIn', 'true');
-
-    const { queryByText } = render(<Navbar />);
-    
-    expect(queryByText('Name')).toBeInTheDocument();
+  afterEach(() => {
+    // Restore original window.location
+    Object.defineProperty(window, 'location', {
+      value: windowLocation,
+      writable: true,
+    });
   });
 
-  test('handles case when user is logged in but not staff', () => {
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userData', JSON.stringify(nonStaffUserData));
-    
-    const { queryByText } = render(<Navbar />);
-    
-    expect(queryByText('Analisis Publik')).not.toBeInTheDocument();
-    expect(queryByText('Riwayat')).toBeInTheDocument();
-    expect(queryByText('John Doe')).toBeInTheDocument();
+  test('renders correctly for unauthenticated users', () => {
+    (useSession as jest.Mock).mockReturnValue({ data: null, status: 'unauthenticated' });
+
+    renderWithSession(<Navbar />);
+
+    expect(screen.getByText(/Login/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tambahkan Analisis/i)).toBeInTheDocument();
   });
 
-  test('opens and closes dropdown when clicking the dropdown button', () => {
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userData', JSON.stringify(sampleUserData));
-    
-    const { getByRole, queryByText } = render(<Navbar />);
-    const dropdownButton = getByRole('button', { name: /John Doe/i });
+  test('renders correctly for authenticated users', () => {
+    (useSession as jest.Mock).mockReturnValue({
+      data: { user: userData },
+      status: 'authenticated',
+    });
+
+    renderWithSession(<Navbar />);
+
+    expect(screen.getByText(/Riwayat/i)).toBeInTheDocument();
+    expect(screen.getByText(/Analisis Publik/i)).toBeInTheDocument();
+    expect(screen.getByText(/johndoe/i)).toBeInTheDocument();
+  });
+
+  test('toggles mobile menu', () => {
+    (useSession as jest.Mock).mockReturnValue({
+      data: { user: userData },
+      status: 'authenticated',
+    });
+
+    renderWithSession(<Navbar />);
+    const menuButton = screen.getByRole('button', { name: '' });
+
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(menuButton);
+    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(menuButton);
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('opens and closes user dropdown menu', () => {
+    (useSession as jest.Mock).mockReturnValue({
+      data: { user: userData },
+      status: 'authenticated',
+    });
+
+    renderWithSession(<Navbar />);
+    const dropdownButton = screen.getByRole('button', { name: /johndoe/i });
 
     fireEvent.click(dropdownButton);
-    expect(queryByText('Sign out')).toBeInTheDocument();
-    
+    expect(screen.getByText(/Sign out/i)).toBeInTheDocument();
+
     fireEvent.click(dropdownButton);
-    expect(queryByText('Sign out')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Sign out/i)).not.toBeInTheDocument();
   });
 
-  test('toggles menu open and closed for logged-in users on mobile', () => {
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userData', JSON.stringify(sampleUserData));
-    
-    const { container } = render(<Navbar />);
-    const menuButton = container.querySelector('button[aria-controls="navbar-dropdown"]');
-    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
-    
-    if (menuButton) {
-      fireEvent.click(menuButton);
-    }
+  test('logs out and redirects normal user to home', async () => {
+    (useSession as jest.Mock).mockReturnValue({
+      data: { user: userData },
+      status: 'authenticated',
+    });
 
-    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
-   
-    if (menuButton) {
-      fireEvent.click(menuButton);
-    }
+    localStorage.setItem('loginMethod', 'google');
 
-    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+    renderWithSession(<Navbar />);
+    fireEvent.click(screen.getByRole('button', { name: /johndoe/i }));
+    const signOutButton = screen.getByText(/Sign out/i);
+
+    await act(async () => {
+      fireEvent.click(signOutButton);
+    });
+
+    expect(signOut).toHaveBeenCalledWith({ redirect: false });
+    expect(localStorage.clear).toHaveBeenCalled();
+    expect(push).toHaveBeenCalledWith('/');
   });
 
-  test('toggles menu open and closed for non-logged-in users on mobile', () => {
-    localStorage.setItem('isLoggedIn', 'false');
-    
-    const { container } = render(<Navbar />);
-    const menuButton = container.querySelector('button[aria-controls="navbar-dropdown"]');
-    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
-    
-    if (menuButton) {
-      fireEvent.click(menuButton);
-    }
-    
-    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
-    
-    if (menuButton) {
-      fireEvent.click(menuButton);
-    }
+  test('logs out and redirects SSO user to CAS logout', async () => {
+    (useSession as jest.Mock).mockReturnValue({
+      data: { user: userData },
+      status: 'authenticated',
+    });
 
-    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
-  });
+    localStorage.setItem('loginMethod', 'sso');
 
-  test('initializes from localStorage correctly on mount', () => {
-    localStorage.setItem('isLoggedIn', 'false');
-    
-    const { rerender, queryByText } = render(<Navbar />);
-    expect(queryByText('Riwayat')).not.toBeInTheDocument();
-    
-    rerender(<></>);
-    
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userData', JSON.stringify(sampleUserData));
-    
-    rerender(<Navbar />);
-    
-    expect(queryByText('Analisis Publik')).toBeInTheDocument();
+    renderWithSession(<Navbar />);
+    fireEvent.click(screen.getByRole('button', { name: /johndoe/i }));
+    const signOutButton = screen.getByText(/Sign out/i);
+
+    await act(async () => {
+      fireEvent.click(signOutButton);
+    });
+
+    expect(signOut).toHaveBeenCalledWith({ redirect: false });
+    expect(localStorage.clear).toHaveBeenCalled();
+    expect(window.location.href).toContain('https://sso.ui.ac.id/cas2/logout');
   });
 });
