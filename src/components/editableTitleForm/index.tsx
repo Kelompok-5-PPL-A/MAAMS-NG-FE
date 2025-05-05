@@ -69,7 +69,7 @@ export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id,
         toast.success('Judul analisis berhasil diubah')
         onTitleChange(titleInput)
       } else {
-        await fetch(`${process.env.NEXTAUTH_API_BASE_URL}question/ubah/judul/${id}/`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/ubah/judul/${id}/`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json'

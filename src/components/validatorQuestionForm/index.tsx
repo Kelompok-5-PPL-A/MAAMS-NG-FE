@@ -65,7 +65,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
             })
             setMode(data.mode)
           } else {
-            const response = await fetch(`${process.env.NEXTAUTH_API_BASE_URL}question/ubah/${id}/`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/ubah/${id}/`, {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
         toast.success('Analisis berhasil ditambahkan')
         router.push(`/validator/${data.id}`)
       } else {
-        const response = await fetch(`${process.env.NEXTAUTH_API_BASE_URL}question/submit/`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/submit/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
         setIsTagsChangeModalOpen(false)
         toast.success('Berhasil mengubah kategori')
       } else {
-        const response = await fetch(`${process.env.NEXTAUTH_API_BASE_URL}question/ubah/tags/${id}/`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/ubah/tags/${id}/`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
