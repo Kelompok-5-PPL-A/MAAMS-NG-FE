@@ -114,7 +114,7 @@ const QuestionAddPage: React.FC = () => {
       if (session) {
         response = await axiosInstance.post('/question/submit/', payload);
       } else {
-        const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/submit/`, {
+        const fetchResponse = await fetch(`${process.env.NEXTAUTH_API_BASE_URL}question/submit/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

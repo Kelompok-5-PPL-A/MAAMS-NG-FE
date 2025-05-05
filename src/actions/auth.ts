@@ -12,7 +12,7 @@ export const googleLogin = async (id_token: string): Promise<AxiosResponse<Login
   };
 
   return axios.post(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/auth/login-google/`,
+    `${process.env.NEXTAUTH_API_BASE_URL}api/v1/auth/login-google/`,
     { id_token },
     config
   );
@@ -25,7 +25,7 @@ export const ssoLogin = async (ticket: string): Promise<AxiosResponse<LoginRespo
   };
 
   return axios.get(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/auth/login-sso/`,
+    `${process.env.NEXTAUTH_API_BASE_URL}api/v1/auth/login-sso/`,
     config
   );
 };
@@ -36,7 +36,7 @@ export const refreshToken = async (refresh_token: string): Promise<AxiosResponse
   };
 
   return axios.post(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/auth/token/refresh/`,
+    `${process.env.NEXTAUTH_API_BASE_URL}api/v1/auth/token/refresh/`,
     { refresh: refresh_token },
     config
   );

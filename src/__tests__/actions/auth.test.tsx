@@ -11,7 +11,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('Auth API Service', () => {
   const mockBaseUrl = 'http://localhost:8000';
-  process.env.NEXT_PUBLIC_API_BASE_URL = mockBaseUrl;
+  process.env.NEXTAUTH_API_BASE_URL = mockBaseUrl;
 
   beforeEach(() => {
     jest.clearAllMocks();

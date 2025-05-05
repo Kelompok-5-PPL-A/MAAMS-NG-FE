@@ -3,7 +3,7 @@ import { getSession, signOut } from 'next-auth/react'
 import toast from 'react-hot-toast'
 
 const axiosInstance = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}`,
+  baseURL: `${process.env.NEXTAUTH_API_BASE_URL}`,
   
 })
 
@@ -43,7 +43,7 @@ axiosInstance.interceptors.response.use(
         localStorage.clear()
 
         if (isSsoUser) {
-          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
+          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXTAUTH_URL}`;
           window.location.href = casLogoutURL;
         } else {
           window.location.href = '/login'
@@ -62,7 +62,7 @@ axiosInstance.interceptors.response.use(
         localStorage.clear()
 
         if (isSsoUser) {
-          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
+          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXTAUTH_URL}`;
           window.location.href = casLogoutURL;
         } else {
           window.location.href = '/login'
