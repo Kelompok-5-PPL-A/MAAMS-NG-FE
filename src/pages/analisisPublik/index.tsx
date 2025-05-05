@@ -83,7 +83,7 @@ const AnalisisPublik: React.FC = () => {
       query: { keyword },
     })
 
-    const query = `search/?filter=${filter}&count=4&keyword=${keyword}`
+    const query = `privileged/?filter=${filter}&count=4&keyword=${keyword}`
     fetchData(query)
   }
 
