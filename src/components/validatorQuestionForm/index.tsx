@@ -55,30 +55,34 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
 
   const handleModeChangeConfirm = async () => {
     try {
-      if (!id) {
-        setMode(validatorData?.mode || pendingMode)
-      } else {
-        if (session) {
-          const { data } = await axiosInstance.patch(`/question/ubah/${id}/`, {
-            mode: pendingMode
-          })
-          setMode(data.mode)
+      if (session) {
+        if (!id) {
+          setMode(validatorData?.mode || pendingMode)
         } else {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/ubah/${id}/`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+          if (session) {
+            const { data } = await axiosInstance.patch(`/question/ubah/${id}/`, {
               mode: pendingMode
             })
-          })
-          const res = { data: await response.json()};
-          setMode(res.data.mode)
+            setMode(data.mode)
+          } else {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/ubah/${id}/`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                mode: pendingMode
+              })
+            })
+            const res = { data: await response.json()};
+            setMode(res.data.mode)
+          }
         }
+        setIsModeChangeModalOpen(false)
+        toast.success('Berhasil mengubah mode')
+      } else {
+        toast.error('Gagal mengubah mode. Pastikan anda sudah login')
       }
-      setIsModeChangeModalOpen(false)
-      toast.success('Berhasil mengubah mode')
     } catch (error: any) {
       if (error.response) {
         toast.error(error.response.data.detail)
