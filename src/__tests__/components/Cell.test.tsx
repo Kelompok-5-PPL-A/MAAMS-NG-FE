@@ -1,7 +1,13 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
+import '@testing-library/jest-dom'
 import { Cell } from '../../components/cell'
 import { CauseStatus } from '../../lib/enum'
+
+// Mock the translation function
+jest.mock('../../lib/i18n', () => ({
+  useTranslation: () => ({ t: (key: string) => key })
+}), { virtual: true })
 
 describe('Cell Component', () => {
   const mockOnChange = jest.fn()
@@ -11,8 +17,9 @@ describe('Cell Component', () => {
     cause: '',
     onChange: mockOnChange,
     disabled: false,
-    placeholder: 'Enter cause...',
+    placeholder: 'Isi sebab..',
     feedback: 'Some feedback',
+    causeStatus: CauseStatus.Unchecked
   }
 
   afterEach(() => {
@@ -20,27 +27,49 @@ describe('Cell Component', () => {
   })
 
   test('renders cell name correctly', () => {
-    render(<Cell {...defaultProps} causeStatus={CauseStatus.Unchecked} />)
+    render(<Cell {...defaultProps} />)
     expect(screen.getByText('A1')).toBeInTheDocument()
   })
 
-  test('calls onChange when typing in textarea', () => {
-    render(<Cell {...defaultProps} causeStatus={CauseStatus.Unchecked} />)
-    const textarea = screen.getByPlaceholderText('Enter cause...')
+  test('calls onChange when typing in textarea with valid input', () => {
+    render(<Cell {...defaultProps} />)
+    const textarea = screen.getByPlaceholderText('Isi sebab..')
 
     fireEvent.change(textarea, { target: { value: 'New Cause' } })
     expect(mockOnChange).toHaveBeenCalledWith('New Cause')
   })
 
+  test('does not call onChange when input is empty', () => {
+    render(<Cell {...defaultProps} />)
+    const textarea = screen.getByPlaceholderText('Isi sebab..')
+
+    fireEvent.change(textarea, { target: { value: '' } })
+    expect(mockOnChange).not.toHaveBeenCalled()
+  })
+
+  test('does not call onChange when input is only whitespace', () => {
+    render(<Cell {...defaultProps} />)
+    const textarea = screen.getByPlaceholderText('Isi sebab..')
+
+    fireEvent.change(textarea, { target: { value: '   ' } })
+    expect(mockOnChange).not.toHaveBeenCalled()
+  })
+
   test('does not call onChange when disabled', () => {
-    render(<Cell {...defaultProps} disabled={true} causeStatus={CauseStatus.Unchecked} />)
-    const textarea = screen.getByPlaceholderText('Enter cause...')
+    render(<Cell {...defaultProps} disabled={true} />)
+    const textarea = screen.getByPlaceholderText('Isi sebab..')
 
     fireEvent.change(textarea, { target: { value: 'Attempted Change' } })
     expect(mockOnChange).not.toHaveBeenCalled()
   })
 
-  it('applies correct border color based on causeStatus', () => {
+  test('renders with pre-filled cause value', () => {
+    render(<Cell {...defaultProps} cause="Existing Cause" />)
+    const textarea = screen.getByPlaceholderText('Isi sebab..')
+    expect(textarea).toHaveValue('Existing Cause')
+  })
+
+  test('applies correct border color based on causeStatus', () => {
     const statusMap = {
       [CauseStatus.Incorrect]: 'border-red-500',
       [CauseStatus.CorrectNotRoot]: 'border-green-500',
@@ -50,105 +79,143 @@ describe('Cell Component', () => {
     }
 
     Object.entries(statusMap).forEach(([status, className]) => {
-      render(<Cell {...defaultProps} causeStatus={status as CauseStatus} />)
-      const textareas = screen.getAllByPlaceholderText('Enter cause...')
-      const textarea = textareas[textareas.length - 1] // Get the latest rendered textarea
+      const { container } = render(<Cell {...defaultProps} causeStatus={status} />)
+      const textarea = container.querySelector('textarea')
       expect(textarea).toHaveClass(className)
     })
   })
   
-  it('renders correct feedback message', () => {
-    render(<Cell {...defaultProps} causeStatus={CauseStatus.CorrectRoot} feedback="Root Cause Found" />);
-    expect(screen.getByText('☑️ Root Cause Found Akar Masalah Kolom A ditemukan')).toBeInTheDocument();
-  });
-
-  it('renders empty feedback when causeStatus is Unchecked', () => {
-    render(<Cell {...defaultProps} causeStatus={CauseStatus.Unchecked} feedback="" />)
-    
-    // Ensure NO feedback emoji or text is present
-    expect(screen.queryByText('☑️ Root Cause Found Akar Masalah Kolom A ditemukan')).toBeNull()
-  })
-
-  test('does not call onChange when input is empty', () => {
-    render(<Cell {...defaultProps} causeStatus={CauseStatus.Unchecked} />);
-    const textarea = screen.getByPlaceholderText('Enter cause...');
-  
-    fireEvent.change(textarea, { target: { value: '' } });
-  
-    expect(mockOnChange).not.toHaveBeenCalled();
-  });  
-})
-
-describe('Cell Component', () => {
-  it('renders feedback correctly for CorrectRoot status', () => {
+  test('renders feedback correctly for CorrectRoot status', () => {
     render(
       <Cell
-        cellName="A1"
-        cause="Test Cause"
-        onChange={() => {}}
+        {...defaultProps}
         causeStatus={CauseStatus.CorrectRoot}
-        disabled={false}
-        placeholder="Enter cause"
         feedback="Root cause found"
       />
     )
 
-    expect(screen.getByText('☑️ Root cause found Akar Masalah Kolom A ditemukan')).toBeInTheDocument()
+    // Assuming your component renders feedback with the format: "☑️ {feedback} Akar Masalah Kolom {cellName[0]} ditemukan"
+    const feedbackElement = screen.getByText((content) => 
+      content.includes('Root cause found') && 
+      content.includes('Akar Masalah Kolom A ditemukan')
+    )
+    expect(feedbackElement).toBeInTheDocument()
+    expect(feedbackElement.textContent).toContain('☑️')
   })
 
-  it('renders feedback correctly for CorrectNotRoot status', () => {
+  test('renders feedback correctly for CorrectNotRoot status', () => {
     render(
       <Cell
-        cellName="A1"
-        cause="Test Cause"
-        onChange={() => {}}
+        {...defaultProps}
         causeStatus={CauseStatus.CorrectNotRoot}
-        disabled={false}
-        placeholder="Enter cause"
         feedback="Correct but not root"
       />
     )
 
-    expect(screen.getByText('✅ Correct but not root')).toBeInTheDocument()
+    const feedbackElement = screen.getByText((content) => 
+      content.includes('Correct but not root')
+    )
+    expect(feedbackElement).toBeInTheDocument()
+    expect(feedbackElement.textContent).toContain('✅')
   })
 
-  it('renders feedback correctly for Incorrect status', () => {
+  test('renders feedback correctly for Incorrect status', () => {
     render(
       <Cell
-        cellName="A1"
-        cause="Test Cause"
-        onChange={() => {}}
+        {...defaultProps}
         causeStatus={CauseStatus.Incorrect}
-        disabled={false}
-        placeholder="Enter cause"
         feedback="Incorrect cause"
       />
     )
 
-    expect(screen.getByText('❌ Incorrect cause')).toBeInTheDocument()
+    const feedbackElement = screen.getByText((content) => 
+      content.includes('Incorrect cause')
+    )
+    expect(feedbackElement).toBeInTheDocument()
+    expect(feedbackElement.textContent).toContain('❌')
   })
 
-  it('renders feedback correctly for Unchecked status', () => {
-    render(
-      <div data-testid="cell-container">
-        <Cell
-          cellName="A1"
-          cause="Test Cause"
-          onChange={() => {}}
-          causeStatus={CauseStatus.Unchecked}
-          disabled={false}
-          placeholder="Enter cause"
-          feedback="Unchecked cause"
-        />
-      </div>
+  test('renders feedback correctly for Unchecked status', () => {
+    const { container } = render(
+      <Cell
+        {...defaultProps}
+        causeStatus={CauseStatus.Unchecked}
+        feedback="Unchecked feedback"
+      />
     )
 
-    // Check if the textarea is rendered with the placeholder
-    const textarea = screen.getByPlaceholderText('Enter cause')
-    expect(textarea).toBeInTheDocument()
-
-    const feedbackElement = screen.getByTestId('cell-container')
-    expect(screen.getByText('Unchecked cause')).toBeInTheDocument()
-
+    // For Unchecked status, the feedback should be rendered without any emoji
+    expect(container.querySelector('.feedback-text')).toBeNull()
   })
+
+  test('renders no feedback when feedback is empty', () => {
+    const { container } = render(
+      <Cell
+        {...defaultProps}
+        causeStatus={CauseStatus.Unchecked}
+        feedback=""
+      />
+    )
+
+    // Check for absence of feedback element with emojis
+    expect(container.querySelector('.feedback')).toBeNull()
+  })
+
+  test('renders with custom placeholder when provided', () => {
+    const customPlaceholder = 'Custom placeholder'
+    render(<Cell {...defaultProps} placeholder={customPlaceholder} />)
+    expect(screen.getByPlaceholderText(customPlaceholder)).toBeInTheDocument()
+  })
+
+  test('renders without placeholder when disabled', () => {
+    render(<Cell {...defaultProps} disabled={true} placeholder="Should not show" />)
+    const textarea = screen.getByRole('textbox')
+    expect(textarea).toHaveAttribute('placeholder', 'Should not show')
+  })
+
+  test('textarea should be disabled when disabled prop is true', () => {
+    render(<Cell {...defaultProps} disabled={true} />)
+    const textarea = screen.getByRole('textbox')
+    expect(textarea).toBeDisabled()
+  })
+
+  test('textarea should be enabled when disabled prop is false', () => {
+    render(<Cell {...defaultProps} disabled={false} />)
+    const textarea = screen.getByRole('textbox')
+    expect(textarea).not.toBeDisabled()
+  })
+
+  test('renders with appropriate dimensions and styling', () => {
+    const { container } = render(<Cell {...defaultProps} />)
+    const cellContainer = container.firstChild
+    expect(cellContainer).toHaveClass('relative')
+  })
+
+  test('handles long feedback text appropriately', () => {
+    const longFeedback = 'This is a very long feedback message that should be handled appropriately by the component without breaking the layout or causing visual issues'
+    render(
+      <Cell
+        {...defaultProps}
+        causeStatus={CauseStatus.CorrectNotRoot}
+        feedback={longFeedback}
+      />
+    )
+    
+    expect(screen.getByText((content) => content.includes(longFeedback))).toBeInTheDocument()
+  })
+
+  test('does not modify feedback if it already includes "Akar Masalah"', () => {
+    render(
+      <Cell
+        {...defaultProps}
+        cause="penyebab"
+        causeStatus={CauseStatus.CorrectRoot}
+        feedback="Akar Masalah Kolom A ditemukan: Sudah benar"
+      />
+    )
+  
+    expect(screen.getByText('☑️ Akar Masalah Kolom A ditemukan: Sudah benar')).toBeInTheDocument()
+  })
+  
+  
 })

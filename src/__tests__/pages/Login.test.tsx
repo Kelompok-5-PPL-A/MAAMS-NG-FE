@@ -29,7 +29,6 @@ jest.mock('react-hot-toast', () => ({
   success: jest.fn(),
 }))
 
-// Mock next-auth client-side operations
 jest.mock('next-auth/react', () => {
   const originalModule = jest.requireActual('next-auth/react')
   return {
@@ -39,22 +38,6 @@ jest.mock('next-auth/react', () => {
     SessionProvider: originalModule.SessionProvider,
   }
 })
-
-// Mock the hooks and dependencies
-jest.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({
-    user: {
-      name: 'Test User',
-      access_token: 'test-token',
-      refresh_token: 'refresh-token',
-    },
-    session: {
-      user: { name: 'Test User' },
-    },
-    isAuthenticated: true,
-    isLoading: false,
-  }),
-}))
 
 // Mock localStorage
 const mockLocalStorage = {
@@ -73,15 +56,31 @@ Object.defineProperty(window, 'localStorage', {
 
 describe('Login Page', () => {
   const mockPush = jest.fn()
+  const originalLocation = window.location
 
   beforeEach(() => {
     jest.clearAllMocks()
-    mockLocalStorage.getItem.mockReturnValue('true') // Mock logged in state
+
+    // Mock router
     ;(useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
     })
-    ;(signIn as jest.Mock).mockImplementation(() => Promise.resolve({ ok: true }))
+
+    // Default return value
+    mockLocalStorage.getItem.mockImplementation((key: string) => {
+      if (key === 'loginMethod') return 'google'
+      return null
+    })
+
+    // Mock window.location
+    delete (window as any).location
+    window.location = { href: '' } as any
+
     jest.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterAll(() => {
+    window.location = originalLocation as any
   })
 
   const renderLoginPage = () => {
@@ -93,44 +92,26 @@ describe('Login Page', () => {
   }
 
   describe('Render Login Page', () => {
-    it('renders the main heading and input field', () => {
+    it('renders the main heading and buttons', () => {
       renderLoginPage()
       expect(screen.getByText('Masuk ke Akun')).toBeInTheDocument()
-    })
-
-    it('renders the Google login button', () => {
-      renderLoginPage()
       expect(screen.getByText('Masuk dengan Google')).toBeInTheDocument()
-    })
-
-    it('renders the Google logo image inside the button', () => {
-      renderLoginPage()
-
-      const googleLogo = screen.getByAltText('Google Logo')
-      const loginButton = screen.getByText('Masuk dengan Google').closest('button')
-
-      expect(googleLogo).toBeInTheDocument()
-      expect(loginButton).toContainElement(googleLogo)
-    })
-
-    it('renders the SSO login button', () => {
-      renderLoginPage()
       expect(screen.getByText('Masuk dengan SSO UI')).toBeInTheDocument()
     })
 
-    it('renders the UI logo image inside the button', () => {
+    it('renders the Google and UI logos inside their buttons', () => {
       renderLoginPage()
+      const googleLogo = screen.getByAltText('Google Logo')
       const uiLogo = screen.getByAltText('UI Logo')
-      const loginButton = screen.getByText('Masuk dengan SSO UI').closest('button')
 
+      expect(googleLogo).toBeInTheDocument()
       expect(uiLogo).toBeInTheDocument()
-      expect(loginButton).toContainElement(uiLogo)
     })
 
     it('handles Google login click', async () => {
       renderLoginPage()
       fireEvent.click(screen.getByText('Masuk dengan Google'))
-      
+
       await waitFor(() => {
         expect(signIn).toHaveBeenCalledWith('google')
       })
@@ -148,46 +129,25 @@ describe('Login Page', () => {
       })
     })
 
-    it('handles local storage error when saving user data', async () => {
-      const originalSetItem = window.localStorage.setItem;
-      window.localStorage.setItem = jest.fn(() => {
-        throw new Error('Local storage error');
-      });
-    
-      (signIn as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        user: { name: 'Test User' },
-        access_token: 'test-token',
-      });
-    
-      render(
-        <SessionProvider session={null}>
-          <Login />
-        </SessionProvider>
-      );
-    
-      fireEvent.click(screen.getByText('Masuk dengan Google'));
-    
-      await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('Gagal menyimpan data login');
-        expect(console.error).toHaveBeenCalledWith(
-          'Local storage error:',
-          expect.any(Error)
-        );
-      });
-    
-      window.localStorage.setItem = originalSetItem;
-    });
-
-    it('redirects to home page when authenticated', async () => {
+    it('handles SSO login click and redirects to CAS login', () => {
       renderLoginPage()
-      
+
+      const ssoButton = screen.getByText('Masuk dengan SSO UI')
+      fireEvent.click(ssoButton)
+
+      expect(window.location.href).toContain('https://sso.ui.ac.id/cas2/login?service=')
+    })
+
+    it('does not redirect if loginMethod is not google', async () => {
+      mockLocalStorage.getItem.mockImplementation((key: string) => {
+        if (key === 'loginMethod') return 'sso'
+        return null
+      })
+
+      renderLoginPage()
+
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/')
-        expect(toast.success).toHaveBeenCalledWith(
-          expect.stringContaining('Welcome'),
-          expect.any(Object)
-        )
+        expect(mockPush).not.toHaveBeenCalled()
       })
     })
   })

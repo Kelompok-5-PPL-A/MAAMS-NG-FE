@@ -8,13 +8,15 @@ declare module "next-auth" {
     first_name: string
     last_name: string
     role: string
+    google_id: string
     npm: string
     angkatan: string
     date_joined?: string
     is_active: boolean
-    is_staff: boolean
-    access_token?: string
-    refresh_token?: string
+    accessToken?: string
+    refreshToken?: string
+    is_new_user?: boolean;
+    provider?: string;
   }
 
   interface Session extends DefaultSession {
@@ -24,17 +26,18 @@ declare module "next-auth" {
       username: string
       first_name: string
       last_name: string
+      google_id: string
       role: string
       npm: string
       angkatan: string
       is_active: boolean
-      is_staff: boolean
-      access_token?: string
-      refresh_token?: string
+      accessToken?: string
+      refreshToken?: string
     } & DefaultSession["user"]
 
-    access_token?: string
-    refresh_token?: string
+    accessToken?: string
+    refreshToken?: string
+    provider?: string
     error?: string
   }
 }
@@ -47,11 +50,12 @@ declare module "next-auth/jwt" {
     first_name: string
     last_name: string
     role: string
+    google_id: string
     npm: string
     angkatan: string
     is_active: boolean
-    is_staff: boolean
-    access_token?: string
-    refresh_token?: string
+    accessToken?: string
+    refreshToken?: string
+    provider?: string
   }
 }

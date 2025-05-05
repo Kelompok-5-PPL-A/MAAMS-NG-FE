@@ -1,181 +1,135 @@
-import MockAdapter from 'axios-mock-adapter'
 import axiosInstance from '../../services/axiosInstance'
-import { waitFor } from '@testing-library/react'
-import axios from 'axios'
+import MockAdapter from 'axios-mock-adapter'
 import toast from 'react-hot-toast'
+import { getSession, signOut } from 'next-auth/react'
+
+jest.mock('next-auth/react')
+jest.mock('react-hot-toast', () => ({
+  error: jest.fn(),
+  success: jest.fn(),
+  dismiss: jest.fn(),
+  loading: jest.fn()
+}))
 
 const mock = new MockAdapter(axiosInstance)
-const mockAxios = new MockAdapter(axios)
 
-const mockPush = jest.fn()
-const mockReload = jest.fn()
-jest.mock('next/router', () => ({
-  useRouter: () => ({
-    push: mockPush,
-    reload: mockReload
-  })
-}))
-
-jest.mock('react-hot-toast', () => ({
-    error: jest.fn(),
-    success: jest.fn(),
-    dismiss: jest.fn(),
-    loading: jest.fn()
-}))
-
-const localStorageMock = (() => {
-  let store: Record<string, string> = {}
-
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value.toString()
-    },
-    removeItem: (key: string) => {
-      delete store[key]
-    },
-    clear: () => {
-      store = {}
-    }
-  }
-})()
-
-Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-
-beforeEach(() => {
-  localStorageMock.clear()
-})
-
-afterEach(() => {
-  jest.restoreAllMocks()
-})
-
-test('should handle successful request', async () => {
-  const responseData = { message: 'Success' }
-
-  localStorageMock.setItem('accessToken', 'token')
-
-  mock.onGet('/question/submit').reply(200, responseData)
-
-  const response = await axiosInstance.get('/question/submit')
-
-  expect(response.status).toBe(200)
-  expect(response.data).toEqual(responseData)
-})
-
-test('should handle failed request', async () => {
-  mock.onGet('/question/submit').reply(500, { error: 'Internal Server Error' })
-
-  try {
-    await axiosInstance.get('/question/submit')
-  } catch (error: any) {
-    expect(error.response.status).toBe(500)
-    expect(error.response.data).toEqual({ error: 'Internal Server Error' })
-  }
-})
-
-test('should handle failed request when response 401', async () => {
-  mock.onGet('/question/submit').reply(401, { error: 'Unauthorized' })
-  localStorageMock.setItem('refreshToken', 'mock')
-
-  try {
-    await axiosInstance.get('/question/submit')
-  } catch (error: any) {
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/login-google/')
-    })
-  }
-})
-
-test('should handle reload the page if provided a refresh token', async () => {
-  mock.onGet('/question/submit').reply(401, { error: 'Unauthorized' })
-  localStorageMock.setItem('refreshToken', 'mock')
-
-  const mockResponse = { access: 'mock_new_access_token' }
-  mockAxios.onPost(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/token/refresh/`).reply(200, mockResponse)
-
-  try {
-    await axiosInstance.get('/question/submit')
-  } catch (error: any) {
-    await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/token/refresh/`, { token: 'mock' })
-
-    await waitFor(() => {
-      expect(mockReload).toHaveBeenCalled()
-    })
-  }
-})
-
-test('should handle errors in request configuration', async () => {
-  const responseData = { message: 'Success' }
-  mock.onGet('/question/submit').reply(200, responseData)
-  const testError = new Error('Failed to get item from localStorage')
-
-  jest.spyOn(localStorage, 'getItem').mockImplementation(() => {
-    throw testError
+describe('axiosInstance', () => {
+  beforeEach(() => {
+    mock.reset()
+    jest.clearAllMocks()
+    delete (window as any).location
+    ;(window as any).location = { href: '' }
   })
 
-  axiosInstance.interceptors.request.use(
-    (config) => {
-      localStorage.getItem('access_token')
-      return config
-    },
-    (error) => {
-      return Promise.reject(error)
-    }
-  )
+  describe('request interceptor', () => {
+    it('should not set Authorization header if no access token exists', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce(null)
 
-  try {
-    await axiosInstance.get('/question/submit')
-  } catch (error: any) {
-    expect(error).toBe(testError)
-  }
-})
+      mock.onGet('/open').reply((config) => {
+        expect(config.headers?.Authorization).toBeUndefined()
+        return [200, { open: true }]
+      })
 
-test('should update accessToken, show toast, and reload on token refresh', async () => {
-  mock.onGet('/question/submit').reply(401, { error: 'Unauthorized' })
-  localStorageMock.setItem('refreshToken', 'mock_refresh_token')
-
-  const mockResponse = { access: 'mock_new_access_token' }
-  mockAxios.onPost(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/token/refresh/`).reply(200, mockResponse)
-
-  const toastMock = jest.spyOn(toast, "error")
-
-  try {
-    await axiosInstance.get('/question/submit')
-  } catch (error: any) {
-    await waitFor(() => {
-      expect(localStorageMock.getItem('accessToken')).toBe('mock_new_access_token')
-
-      expect(toastMock).toHaveBeenCalledWith('Sesi anda telah diperbaharui. Silakan coba lagi')
-
-      expect(mockReload).toHaveBeenCalled()
+      await axiosInstance.get('/open')
     })
-  }
+
+    it('should not throw if config.headers is undefined', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'abc-token' })
+    
+      const requestInterceptor = (axiosInstance.interceptors.request as any).handlers[0].fulfilled
+    
+      const config = await requestInterceptor({})  
+      expect(config.headers?.authorization).toBeUndefined()
+    })
+  })
+
+  describe('response interceptor', () => {
+    it('should handle 401 error by logging out and redirecting', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'expired-token' })
+      const signOutMock = signOut as jest.Mock
+      signOutMock.mockResolvedValueOnce(undefined)
+
+      mock.onGet('/unauthorized').reply(401)
+
+      await expect(axiosInstance.get('/unauthorized')).rejects.toMatchObject({
+        response: { status: 401 }
+      })
+
+      expect(toast.error).toHaveBeenCalledWith('Sesi anda telah berakhir. Silakan login kembali')
+      expect(signOutMock).toHaveBeenCalledWith({ redirect: false })
+      expect(window.location.href).toBe('/login')
+    })
+
+    it('should pass through non-401 errors', async () => {
+      mock.onGet('/error').reply(500, { error: 'Server error' })
+
+      await expect(axiosInstance.get('/error')).rejects.toMatchObject({
+        response: {
+          status: 500,
+          data: { error: 'Server error' }
+        }
+      })
+
+      expect(toast.error).not.toHaveBeenCalled()
+      expect(signOut).not.toHaveBeenCalled()
+    })
+
+    it('should redirect to CAS logout if SSO user', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'expired-token' })
+      const signOutMock = signOut as jest.Mock
+      signOutMock.mockResolvedValueOnce(undefined)
+      localStorage.setItem('loginMethod', 'sso')
+    
+      mock.onGet('/unauthorized').reply(401)
+    
+      await expect(axiosInstance.get('/unauthorized')).rejects.toMatchObject({
+        response: { status: 401 }
+      })
+    
+      expect(window.location.href).toContain('https://sso.ui.ac.id/cas2/logout?service=')
+    })
+
+    it('should handle errors in the 401 error handler catch block', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'expired-token' })
+    
+      // Bikin signOut lempar error
+      const signOutMock = signOut as jest.Mock
+      signOutMock.mockRejectedValueOnce(new Error('signOut failed'))
+    
+      localStorage.setItem('loginMethod', 'sso')
+    
+      mock.onGet('/unauthorized').reply(401)
+    
+      await expect(axiosInstance.get('/unauthorized')).rejects.toMatchObject({
+        response: { status: 401 }
+      })
+    
+      expect(toast.error).toHaveBeenCalledWith('Terjadi kesalahan. Silakan login kembali')
+      expect(window.location.href).toContain('https://sso.ui.ac.id/cas2/logout?service=')
+    })    
+  })
+
+  describe('successful request', () => {
+    it('should return data correctly', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'abc-token' })
+
+      const responseData = { message: 'OK' }
+      mock.onGet('/success').reply(200, responseData)
+
+      const res = await axiosInstance.get('/success')
+      expect(res.status).toBe(200)
+      expect(res.data).toEqual(responseData)
+    })
+
+    it('should set Authorization header if access token exists', async () => {
+      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'test-token' })
+    
+      mock.onGet('/auth-required').reply((config) => {
+        expect(config.headers?.authorization).toBe('Bearer test-token')
+        return [200, { authorized: true }]
+      })
+    
+      await axiosInstance.get('/auth-required')
+    })
+  })
 })
-
-test('should update accessToken, show toast, and reload on successful token refresh', async () => {
-  mock.onGet('/protected-route').replyOnce(401, { error: 'Unauthorized' });
-  
-  const newAccessToken = 'new-access-token';
-  mockAxios.onPost(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/token/refresh/`)
-    .reply(200, { access: newAccessToken });
-  
-  mock.onGet('/protected-route').replyOnce(200, { success: true });
-
-  localStorageMock.setItem('refreshToken', 'valid-refresh-token');
-  localStorageMock.setItem('accessToken', 'expired-access-token');
-
-  const setItemSpy = jest.spyOn(localStorageMock, 'setItem');
-
-  try {
-    await axiosInstance.get('/protected-route');
-  } catch (error: any) {
-    await waitFor(() => {
-      expect(setItemSpy).toHaveBeenCalledWith('accessToken', newAccessToken);
-      
-      expect(toast.error).toHaveBeenCalledWith('Sesi anda telah diperbaharui. Silakan coba lagi');
-      
-      expect(mockReload).toHaveBeenCalled();
-    });
-  }
-});
