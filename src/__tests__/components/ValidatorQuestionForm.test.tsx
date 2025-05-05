@@ -11,6 +11,18 @@ jest.mock('../../services/axiosInstance')
 const mockedAxios = axiosInstance as jest.Mocked<typeof axiosInstance>
 const mockPush = jest.fn()
 const mockReload = jest.fn()
+
+jest.mock('next-auth/react', () => ({
+  ...jest.requireActual('next-auth/react'),
+  useSession: () => ({
+    data: {
+      user: { name: 'Test User', email: 'test@example.com' },
+      accessToken: 'dummy-access',
+    },
+    status: 'authenticated',
+  }),
+}))
+
 jest.mock('next/router', () => ({
   useRouter: () => ({
     push: mockPush,

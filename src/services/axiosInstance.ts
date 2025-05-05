@@ -43,7 +43,7 @@ axiosInstance.interceptors.response.use(
         localStorage.clear()
 
         if (isSsoUser) {
-          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
+          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXTAUTH_URL}`;
           window.location.href = casLogoutURL;
         } else {
           window.location.href = '/login'
@@ -62,7 +62,7 @@ axiosInstance.interceptors.response.use(
         localStorage.clear()
 
         if (isSsoUser) {
-          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
+          const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXTAUTH_URL}`;
           window.location.href = casLogoutURL;
         } else {
           window.location.href = '/login'
