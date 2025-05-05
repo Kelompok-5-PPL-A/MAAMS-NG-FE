@@ -15,6 +15,7 @@ import { TagsGroup } from '../../components/tagsGroup'
 import { BiPencil } from 'react-icons/bi'
 import { Badge } from '../../badges'
 import { HiOutlineInformationCircle } from 'react-icons/hi'
+import { useSession } from 'next-auth/react'
 
 export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id, validatorData }) => {
   const [question, setQuestion] = useState<string>(validatorData?.question ?? '')
@@ -27,6 +28,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
   const [tags, setTags] = useState<string[]>([])
   const [tagsModal, setTagsModal] = useState<string[]>([]);
   const [newTag, setNewTag] = useState<string>('')
+  const {data: session} = useSession()
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -56,10 +58,24 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
       if (!id) {
         setMode(validatorData?.mode || pendingMode)
       } else {
-        const { data } = await axiosInstance.patch(`/question/ubah/${id}/`, {
-          mode: pendingMode
-        })
-        setMode(data.mode)
+        if (session) {
+          const { data } = await axiosInstance.patch(`/question/ubah/${id}/`, {
+            mode: pendingMode
+          })
+          setMode(data.mode)
+        } else {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/ubah/${id}/`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              mode: pendingMode
+            })
+          })
+          const res = { data: await response.json()};
+          setMode(res.data.mode)
+        }
       }
       setIsModeChangeModalOpen(false)
       toast.success('Berhasil mengubah mode')
@@ -81,12 +97,28 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
     }
 
     try {
-      const { data } = await axiosInstance.post('/question/submit/', {
-        mode: mode,
-        question: question
-      })
-      toast.success('Analisis berhasil ditambahkan')
-      router.push(`/validator/${data.id}`)
+      if (session) {
+        const { data } = await axiosInstance.post('/question/submit/', {
+          mode: mode,
+          question: question
+        })
+        toast.success('Analisis berhasil ditambahkan')
+        router.push(`/validator/${data.id}`)
+      } else {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/submit/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            mode: mode,
+            question: question
+          })
+        })
+        const res = { data: await response.json()};
+        toast.success('Analisis berhasil ditambahkan')
+        router.push(`/validator/${res.data.id}`)
+      }
     } catch (error: any) {
       if (error.response) {
         toast.error(error.response.data.detail)
@@ -108,15 +140,32 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
       toast.error('Minimal mengisi 1 kategori')
       return
     }
-  
+    
     try {
-      const { data } = await axiosInstance.patch(`/question/ubah/tags/${id}/`, {
-        tags: tagsModal
-      })
-      setTags(data.tags)
-      setTagsModal(data.tags)
-      setIsTagsChangeModalOpen(false)
-      toast.success('Berhasil mengubah kategori')
+      if (session) {
+        const { data } = await axiosInstance.patch(`/question/ubah/tags/${id}/`, {
+          tags: tagsModal
+        })
+        setTags(data.tags)
+        setTagsModal(data.tags)
+        setIsTagsChangeModalOpen(false)
+        toast.success('Berhasil mengubah kategori')
+      } else {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/ubah/tags/${id}/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            tags: tagsModal
+          })
+        })
+        const res = { data: await response.json()};
+        setTags(res.data.tags)
+        setTagsModal(res.data.tags)
+        setIsTagsChangeModalOpen(false)
+        toast.success('Berhasil mengubah kategori')
+      }
     } catch (error: any) {
       if (error.response) {
         toast.error(error.response.data.detail)
