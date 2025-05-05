@@ -31,9 +31,9 @@ describe('FuncTest.cy.tsx', () => {
       cy.contains('Sebab:', { timeout: 10000 }).should('be.visible');
       
       // Step 4: Fill in the causes for the first row (columns A, B, C)
-      cy.get('[data-testid="row-container"] textarea').eq(0).type('Kurangnya pengawasan dari orang tua.', { force: true });
-      cy.get('[data-testid="row-container"] textarea').eq(1).type('Kurangnya pemahaman mengenai bahaya penyalahgunaan narkoba.', { force: true });
-      cy.get('[data-testid="row-container"] textarea').eq(2).type('Pergaulan bebas tanpa pengawasan orang tua.', { force: true });
+      cy.get('[data-testid="row-container"] textarea').eq(0).type('Kurangnya pengawasan dari orang tua.');
+      cy.get('[data-testid="row-container"] textarea').eq(1).type('Kurangnya pemahaman mengenai bahaya penyalahgunaan narkoba.');
+      cy.get('[data-testid="row-container"] textarea').eq(2).type('Pergaulan bebas tanpa pengawasan orang tua.');
       
       // Step 5: Submit the causes
       cy.get('button').contains('Kirim Sebab').click();
