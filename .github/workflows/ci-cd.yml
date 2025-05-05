@@ -137,7 +137,7 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: netlify deploy --dir=netlify/output --message "Staging deploy from GitHub Actions"
+        run: netlify deploy --dir=.next --message "Deploy from GitHub Actions"
 
   deploy_production:
     name: Deploy to Netlify Production
@@ -167,4 +167,4 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: netlify deploy --dir=netlify/output --prod --message "Production deploy from GitHub Actions"
+        run: netlify deploy --dir=.next --prod --message "Production deploy from GitHub Actions"
