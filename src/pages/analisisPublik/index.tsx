@@ -6,14 +6,13 @@ import MainLayout from '../../layout/MainLayout'
 import { SearchBar } from '../../components/searchBar'
 import AdminTable from '../../components/adminTable'
 import Pagination from '../../components/pagination'
-import { fetchPublicQuestions } from '@/actions/fetchPublicQuestion'
+import { fetchQuestions } from '@/actions/fetchQuestion'
 import fetchFilters from '@/actions/fetchFilters'
 import { Item } from '@/components/types/historyPage'
 
 const AnalisisPublik: React.FC = () => {
-  const { data: session } = useSession()
   const router = useRouter()
-
+  const { data: session } = useSession()
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState<number>(1)
   const [data, setData] = useState<Item[]>([])
@@ -26,7 +25,10 @@ const AnalisisPublik: React.FC = () => {
 
   const fetchData = async (queryParams: string) => {
     try {
-      const processedData = await fetchPublicQuestions(queryParams, session?.accessToken)
+      const [processedData] = await Promise.all([
+        await fetchQuestions("", queryParams)
+      ])
+
       setData(processedData.processedData)
       setTotalPages(Math.ceil(processedData.count / 5))
 
