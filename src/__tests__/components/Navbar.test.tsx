@@ -37,7 +37,14 @@ const userData = {
   uuid: '123',
   username: 'johndoe',
   email: 'john@example.com',
-  role: 'staff',
+  role: 'user',
+};
+
+const adminData = {
+  uuid: '123',
+  username: 'johndoe',
+  email: 'john@example.com',
+  role: 'admin',
 };
 
 // Mocks for localStorage
@@ -103,6 +110,18 @@ describe('Navbar Component', () => {
   test('renders correctly for authenticated users', () => {
     (useSession as jest.Mock).mockReturnValue({
       data: { user: userData },
+      status: 'authenticated',
+    });
+
+    renderWithSession(<Navbar />);
+
+    expect(screen.getByText(/Riwayat/i)).toBeInTheDocument();
+    expect(screen.getByText(/johndoe/i)).toBeInTheDocument();
+  });
+
+  test('renders correctly for authenticated admins', () => {
+    (useSession as jest.Mock).mockReturnValue({
+      data: { user: adminData },
       status: 'authenticated',
     });
 
@@ -185,5 +204,32 @@ describe('Navbar Component', () => {
     expect(signOut).toHaveBeenCalledWith({ redirect: false });
     expect(localStorage.clear).toHaveBeenCalled();
     expect(window.location.href).toContain('https://sso.ui.ac.id/cas2/logout');
+  });
+  
+  test('handles logout failure and redirects to home', async () => {
+    // Mock a failed signOut
+    (signOut as jest.Mock).mockImplementationOnce(() => 
+      Promise.reject(new Error('Logout failed'))
+    );
+  
+    (useSession as jest.Mock).mockReturnValue({
+      data: { user: userData },
+      status: 'authenticated',
+    });
+  
+    localStorage.setItem('loginMethod', 'google');
+  
+    renderWithSession(<Navbar />);
+    fireEvent.click(screen.getByRole('button', { name: /johndoe/i }));
+    const signOutButton = screen.getByText(/Sign out/i);
+  
+    await act(async () => {
+      fireEvent.click(signOutButton);
+    });
+  
+    // Verify error handling behavior
+    expect(signOut).toHaveBeenCalledWith({ redirect: false });
+    expect(localStorage.clear).toHaveBeenCalled();
+    expect(push).toHaveBeenCalledWith('/');
   });
 });

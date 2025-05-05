@@ -36,7 +36,7 @@ const Navbar = () => {
       
       // If SSO user, redirect to SSO logout
       if (isSsoUser) {
-        const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXT_PUBLIC_NEXTAUTH_URL}`;
+        const casLogoutURL = `https://sso.ui.ac.id/cas2/logout?service=${process.env.NEXTAUTH_URL}`;
         window.location.href = casLogoutURL;
       } else {
         // For other users, redirect to home
@@ -93,7 +93,7 @@ const Navbar = () => {
                     Riwayat
                   </a>
                 </li>
-                {userData?.role && (
+                {userData?.role === 'admin' && (
                   <li>
                     <a
                       href="/analisisPublik"

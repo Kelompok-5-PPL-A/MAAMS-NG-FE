@@ -25,7 +25,7 @@ const PastWeek: React.FC = () => {
   const { data: session, status } = useSession()
 
   const isAdmin = typeof window !== 'undefined'
-    ? JSON.parse(window.localStorage.getItem('userData')!)?.is_staff
+    ? session?.user?.role === 'admin'
     : false
 
   const handlePageChange = (page: number) => {

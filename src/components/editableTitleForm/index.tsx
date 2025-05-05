@@ -7,6 +7,7 @@ import { CircularIconButton } from '../../components/circularIconButton'
 import { Icon } from '@chakra-ui/react'
 import { useOnClickOutside } from 'usehooks-ts'
 import { HiOutlineInformationCircle } from 'react-icons/hi'
+import { useSession } from 'next-auth/react'
 
 export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id, onTitleChange }) => {
   const [isEditable, setIsEditable] = useState(false)
@@ -14,6 +15,7 @@ export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id,
   const [isLoading, setIsLoading] = useState(false)
   const ref = useRef<HTMLFormElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const {data: session} = useSession()
 
   useEffect(() => {
     setNewTitle(title)
@@ -60,11 +62,25 @@ export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id,
 
     try {
       setIsLoading(true)
-      await axiosInstance.patch(`/api/v1/validator/ubah/judul/${id}/`, {
-        title: titleInput
-      })
-      toast.success('Judul analisis berhasil diubah')
-      onTitleChange(titleInput)
+      if (session) {
+        await axiosInstance.patch(`/question/ubah/judul/${id}/`, {
+          title: titleInput
+        })
+        toast.success('Judul analisis berhasil diubah')
+        onTitleChange(titleInput)
+      } else {
+        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/ubah/judul/${id}/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: titleInput
+          })
+        })
+        toast.success('Judul analisis berhasil diubah')
+        onTitleChange(titleInput)
+      }
     } catch (error: any) {
       if (error.response) {
         toast.error(error.response.data.detail)

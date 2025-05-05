@@ -24,7 +24,7 @@ export const DeleteButton = ({ idQuestion, pathname }: DeleteButtonProps) => {
 
   const handleDelete = async () => {
     try {
-      await axiosInstance.delete(`/api/v1/validator/hapus/${idQuestion}/`);
+      await axiosInstance.delete(`/question/${idQuestion}/delete/`);
       toast.success('Berhasil menghapus analisis');
       if (pathname === '/history') {
         router.reload();
