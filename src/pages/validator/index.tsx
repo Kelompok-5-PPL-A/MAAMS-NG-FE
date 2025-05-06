@@ -113,24 +113,29 @@ const QuestionAddPage: React.FC = () => {
       let response;
       if (session) {
         response = await axiosInstance.post('/question/submit/', payload);
+        toast.success('Analisis berhasil ditambahkan');
+        router.push(`/validator/${response.data.id}`);
       } else {
-        const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/submit/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-        
-        if (!fetchResponse.ok) {
-          throw new Error('Network response was not ok');
+        if(mode === Mode.pribadi) {
+          const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/submit/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          
+          if (!fetchResponse.ok) {
+            throw new Error('Network response was not ok');
+          }
+          
+          response = { data: await fetchResponse.json() };
+          toast.success('Analisis berhasil ditambahkan');
+          router.push(`/validator/${response.data.id}`);
+        } else {
+          toast.error('Gagal menambahkan analisis. Login terlebih dahulu untuk mode pengawasan.')
         }
-        
-        response = { data: await fetchResponse.json() };
       }
-      
-      toast.success('Analisis berhasil ditambahkan');
-      router.push(`/validator/${response.data.id}`);
     } catch (error: any) {
       console.error('Submission error:', error);
       

@@ -48,7 +48,7 @@ const AdminTable: React.FC<Props> = ({ data }) => {
                   : displayed_title || title}
               </td>
               <td className='px-6 py-4 border-b border-b-[#FBC707] truncate'>
-                {user.length > 10 ? `${user.slice(0, 10)}...` : user}
+                {user?.length > 10 ? `${user.slice(0, 10)}...` : user}
               </td>
               <td className='px-6 py-4 flex justify-start'>
                 {tags.map((tag, tagIndex) => (
