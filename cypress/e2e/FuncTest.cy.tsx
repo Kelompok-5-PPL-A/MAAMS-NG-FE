@@ -16,6 +16,55 @@ describe('FuncTest.cy.tsx', () => {
       cy.get('input[placeholder="Pertanyaan apa yang ingin ditanyakan ..."]').should('exist');
     });
 
+    it('should display error message when submitting without filling title', () => {
+      cy.contains('Tambahkan Analisis').click();
+      cy.get('button').contains('Kirim').click();
+      cy.contains('Judul harus diisi', { timeout: 10000 }).should('be.visible');
+    })
+
+    it('should display error message when submitting without filling question', () => {
+      cy.contains('Tambahkan Analisis').click();
+      cy.get('input[placeholder="Ingin menganalisis apa hari ini ..."]').type('Testing');
+      cy.get('button').contains('Kirim').click();
+      cy.contains('Pertanyaan harus diisi', { timeout: 10000 }).should('be.visible');
+    })
+
+    it('should display error message when submitting without creating tags', () => {
+      cy.contains('Tambahkan Analisis').click();
+      cy.get('input[placeholder="Ingin menganalisis apa hari ini ..."]').type('Testing');
+      cy.get('input[placeholder="Pertanyaan apa yang ingin ditanyakan ..."]').type('Mengapa Terjadi Penyalahgunaan Narkoba di Kalangan Generasi Muda di Indonesia?');
+      cy.get('button').contains('Kirim').click();
+      cy.contains('Minimal mengisi 1 kategori', { timeout: 10000 }).should('be.visible');
+    })
+
+    it('should display error message when submitting with title length > 40', () => {
+      cy.contains('Tambahkan Analisis').click();
+      cy.get('input[placeholder="Ingin menganalisis apa hari ini ..."]').type('TestingTestingTestingTestingTestingTestingTestingTestingTesting');
+      cy.get('input[placeholder="Pertanyaan apa yang ingin ditanyakan ..."]').type('Mengapa Terjadi Penyalahgunaan Narkoba di Kalangan Generasi Muda di Indonesia?');
+      cy.get('input[placeholder="Berikan maksimal 3 kategori ..."]').type(`narkoba{enter}`).type(`remaja{enter}`).type(`kenakalan{enter}`);
+      cy.get('button').contains('Kirim').click();
+      cy.contains('Judul maksimal 40 karakter. Berikan judul yang lebih singkat', { timeout: 10000 }).should('be.visible');
+    })
+
+    it('should display error message when submitting with mode pengawasan ' ,() => {
+      cy.contains('Tambahkan Analisis').click();
+
+      cy.contains('PRIBADI').click().then(() => {
+        cy.contains('PENGAWASAN').should('be.visible').click().then(() => {
+          cy.contains('button', 'Simpan').should('be.visible').click();
+        });
+      })
+      cy.get('input[placeholder="Ingin menganalisis apa hari ini ..."]').type('Analisis Pengawasan Narkoba');
+      cy.get('input[placeholder="Pertanyaan apa yang ingin ditanyakan ..."]').type('Mengapa Terjadi Penyalahgunaan Narkoba di Kalangan Generasi Muda?');
+      cy.get('input[placeholder="Berikan maksimal 3 kategori ..."]')
+        .type('narkoba{enter}')
+        .type('remaja{enter}')
+        .type('pengawasan{enter}');
+
+      cy.get('button').contains('Kirim').click();
+      cy.contains('Gagal menambahkan analisis. Login terlebih dahulu untuk mode pengawasan', { timeout: 10000 }).should('be.visible');
+    })
+
     it('guest create question and fill in the causes then submit', () => {
       // Step 1: Create a new analysis question
       cy.contains('Tambahkan Analisis').click();
