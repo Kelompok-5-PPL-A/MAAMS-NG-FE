@@ -10,6 +10,6 @@ export default defineConfig({
     specPattern: 'cypress/component/*.cy.{js,jsx,ts,tsx}'
   },
   e2e: {
-    baseUrl: 'http://localhost:3000',
+    baseUrl: `${process.env.NEXTAUTH_URL}`,
   },
 });
