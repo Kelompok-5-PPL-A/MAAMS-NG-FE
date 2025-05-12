@@ -17,3 +17,24 @@ Object.defineProperty(window, 'matchMedia', {
 
 global.React = React;
 global.console.log = jest.fn();
+global.fetch = jest.fn();
+
+Object.defineProperty(window, 'localStorage', {
+  value: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+    clear: jest.fn(),
+  },
+  writable: true
+});
+
+Object.defineProperty(window, 'sessionStorage', {
+  value: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+    clear: jest.fn(),
+  },
+  writable: true
+});
