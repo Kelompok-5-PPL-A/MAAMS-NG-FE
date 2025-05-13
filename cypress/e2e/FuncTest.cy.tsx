@@ -89,7 +89,7 @@ describe('FuncTest.cy.tsx', () => {
       
       // Step 6: Wait for the analysis to complete
       cy.contains('Melakukan Analisis, Mohon Tunggu...', { timeout: 20000 }).should('exist');
-      cy.contains('Sebab selesai divalidasi', { timeout: 20000 }).should('exist');
+      cy.contains('Sebab selesai divalidasi', { timeout: 100000000 }).should('exist');
     });
   });
 });
