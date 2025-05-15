@@ -6,4 +6,5 @@ export interface CellProps {
   disabled: boolean
   placeholder: string
   feedback?: string
+  index: number
 }
