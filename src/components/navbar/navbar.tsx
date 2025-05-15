@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { UserDataProps } from '../types/userData';
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
+import Image from 'next/image';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -54,9 +56,9 @@ const Navbar = () => {
   return (
     <nav className="bg-[#FBC707] border-b-2 border-gray-200">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-        <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
-          <img src="/icons/maams.svg" className="h-8" alt="MAAMS Logo" />
-        </a>
+        <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+          <Image src="/icons/maams.svg" className="h-8" alt="MAAMS Logo" width={81} height={81} />
+        </Link>
 
         {isAuthenticated ? (
           <>
@@ -86,21 +88,21 @@ const Navbar = () => {
             <div className={`w-full md:flex md:w-auto ${isMenuOpen ? 'block' : 'hidden'}`} id="navbar-dropdown">
               <ul className="flex flex-col font-bold md:items-center md:justify-center p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-white md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-[#FBC707]">
                 <li>
-                  <a
+                  <Link
                     href="/history"
                     className="block py-2 text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0"
                   >
                     Riwayat
-                  </a>
+                  </Link>
                 </li>
                 {userData?.role === 'admin' && (
                   <li>
-                    <a
+                    <Link
                       href="/analisisPublik"
                       className="block py-2 text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0"
                     >
                       Analisis Publik
-                    </a>
+                    </Link>
                   </li>
                 )}
                 <li className="relative">
@@ -146,13 +148,13 @@ const Navbar = () => {
                   )}
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/validator"
                     className="md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-white text-gray-900 md:hover:bg-gray-100 md:border-0 md:p-2 md:rounded-xl"
                   >
                     Tambahkan Analisis
                     <div className="hidden md:flex bg-[#FBC707] rounded-full px-2">+</div>
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -185,21 +187,21 @@ const Navbar = () => {
             <div className={`w-full md:flex md:w-auto ${isMenuOpen ? 'block' : 'hidden'}`} id='navbar-dropdown'>
               <ul className='flex flex-col font-bold md:items-center md:justify-center p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-white md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-[#FBC707]'>
                 <li>
-                  <a
+                  <Link
                     href='/validator'
                     className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-white text-gray-900 md:hover:bg-gray-100 md:border-0 md:p-2 md:rounded-xl'
                   >
                     Tambahkan Analisis
                     <div className='hidden md:flex bg-[#FBC707] rounded-full px-2'>+</div>
-                  </a>
+                  </Link>
                 </li>
                 <li className='w-full md:flex md:w-auto md:items-center md:justify-end'>
-                  <a
+                  <Link
                     href='/login'
                     className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-white text-gray-900 md:hover:bg-gray-100 md:border-0 md:px-12 md:py-2 md:rounded-xl'
                   >
                     Login
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
