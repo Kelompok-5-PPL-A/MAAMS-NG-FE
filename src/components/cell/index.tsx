@@ -9,7 +9,8 @@ export const Cell: React.FC<CellProps> = ({
   causeStatus,
   disabled,
   placeholder,
-  feedback
+  feedback,
+  index,
 }) => {
   const getOutlineClass = (status: CauseStatus) => {
     switch (status) {

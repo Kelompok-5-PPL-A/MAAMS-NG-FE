@@ -15,26 +15,13 @@ export const Row: React.FC<RowProps> = ({
   currentWorkingColumn = 0
 }) => {
   const alphabet = 'ABCDE'
-  const [localCauses, setLocalCauses] = useState<string[]>(causes)
-  const [localCauseStatuses, setLocalCauseStatuses] = useState<CauseStatus[]>(causeStatuses)
-
-  useEffect(() => {
-    setLocalCauses(causes.slice(0, cols).concat(Array(Math.max(cols - causes.length, 0)).fill('')))
-    setLocalCauseStatuses(
-      causeStatuses.slice(0, cols).concat(Array(Math.max(cols - causeStatuses.length, 0)).fill(CauseStatus.Unchecked))
+  
+  const handleCauseChange = (causeIndex: number, value: string) => {
+    onCauseAndStatusChanges(
+      causeIndex, 
+      value,
+      value.trim() === '' ? CauseStatus.Unchecked : causeStatuses[causeIndex]
     )
-  }, [cols, causes, causeStatuses])
-
-  const handleLocalCauseChange = (causeIndex: number, newValue: string, newStatus: CauseStatus) => {
-    const updatedCauses = [...localCauses]
-    updatedCauses[causeIndex] = newValue
-    setLocalCauses(updatedCauses)
-
-    const updatedStatuses = [...localCauseStatuses]
-    updatedStatuses[causeIndex] = newStatus
-    setLocalCauseStatuses(updatedStatuses)
-
-    onCauseAndStatusChanges(causeIndex, newValue, newStatus)
   }
 
   const shouldShowCell = (index: number): boolean => {
@@ -84,11 +71,12 @@ export const Row: React.FC<RowProps> = ({
                   <Cell
                     cellName={`${alphabet[index]}${rowNumber}`}
                     cause={index < causes.length ? causes[index] : ''}
-                    onChange={(newValue) => handleLocalCauseChange(index, newValue, causeStatuses[index])}
+                    onChange={(value: string) => handleCauseChange(index, value)}
                     causeStatus={index < causeStatuses.length ? causeStatuses[index] : CauseStatus.Unchecked}
                     disabled={index < disabledCells.length ? disabledCells[index] : true}
                     placeholder={placeholder}
                     feedback={index < feedbacks.length ? feedbacks[index] : ''}
+                    index={index}
                   />
                 </div>
               );
@@ -107,6 +95,7 @@ export const Row: React.FC<RowProps> = ({
                     disabled={true}
                     placeholder=""
                     feedback=""
+                    index={index}
                   />
                 </div>
               );
