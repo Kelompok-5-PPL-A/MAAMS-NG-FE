@@ -14,7 +14,7 @@ jest.mock('../../components/cell', () => ({
         placeholder={!disabled ? 'Isi sebab..' : undefined}
         onChange={(e) => !disabled && onChange(e.target.value, index, causeStatus)}
       />
-      {feedback && <div data-testid={`feedback-${cellName}`}>{feedback}</div>}
+      {feedback && <div data-testid={`feedback-${cellName}`} className="feedback">{feedback}</div>}
     </div>
   )
 }))
@@ -63,8 +63,10 @@ describe('Row Component', () => {
   })
 
   it('shows feedback when provided', () => {
-    render(<Row {...defaultProps} feedbacks={['', 'Test feedback', '']} />)
-    expect(screen.getByTestId('feedback-B1')).toHaveTextContent('Test feedback')
+    const testFeedback = 'Test feedback'
+    render(<Row {...defaultProps} feedbacks={['', testFeedback, '']} />)
+    const feedbackElement = screen.getByTestId('feedback-B1')
+    expect(feedbackElement).toHaveTextContent(testFeedback)
   })
 
   it('renders visible cells correctly (row 1, cols 3)', () => {
