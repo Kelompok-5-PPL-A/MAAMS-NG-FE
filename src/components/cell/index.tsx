@@ -95,6 +95,8 @@ export const Cell: React.FC<CellProps> = ({
         className={`w-full h-22 text-xs resize-none flex pt-4 px-4 pb-16 items-center bg-[#ececec] border-solid border-2 ${outlineClass} relative z-[1]`}
         placeholder={placeholder}
         disabled={disabled}
+        aria-label={cellName} // Added for accessibility
+        data-testid={`input-${cellName}`} // Added for testing
       ></textarea>
       {renderFeedback()}
     </div>
