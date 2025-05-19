@@ -420,4 +420,305 @@ describe('ValidatorDetailPage', () => {
       expect(submitButton).not.toBeInTheDocument();
     });
   });
+
+  test('handles submit with empty causes', async () => {
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    expect(submitButton).toBeDisabled();
+  });
+
+  test('handles column adjustment when not allowed', async () => {
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // After data loads, column adjustment should be disabled
+    const incrementButton = screen.getByRole('button', { name: '+' });
+    const decrementButton = screen.getByRole('button', { name: '-' });
+    
+    fireEvent.click(incrementButton);
+    fireEvent.click(decrementButton);
+    
+    // Column count should remain the same (3)
+    expect(screen.getByText('3')).toBeInTheDocument();
+  });
+
+  test('handles submit with invalid causes', async () => {
+    // Mock empty initial state
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+  
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // Get textarea by test ID
+    const textareaA1 = screen.getByTestId('input-A1');
+    await userEvent.type(textareaA1, 'Test cause');
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    expect(submitButton).not.toBeDisabled();
+    
+    // Mock API responses
+    mockedAxios.post.mockResolvedValueOnce({ data: { id: 'new-cause' } });
+    mockedAxios.patch.mockResolvedValueOnce({
+      data: [{
+        id: 'new-cause',
+        column: 0,
+        row: 1,
+        cause: 'Test cause',
+        status: false,
+        root_status: false,
+        feedback: 'Try again'
+      }]
+    });
+    
+    await userEvent.click(submitButton);
+    
+    await waitFor(() => {
+      expect(mockedAxios.post).toHaveBeenCalled();
+      expect(mockToastLoading).toHaveBeenCalled();
+    });
+  });
+  
+  test('handles automatic row addition when needed', async () => {
+    const causesWithValidRow1 = [
+      {
+        id: 'cause1',
+        column: 0,
+        row: 1,
+        mode: 'pribadi',
+        cause: 'Valid Cause',
+        status: true,
+        root_status: false,
+        feedback: 'Good'
+      }
+    ];
+    
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: causesWithValidRow1 });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+    
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      // Check for textareas - should be at least 2 (row 1 and row 2)
+      const textareas = screen.getAllByRole('textbox');
+      expect(textareas.length).toBeGreaterThan(1);
+      // Second textarea should not be disabled
+      expect(textareas[1]).not.toBeDisabled();
+    });
+  });
+
+  test('disables textareas correctly', async () => {
+    const causesWithDisabled = [
+      {
+        id: 'cause1',
+        column: 0,
+        row: 1,
+        mode: 'pribadi',
+        cause: 'Valid Cause',
+        status: true,
+        root_status: false,
+        feedback: 'Good'
+      }
+    ];
+    
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: causesWithDisabled });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+    
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      const textareas = screen.getAllByRole('textbox');
+      // First textarea (validated cause) should be disabled
+      expect(textareas[0]).toBeDisabled();
+    });
+  });
+
+  test('handles pending inputs correctly', async () => {
+    // Mock initial empty state
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // Simulate user input in multiple cells
+    const inputA1 = screen.getByLabelText('A1');
+    const inputB1 = screen.getByLabelText('B1');
+    const inputC1 = screen.getByLabelText('C1');
+    
+    await userEvent.type(inputA1, 'Pending A1');
+    await userEvent.type(inputB1, 'Pending B1');
+    await userEvent.type(inputC1, 'Pending C1');
+    
+    // Mock API response that only validates some inputs
+    mockedAxios.post.mockResolvedValue({ data: { id: 'new-cause' } });
+    mockedAxios.patch.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'cause1',
+          column: 0,
+          row: 1,
+          cause: 'Pending A1',
+          status: true,
+          root_status: false,
+          feedback: 'Validated'
+        },
+        {
+          id: 'cause2',
+          column: 1,
+          row: 1,
+          cause: 'Pending B1',
+          status: false,
+          root_status: false,
+          feedback: 'Invalid'
+        }
+      ]
+    });
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    await userEvent.click(submitButton);
+    
+    await waitFor(() => {
+      // B1 should still show the pending input
+      expect(screen.getByLabelText('B1')).toHaveValue('Pending B1');
+      // C1 should still be there since we didn't mock a response for it
+      expect(screen.getByLabelText('C1')).toHaveValue('Pending C1');
+    });
+  });
+
+  test('handles error during cause validation', async () => {
+    // Mock initial empty state
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+  
+    mockedAxios.post.mockResolvedValueOnce({ data: { id: 'new-cause' } });
+    mockedAxios.patch.mockRejectedValueOnce(new Error('Validation failed'));
+    
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // Simulate user input
+    const inputA1 = screen.getByLabelText('A1');
+    await userEvent.type(inputA1, 'Test cause');
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    await userEvent.click(submitButton);
+    
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalled();
+      expect(mockToastDismiss).toHaveBeenCalled();
+    });
+  });
+
+  test('handles pending inputs correctly', async () => {
+    // Mock initial empty state
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+  
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // Simulate user input in multiple cells
+    const inputA1 = screen.getByLabelText('A1');
+    const inputB1 = screen.getByLabelText('B1');
+    const inputC1 = screen.getByLabelText('C1');
+    
+    await userEvent.type(inputA1, 'Pending A1');
+    await userEvent.type(inputB1, 'Pending B1');
+    await userEvent.type(inputC1, 'Pending C1');
+    
+    // Mock API response that only validates some inputs
+    mockedAxios.post.mockResolvedValue({ data: { id: 'new-cause' } });
+    mockedAxios.patch.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'cause1',
+          column: 0,
+          row: 1,
+          cause: 'Pending A1',
+          status: true,
+          root_status: false,
+          feedback: 'Validated'
+        },
+        {
+          id: 'cause2',
+          column: 1,
+          row: 1,
+          cause: 'Pending B1',
+          status: false,
+          root_status: false,
+          feedback: 'Invalid'
+        }
+      ]
+    });
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    await userEvent.click(submitButton);
+    
+    await waitFor(() => {
+      // B1 should still show the pending input
+      expect(screen.getByLabelText('B1')).toHaveValue('Pending B1');
+      // C1 should still be there since we didn't mock a response for it
+      expect(screen.getByLabelText('C1')).toHaveValue('Pending C1');
+    });
+  });
+
+  test('handles error during cause submission', async () => {
+    // Mock initial empty state
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+  
+    mockedAxios.post.mockRejectedValueOnce(new Error('Submission failed'));
+    
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // Simulate user input
+    const inputA1 = screen.getByLabelText('A1');
+    await userEvent.type(inputA1, 'Test cause');
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    await userEvent.click(submitButton);
+    
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('Gagal menambahkan sebab'));
+    });
+  });
 })
