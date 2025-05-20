@@ -430,56 +430,111 @@ const ValidatorDetailPage: React.FC = () => {
         try {
             addDebugMessage("Validating causes...");
             
-            // Check if we have any rows pending for validation in current column
-            const hasPendingRows = rows.some(row => 
+            // Check pending rows for debugging
+            const columnLabel = ['A', 'B', 'C', 'D', 'E'][currentWorkingColumn];
+            const pendingRows = rows.filter(row => 
                 row.causes[currentWorkingColumn]?.trim() !== '' && 
                 (row.statuses[currentWorkingColumn] === CauseStatus.Unchecked || 
-                 row.statuses[currentWorkingColumn] === CauseStatus.Incorrect)
+                row.statuses[currentWorkingColumn] === CauseStatus.Incorrect)
             );
             
-            if (hasPendingRows) {
-                const columnLabel = ['A', 'B', 'C', 'D', 'E'][currentWorkingColumn];
-                const pendingRows = rows.filter(row => 
-                    row.causes[currentWorkingColumn]?.trim() !== '' && 
-                    (row.statuses[currentWorkingColumn] === CauseStatus.Unchecked || 
-                     row.statuses[currentWorkingColumn] === CauseStatus.Incorrect)
-                );
-                
-                pendingRows.forEach(row => {
-                    addDebugMessage(`${columnLabel}${row.id} is pending validation with text: "${row.causes[currentWorkingColumn]}"`);
-                });
-            }
-            
+            pendingRows.forEach(row => {
+                addDebugMessage(`${columnLabel}${row.id} is pending validation with text: "${row.causes[currentWorkingColumn]}"`);
+            });
+
             const response = await axiosInstance.patch(`/cause/validate/${id}/`);
             
-            // Check response content
             if (response?.data && Array.isArray(response.data)) {
                 addDebugMessage(`Received validation response with ${response.data.length} causes`);
                 
-                // Check for this column's rows in the response
-                const columnLabel = ['A', 'B', 'C', 'D', 'E'][currentWorkingColumn];
-                const rowsInResponse = response.data.filter(c => c.column === currentWorkingColumn);
+                // Create updated rows with immediate feedback
+                const updatedRows = [...rows];
                 
-                rowsInResponse.forEach(cause => {
-                    addDebugMessage(`${columnLabel}${cause.row} in response: "${cause.cause}", status: ${cause.status}, feedback: "${cause.feedback}"`);
+                response.data.forEach(validatedCause => {
+                    const rowIndex = updatedRows.findIndex(r => r.id === validatedCause.row);
+                    if (rowIndex >= 0) {
+                        const colIndex = validatedCause.column;
+                        const colLabel = ['A', 'B', 'C', 'D', 'E'][colIndex];
+                        
+                        // Update cause data
+                        updatedRows[rowIndex].causesId[colIndex] = validatedCause.id;
+                        
+                        // Determine status
+                        let newStatus = CauseStatus.Unchecked;
+                        if (validatedCause.root_status) {
+                            newStatus = CauseStatus.CorrectRoot;
+                        } else if (validatedCause.status) {
+                            newStatus = CauseStatus.CorrectNotRoot;
+                        } else {
+                            newStatus = CauseStatus.Incorrect;
+                        }
+                        updatedRows[rowIndex].statuses[colIndex] = newStatus;
+                        
+                        // Format feedback based on validation result
+                        let feedbackText = validatedCause.feedback || '';
+                        
+                        if (newStatus === CauseStatus.CorrectRoot) {
+                            if (!feedbackText.includes('Akar Masalah')) {
+                                feedbackText = `Akar Masalah Kolom ${colLabel} ditemukan: ${feedbackText}`;
+                            }
+                        } 
+                        else if (newStatus === CauseStatus.Incorrect) {
+                            // Apply specific false messages based on row and context
+                            if (validatedCause.row === 1) {
+                                feedbackText = `Sebab ${colLabel}1 bukan merupakan sebab dari pertanyaan`;
+                            } else {
+                                const prevRow = validatedCause.row - 1;
+                                
+                                // Check for specific false cases
+                                if (feedbackText.includes('positif atau netral')) {
+                                    feedbackText = `Sebab ${colLabel}${validatedCause.row} merupakan sebab positif atau netral`;
+                                } 
+                                else if (feedbackText.includes('mirip')) {
+                                    feedbackText = `Sebab ${colLabel}${validatedCause.row} mirip dengan sebab sebelumnya`;
+                                }
+                                else {
+                                    feedbackText = `Sebab ${colLabel}${validatedCause.row} bukan merupakan sebab dari ${colLabel}${prevRow}`;
+                                }
+                            }
+                        }
+                        
+                        updatedRows[rowIndex].feedbacks[colIndex] = feedbackText;
+                        
+                        // Disable input for validated correct causes
+                        updatedRows[rowIndex].disabled[colIndex] = 
+                            newStatus === CauseStatus.CorrectRoot || 
+                            newStatus === CauseStatus.CorrectNotRoot;
+                        
+                        addDebugMessage(`Updated ${colLabel}${validatedCause.row}: 
+                            Status: ${newStatus}, 
+                            Feedback: "${feedbackText}"`);
+                    }
                 });
                 
-                if (rowsInResponse.length === 0) {
-                    addDebugMessage(`No rows for column ${columnLabel} found in validation response`);
+                // Apply all updates at once
+                setRows(updatedRows);
+                setCauses(response.data);
+                
+                // Check if analysis is complete
+                const allColumnsHaveRoot = activeColumns.every(col => 
+                    response.data.some((cause: { column: number; root_status: boolean }) => 
+                        cause.column === col && 
+                        cause.root_status === true
+                    )
+                );
+                
+                if (allColumnsHaveRoot) {
+                    setIsDone(true);
                 }
                 
-                // Replace causes directly with new data
-                setCauses(response.data);
+                toast.success('Sebab selesai divalidasi');
             } else {
                 addDebugMessage("No data in validation response, refreshing causes");
-                // If no direct data, refresh causes
                 await getCauses();
             }
-            toast.success('Sebab selesai divalidasi');
         } catch (error: any) {
-            toast.error('Gagal validasi sebab');
+            toast.error('Gagal validasi sebab: ' + (error.response?.data?.detail || error.message));
             addDebugMessage(`Error in validateCauses: ${error.message}`);
-            // Still try to refresh causes data
             await getCauses();
         }
     }
