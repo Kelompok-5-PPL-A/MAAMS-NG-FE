@@ -88,6 +88,7 @@ export const Cell: React.FC<CellProps> = ({
         {cellName}
       </div>
       <textarea
+        value={cause}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         rows={1}
