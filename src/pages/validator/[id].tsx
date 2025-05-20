@@ -114,8 +114,8 @@ const ValidatorDetailPage: React.FC = () => {
         // Check if there are any unvalidated or incorrect inputs that can be submitted
         const hasSubmittableInput = rows.some(row => {
             if (row.id === 1) {
-                // For row 1, check columns A, B, C
-                return row.causes.slice(0, 3).some((cause, index) => 
+                // For row 1, check columns A, B, C, D, E
+                return row.causes.slice(0, 5).some((cause, index) => 
                     cause.trim() !== '' && 
                     (row.statuses[index] === CauseStatus.Unchecked || 
                      row.statuses[index] === CauseStatus.Incorrect)
@@ -208,6 +208,14 @@ const ValidatorDetailPage: React.FC = () => {
 
     useEffect(() => {
         if (causes.length > 0 && causes[0].id !== '') {
+            // Calculate the maximum column from the causes data
+            const maxColumn = Math.max(...causes.map(cause => cause.column)) + 1;
+            
+            // Update columnCount if server data has more columns than current state
+            if (maxColumn > columnCount) {
+                setColumnCount(maxColumn);
+            }
+
             // Update rows with validated data
             const update = updateRows(causes)
             
@@ -320,8 +328,8 @@ const ValidatorDetailPage: React.FC = () => {
                     }
                 
                     if (rowNumber === 1) {
-                        // For row 1, only send columns A, B, C that can be validated
-                        return index < 3 && 
+                        // For row 1, only send columns A, B, C, D, E that can be validated
+                        return index < 5 && 
                                cause.trim() !== '' &&
                                (row.statuses[index] === CauseStatus.Unchecked || 
                                 row.statuses[index] === CauseStatus.Incorrect);
@@ -386,7 +394,7 @@ const ValidatorDetailPage: React.FC = () => {
             }
             
             if (row.id === 1) {
-                shouldPatch = index < 3 && 
+                shouldPatch = index < 5 && 
                               cause.trim() !== '' && 
                               !!row.causesId[index] &&
                               (row.statuses[index] === CauseStatus.Unchecked || 
@@ -505,6 +513,10 @@ const ValidatorDetailPage: React.FC = () => {
           }
           
           if (tempCauses.length > 0) {
+            const maxColumn = Math.max(...tempCauses.map(cause => cause.column)) + 1;
+            if (maxColumn > columnCount) {
+                setColumnCount(maxColumn);
+            }
             // Only clear pending inputs for successfully validated causes
             // (those with status=true)
             const newPendingInputs = { ...pendingInputs };
@@ -725,8 +737,8 @@ const ValidatorDetailPage: React.FC = () => {
                 }
                 
                 if (rowNum === 1) {
-                    // For row 1, only columns A, B, C are editable
-                    if (colIndex >= 3) {
+                    // For row 1, only columns A, B, C, D, E are editable
+                    if (colIndex >= 5) {
                         disabled[colIndex] = true;
                     }
                 } else {
@@ -823,7 +835,7 @@ const ValidatorDetailPage: React.FC = () => {
     
     const updateRows = (causesData: Cause[]): Rows[] => {
         const tempRows = processAndSetRows(causesData);
-        const colCount = tempRows.length > 0 ? tempRows[0].causes.length : 3;
+        const colCount = tempRows.length > 0 ? tempRows[0].causes.length : 5;
         setColumnCount(colCount);
         
         return checkStatus(tempRows);
@@ -848,7 +860,7 @@ const ValidatorDetailPage: React.FC = () => {
             const rowsToProcess = rows.filter(row => {
                 if (row.id === 1) {
                     // For row 1, process columns A, B, C
-                    return row.causes.slice(0, 3).some((cause, index) => 
+                    return row.causes.slice(0, 5).some((cause, index) => 
                         cause.trim() !== '' && 
                         (row.statuses[index] === CauseStatus.Unchecked || 
                          row.statuses[index] === CauseStatus.Incorrect)
