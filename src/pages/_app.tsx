@@ -3,7 +3,7 @@ import type { AppProps } from "next/app";
 import { SessionProvider } from 'next-auth/react';
 import { ChakraProvider } from "@chakra-ui/react";
 import { Toaster } from "react-hot-toast";
-import { Suspense, useEffect } from 'react';
+import { Suspense } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 
@@ -18,8 +18,8 @@ export default function App({ Component, pageProps }: AppProps) {
       <Toaster />
       <SessionProvider session={pageProps.session}>
         <Suspense fallback={<div>Loading...</div>}>
-        {router.pathname === '/login' ? <Login /> : <Component {...pageProps} />}
-      </Suspense>
+          {router.pathname === '/login' ? <Login /> : <Component {...pageProps} />}
+        </Suspense>
       </SessionProvider>
     </ChakraProvider>
   )
