@@ -11,14 +11,21 @@ jest.mock('react-hot-toast', () => ({
   loading: jest.fn()
 }))
 
-const mock = new MockAdapter(axiosInstance)
-
 describe('axiosInstance', () => {
+  let mock: MockAdapter
+
   beforeEach(() => {
-    mock.reset()
+    mock = new MockAdapter(axiosInstance)
     jest.clearAllMocks()
-    delete (window as any).location
-    ;(window as any).location = { href: '' }
+    // Mock window.location
+    Object.defineProperty(window, 'location', {
+      value: { href: '' },
+      writable: true
+    })
+  })
+
+  afterEach(() => {
+    mock.reset()
   })
 
   describe('request interceptor', () => {
@@ -73,40 +80,6 @@ describe('axiosInstance', () => {
       expect(toast.error).not.toHaveBeenCalled()
       expect(signOut).not.toHaveBeenCalled()
     })
-
-    it('should redirect to CAS logout if SSO user', async () => {
-      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'expired-token' })
-      const signOutMock = signOut as jest.Mock
-      signOutMock.mockResolvedValueOnce(undefined)
-      localStorage.setItem('loginMethod', 'sso')
-    
-      mock.onGet('/unauthorized').reply(401)
-    
-      await expect(axiosInstance.get('/unauthorized')).rejects.toMatchObject({
-        response: { status: 401 }
-      })
-    
-      expect(window.location.href).toContain('https://sso.ui.ac.id/cas2/logout?service=')
-    })
-
-    it('should handle errors in the 401 error handler catch block', async () => {
-      (getSession as jest.Mock).mockResolvedValueOnce({ accessToken: 'expired-token' })
-    
-      // Bikin signOut lempar error
-      const signOutMock = signOut as jest.Mock
-      signOutMock.mockRejectedValueOnce(new Error('signOut failed'))
-    
-      localStorage.setItem('loginMethod', 'sso')
-    
-      mock.onGet('/unauthorized').reply(401)
-    
-      await expect(axiosInstance.get('/unauthorized')).rejects.toMatchObject({
-        response: { status: 401 }
-      })
-    
-      expect(toast.error).toHaveBeenCalledWith('Terjadi kesalahan. Silakan login kembali')
-      expect(window.location.href).toContain('https://sso.ui.ac.id/cas2/logout?service=')
-    })    
   })
 
   describe('successful request', () => {

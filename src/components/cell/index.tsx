@@ -33,7 +33,11 @@ export const Cell: React.FC<CellProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (!disabled) {
-      onChange(e.target.value)
+      const value = e.target.value
+      // Only call onChange if the value is not empty or only whitespace
+      if (value.trim() !== '') {
+        onChange(value)
+      }
     }
   }
 
@@ -88,10 +92,11 @@ export const Cell: React.FC<CellProps> = ({
         {cellName}
       </div>
       <textarea
+        value={cause}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         rows={1}
-        maxLength={148}
+        maxLength={500}
         className={`w-full h-22 text-xs resize-none flex pt-4 px-4 pb-16 items-center bg-[#ececec] border-solid border-2 ${outlineClass} relative z-[1]`}
         placeholder={placeholder}
         disabled={disabled}
