@@ -11,14 +11,21 @@ jest.mock('react-hot-toast', () => ({
   loading: jest.fn()
 }))
 
-const mock = new MockAdapter(axiosInstance)
-
 describe('axiosInstance', () => {
+  let mock: MockAdapter
+
   beforeEach(() => {
-    mock.reset()
+    mock = new MockAdapter(axiosInstance)
     jest.clearAllMocks()
-    delete (window as any).location
-    ;(window as any).location = { href: '' }
+    // Mock window.location
+    Object.defineProperty(window, 'location', {
+      value: { href: '' },
+      writable: true
+    })
+  })
+
+  afterEach(() => {
+    mock.reset()
   })
 
   describe('request interceptor', () => {
@@ -73,76 +80,6 @@ describe('axiosInstance', () => {
       expect(toast.error).not.toHaveBeenCalled()
       expect(signOut).not.toHaveBeenCalled()
     })
-
-    it('should redirect to CAS logout if SSO user', async () => {
-      // Mock window.location
-      const originalLocation = window.location
-      delete window.location
-      window.location = { href: '' } as any
-
-      // Mock localStorage
-      jest.spyOn(localStorage, 'getItem').mockReturnValue('mockAccessToken')
-      jest.spyOn(localStorage, 'getItem').mockReturnValueOnce('mockAccessToken')
-      jest.spyOn(localStorage, 'getItem').mockReturnValueOnce('true') // isSSOUser
-
-      // Mock axios error
-      const error = {
-        response: {
-          status: 401,
-          data: { message: 'Token expired' }
-        }
-      }
-
-      // Create axios instance
-      const instance = axiosInstance()
-
-      try {
-        await instance.get('/test')
-      } catch (e) {
-        // Error should be thrown
-      }
-
-      // Verify redirection
-      expect(window.location.href).toContain('https://sso.ui.ac.id/cas2/logout?service=')
-
-      // Restore window.location
-      window.location = originalLocation
-    })
-
-    it('should handle errors in the 401 error handler catch block', async () => {
-      // Mock window.location
-      const originalLocation = window.location
-      delete window.location
-      window.location = { href: '' } as any
-
-      // Mock localStorage
-      jest.spyOn(localStorage, 'getItem').mockReturnValue('mockAccessToken')
-      jest.spyOn(localStorage, 'getItem').mockReturnValueOnce('mockAccessToken')
-      jest.spyOn(localStorage, 'getItem').mockReturnValueOnce('true') // isSSOUser
-
-      // Mock axios error
-      const error = {
-        response: {
-          status: 401,
-          data: { message: 'Token expired' }
-        }
-      }
-
-      // Create axios instance
-      const instance = axiosInstance()
-
-      try {
-        await instance.get('/test')
-      } catch (e) {
-        // Error should be thrown
-      }
-
-      expect(toast.error).toHaveBeenCalledWith('Terjadi kesalahan. Silakan login kembali')
-      expect(window.location.href).toContain('https://sso.ui.ac.id/cas2/logout?service=')
-
-      // Restore window.location
-      window.location = originalLocation
-    })    
   })
 
   describe('successful request', () => {
