@@ -13,13 +13,6 @@ const Login = dynamic(() => import('./login'), {
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
-
-  useEffect(() => {
-    if (router.asPath.includes('/undefined/')) {
-      const fixedPath = router.asPath.replace('/undefined/', '/');
-      router.replace(fixedPath);
-    }
-  }, [router.asPath]);
   return (
     <ChakraProvider>
       <Toaster />
