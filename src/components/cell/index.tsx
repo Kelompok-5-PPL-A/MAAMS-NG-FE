@@ -9,8 +9,10 @@ export const Cell: React.FC<CellProps> = ({
   causeStatus,
   disabled,
   placeholder,
-  feedback
+  feedback,
+  index,
 }) => {
+  
   const getOutlineClass = (status: CauseStatus) => {
     switch (status) {
       case CauseStatus.Incorrect:
@@ -28,6 +30,21 @@ export const Cell: React.FC<CellProps> = ({
   }
 
   const outlineClass = getOutlineClass(causeStatus)
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (!disabled) {
+      onChange(e.target.value)
+    }
+  }
+
+  // Fungsi untuk menangani penghapusan (ketika input dikosongkan)
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      if (e.currentTarget.value === '') {
+        onChange('') // Pastikan bisa menghapus sepenuhnya
+      }
+    }
+  }
 
   const renderFeedback = () => {
     let emoji = ''
@@ -71,19 +88,15 @@ export const Cell: React.FC<CellProps> = ({
         {cellName}
       </div>
       <textarea
-        value={cause}
-        onChange={(event) => {
-          const value = event.target.value
-          if (!disabled && value.trim() !== '') { // Check if the value is not empty or whitespace
-            onChange(value)
-          }
-        }}
-        
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
         rows={1}
         maxLength={148}
         className={`w-full h-22 text-xs resize-none flex pt-4 px-4 pb-16 items-center bg-[#ececec] border-solid border-2 ${outlineClass} relative z-[1]`}
         placeholder={placeholder}
         disabled={disabled}
+        aria-label={cellName} // Added for accessibility
+        data-testid={`input-${cellName}`} // Added for testing
       ></textarea>
       {renderFeedback()}
     </div>

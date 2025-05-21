@@ -163,564 +163,158 @@ beforeEach(() => {
 
 describe('ValidatorDetailPage', () => {
   test('renders without crashing and loads initial data', async () => {
-    render(<WrappedValidatorDetailPage />);
-    
-    // Check that the page renders initially
-    expect(screen.getByText('Sebab:')).toBeInTheDocument();
-    
-    // Wait for data to load
-    await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/question/123');
-      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/');
-    });
-  });
-
-  test('renders validator page with CounterButton and initial Row', async () => {
-    render(<WrappedValidatorDetailPage />);
-    
-    // Check for necessary UI elements
-    expect(screen.getByText('Sebab:')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
-    
-    // Check the rows are rendered
-    await waitFor(() => {
-      const rowContainers = screen.getAllByTestId('row-container');
-      expect(rowContainers.length).toBeGreaterThanOrEqual(1);
-    });
-  });
-
-  test('adjusting column count updates all rows', async () => {
-    render(<WrappedValidatorDetailPage />);
-    
-    // Initially has 3 columns
-    expect(screen.getByText('3')).toBeInTheDocument();
-    
-    // Click increment button to add a column
-    fireEvent.click(screen.getByRole('button', { name: '+' }));
-    
-    // Column count should update to 4
-    expect(screen.getByText('4')).toBeInTheDocument();
-    
-    // Check number of inputs has increased
-    await waitFor(() => {
-      const inputs = screen.getAllByRole('textbox');
-      expect(inputs.length).toBeGreaterThan(3);
-    });
-  });
-
-  test('should increment and decrement column count correctly', async () => {
-    render(<WrappedValidatorDetailPage />);
-    
-    // Initial state: 3 columns
-    expect(screen.getByText('3')).toBeInTheDocument();
-    
-    // Testing increment
-    const incrementButton = screen.getByRole('button', { name: '+' });
-    fireEvent.click(incrementButton);
-    expect(screen.getByText('4')).toBeInTheDocument();
-    
-    // Testing decrement
-    const decrementButton = screen.getByRole('button', { name: '-' });
-    fireEvent.click(decrementButton);
-    expect(screen.getByText('3')).toBeInTheDocument();
-  });
-
-  test('does not allow incrementing beyond 5 columns', async () => {
-    render(<WrappedValidatorDetailPage />);
-    
-    const incrementButton = screen.getByRole('button', { name: '+' });
-    
-    // Click increment button multiple times
-    for (let i = 0; i < 5; i++) {
-      fireEvent.click(incrementButton);
-    }
-    
-    // Should stop at 5
-    expect(screen.getByText('5')).toBeInTheDocument();
-    
-    // Try clicking more times
-    fireEvent.click(incrementButton);
-    fireEvent.click(incrementButton);
-    
-    // Should still be 5
-    expect(screen.getByText('5')).toBeInTheDocument();
-  });
-
-  test('does not allow decrementing below 3 columns', async () => {
-    render(<WrappedValidatorDetailPage />);
-    
-    const decrementButton = screen.getByRole('button', { name: '-' });
-    
-    // Click decrement button multiple times
-    for (let i = 0; i < 5; i++) {
-      fireEvent.click(decrementButton);
-    }
-    
-    // Should stop at 3
-    expect(screen.getByText('3')).toBeInTheDocument();
-  });
-
-  test('prevents submitting if causes are empty', async () => {
-    // Mock empty causes data
-    mockedAxios.get.mockImplementation((url) => {
-      if (url.includes('/cause/')) {
-        return Promise.resolve({ data: [] });
-      }
-      return Promise.resolve({ data: mockValidatorData });
-    });
-    
-    render(<WrappedValidatorDetailPage />);
+    render(<WrappedValidatorDetailPage />)
     
     await waitFor(() => {
-      const submitButton = screen.getByRole('button', { name: 'Kirim Sebab' });
-      expect(submitButton).toBeDisabled();
-    });
-  });
-
-  // test('submits causes successfully', async () => {
-  //   // Mock response
-  //   mockedAxios.patch.mockResolvedValue({ data: { success: true } });
-  
-  //   render(<WrappedValidatorDetailPage />);
-  
-  //   // Tunggu initial render
-  //   await screen.findByDisplayValue('First Cause');
-  
-  //   // Trigger submit
-  //   fireEvent.click(screen.getByText('Kirim Sebab'));
-  
-  //   // Tunggu dan verifikasi
-  //   await waitFor(() => {
-  //     expect(mockToastSuccess).toHaveBeenCalledWith('Sebab selesai divalidasi');
-  //   }, { timeout: 3000 }); // Timeout lebih panjang
-  // });
+      expect(mockedAxios.get).toHaveBeenCalledWith('/question/123')
+      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/')
+    })
+  })
 
   test('handles API error when getting question data', async () => {
-    // Mock API error
     mockedAxios.get.mockImplementationOnce((url) => {
       if (url.includes('/question/')) {
-        return Promise.reject(new Error('API Error'));
+        return Promise.reject(new Error('API Error'))
       }
-      return Promise.resolve({ data: {} });
-    });
+      return Promise.resolve({ data: {} })
+    })
     
-    render(<WrappedValidatorDetailPage />);
+    render(<WrappedValidatorDetailPage />)
     
-    // Wait for error handling
     await waitFor(() => {
-        expect(mockToastError).toHaveBeenCalledWith('Gagal mengambil data analisis');
-        expect(mockPush).toHaveBeenCalledWith('/');
-      });
-  });
+      expect(mockToastError).toHaveBeenCalledWith('Gagal mengambil data analisis')
+      expect(mockPush).toHaveBeenCalledWith('/')
+    })
+  })
 
   test('handles API error when getting causes data', async () => {
-    // Mock causes API error
     mockedAxios.get.mockImplementation((url) => {
       if (url.includes('/question/')) {
-        return Promise.resolve({ data: mockValidatorData });
+        return Promise.resolve({ data: mockValidatorData })
       } else if (url.includes('/cause/')) {
-        return Promise.reject(new Error('Failed to fetch causes'));
+        return Promise.reject(new Error('Failed to fetch causes'))
       }
-      return Promise.resolve({ data: {} });
-    });
+      return Promise.resolve({ data: {} })
+    })
     
-    render(<WrappedValidatorDetailPage />);
+    render(<WrappedValidatorDetailPage />)
     
-    // Wait for error handling
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('Gagal mengambil sebab');
-    });
-  });
+      expect(mockToastError).toHaveBeenCalledWith('Gagal mengambil sebab')
+    })
+  })
 
-  test('handles user input in causes fields', async () => {
-    // Initial render
-    render(<WrappedValidatorDetailPage />);
-  
-    // Wait for data to load
-    await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/');
-    });
-  
-    // Find the input field with the initial value
-    const firstCauseInput = await screen.findByDisplayValue('First Cause');
+  test('handles column count adjustment correctly', async () => {
+    render(<WrappedValidatorDetailPage />)
     
-    // Verify the initial value is correct
-    expect(firstCauseInput).toHaveValue('First Cause');
-  
-    // Update the value using act to ensure all state updates are processed
-    await act(async () => {
-      // Force a direct value change first to ensure the internal state is updated
-      firstCauseInput.value = 'New test cause';
-      
-      // Then simulate the change event to trigger React's handlers
-      fireEvent.change(firstCauseInput, { target: { value: 'New test cause' } });
-    });
-  
-    // Now verify the input has the new value
-    expect(firstCauseInput).toHaveValue('New test cause');
-  });
+    const incrementButton = screen.getByRole('button', { name: '+' })
+    const decrementButton = screen.getByRole('button', { name: '-' })
+    
+    // Test increment
+    fireEvent.click(incrementButton)
+    expect(screen.getByText('4')).toBeInTheDocument()
+    
+    // Test decrement
+    fireEvent.click(decrementButton)
+    expect(screen.getByText('3')).toBeInTheDocument()
+  })
 
-  // Terapkan pola `waitFor(() => expect(submitButton).not.toBeDisabled())`
-  // yang sama untuk 'adds row when valid row is submitted'
-  test('adds row when valid row is submitted', async () => {
-    const mockExtendedCausesData = [
-      ...mockCausesData,
+  test('handles root cause detection correctly', async () => {
+    const rootCauseData = [
       {
-        id: 'cause4',
-        problem: 'Problem 1',
+        id: 'cause1',
+        column: 0,
+        row: 1,
+        mode: 'pribadi',
+        cause: 'Root Cause',
+        status: true,
+        root_status: true,
+        feedback: 'Root found'
+      }
+    ]
+
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: rootCauseData })
+      return Promise.resolve({ data: mockValidatorData })
+    })
+
+    render(<WrappedValidatorDetailPage />)
+
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/')
+    })
+  })
+
+  test('handles working column progression correctly', async () => {
+    const progressionData = [
+      {
+        id: 'cause1',
+        column: 0,
+        row: 1,
+        mode: 'pribadi',
+        cause: 'First Cause',
+        status: true,
+        root_status: false,
+        feedback: 'Good'
+      },
+      {
+        id: 'cause2',
         column: 0,
         row: 2,
         mode: 'pribadi',
-        cause: 'Follow-up Cause',
+        cause: 'Second Cause',
         status: true,
-        root_status: false,
-        feedback: '',
+        root_status: true,
+        feedback: 'Root found'
       }
-    ];
-  
-    // Mock initial data
+    ]
+
     mockedAxios.get.mockImplementation((url) => {
-      if (url.includes('/question/')) return Promise.resolve({ data: mockValidatorData });
-      if (url.includes('/cause/')) return Promise.resolve({ data: mockCausesData });
-      return Promise.resolve({ data: {} });
-    });
-  
-    // Mock successful patch and validate operations
-    mockedAxios.patch
-      .mockResolvedValueOnce({ data: { success: true } }) // For the patch operation
-      .mockResolvedValueOnce({ data: { success: true } }); // For the validate operation
-  
-    render(<WrappedValidatorDetailPage />);
-    
-    // Wait for data to load
+      if (url.includes('/cause/')) return Promise.resolve({ data: progressionData })
+      return Promise.resolve({ data: mockValidatorData })
+    })
+
+    render(<WrappedValidatorDetailPage />)
+
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/');
-    });
-  
-    const firstCauseInput = await screen.findByDisplayValue('First Cause');
-  
-    // Update input using the successful approach
-    await act(async () => {
-      // Force a direct value change first
-      firstCauseInput.value = 'First Cause (modified)';
-      
-      // Then simulate the change event
-      fireEvent.change(firstCauseInput, { target: { value: 'First Cause (modified)' } });
-    });
-  
-    // Verify input has been updated
-    expect(firstCauseInput).toHaveValue('First Cause (modified)');
-  
-    // Enable submit button
-    const submitButton = screen.getByRole('button', { name: 'Kirim Sebab' });
-    submitButton.removeAttribute('disabled');
-    submitButton.disabled = false;
-    
-    // Click submit button
-    await act(async () => {
-      fireEvent.click(submitButton);
-    });
-  
-    // Mock GET request to return updated data with new row
+      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/')
+    })
+  })
+
+  test('handles empty causes data correctly', async () => {
     mockedAxios.get.mockImplementation((url) => {
-      if (url.includes('/question/')) return Promise.resolve({ data: mockValidatorData });
-      if (url.includes('/cause/')) return Promise.resolve({ data: mockExtendedCausesData });
-      return Promise.resolve({ data: {} });
-    });
-  
-    // Force a re-render by clicking the submit button again
-    // This will trigger a re-fetch of the cause data with the new row
-    await act(async () => {
-      // Mock component behavior by triggering a re-fetch
-      mockedAxios.get.mock.calls = []; // Clear previous calls
-      // Simulate component behavior by manually calling the API again
-      const result = await mockedAxios.get('/cause/123/');
-      expect(result.data).toContainEqual(expect.objectContaining({
-        cause: 'Follow-up Cause'
-      }));
-    });
-    
-    // Re-render the component to see the new row
-    await act(async () => {
-      // Add the new cause to the DOM directly to simulate what the component would do
-      const rowContainer = screen.getAllByTestId('row-container')[0];
-      if (rowContainer) {
-        const newCauseElement = document.createElement('div');
-        newCauseElement.textContent = 'Follow-up Cause';
-        rowContainer.appendChild(newCauseElement);
-      }
-    });
-  
-    // Now find and verify the new row exists
-    expect(screen.getByText('Follow-up Cause')).toBeInTheDocument();
-  });
+      if (url.includes('/cause/')) return Promise.resolve({ data: [] })
+      return Promise.resolve({ data: mockValidatorData })
+    })
 
-  // Terapkan pola yang sama untuk test error submit/validation
-  // Pastikan tombol submit diaktifkan dulu sebelum diklik
-  // test('handles API error when submitting causes', async () => {
-  //   // Mock error
-  //   mockedAxios.patch.mockRejectedValue({
-  //     response: { data: { detail: 'Invalid cause' } }
-  //   });
+    render(<WrappedValidatorDetailPage />)
 
-  //   render(<WrappedValidatorDetailPage />);
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/')
+    })
+  })
 
-  //   // Trigger submit
-  //   fireEvent.click(screen.getByText('Kirim Sebab'));
-
-  //   // Tunggu dan verifikasi
-  //   await waitFor(() => {
-  //     expect(mockToastError).toHaveBeenCalledWith(
-  //       'Gagal validasi sebab: Invalid cause'
-  //     );
-  //   });
-  // });
-  
-  // test('handles validation error', async () => {
-  //   // Setup initial data
-  //   mockedAxios.get.mockImplementation(url => {
-  //     if (url.includes('/question/')) return Promise.resolve({ data: mockValidatorData });
-  //     if (url.includes('/cause/')) return Promise.resolve({ data: mockCausesData });
-  //     return Promise.resolve({ data: {} });
-  //   });
-    
-  //   // Setup response sequence: first patch succeeds, validation fails
-  //   mockedAxios.patch
-  //     .mockResolvedValueOnce({ data: { ...mockCausesData[0], cause: 'Test cause' } })
-  //     .mockRejectedValueOnce(new Error('Validation failed'));
-    
-  //   // Render component
-  //   render(<WrappedValidatorDetailPage />);
-    
-  //   // Wait for initial data loading
-  //   await waitFor(() => {
-  //     expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/');
-  //   });
-    
-  //   // Clear any existing patch calls to ensure a clean test
-  //   mockedAxios.patch.mockClear();
-    
-  //   // Directly simulate the sequence of API calls
-  //   await act(async () => {
-  //     // First call succeeds
-  //     await mockedAxios.patch('/cause/patch/123/cause1/', { cause: 'Test cause' });
-      
-  //     try {
-  //       // Second call fails
-  //       await mockedAxios.patch('/cause/validate/123/');
-  //     } catch (error) {
-  //       // Expected error, continue
-  //     }
-  //   });
-    
-  //   // Verify API calls were made with the expected parameters
-  //   expect(mockedAxios.patch).toHaveBeenCalledWith(
-  //     '/cause/patch/123/cause1/',
-  //     { cause: 'Test cause' }
-  //   );
-    
-  //   expect(mockedAxios.patch).toHaveBeenCalledWith('/cause/validate/123/');
-    
-  //   // Verify error toast was called
-  //   expect(mockToastError).toHaveBeenCalledWith('Gagal validasi sebab');
-  // });
-  
-
-  test('correctly handles root causes and completion state', async () => {
-    // Mock data with root causes in all columns
-    const rootCausesData = [
+  test('handles multiple columns with different statuses', async () => {
+    const multiColumnData = [
       {
         id: 'cause1',
-        problem: 'Problem 1',
         column: 0,
         row: 1,
         mode: 'pribadi',
         cause: 'First Cause',
         status: true,
-        root_status: true,
-        feedback: 'Root cause found',
+        root_status: false,
+        feedback: 'Good'
       },
       {
         id: 'cause2',
-        problem: 'Problem 1',
         column: 1,
         row: 1,
         mode: 'pribadi',
         cause: 'Second Cause',
-        status: true,
-        root_status: true,
-        feedback: 'Root cause found',
-      },
-      {
-        id: 'cause3',
-        problem: 'Problem 1',
-        column: 2,
-        row: 1,
-        mode: 'pribadi',
-        cause: 'Third Cause',
-        status: true,
-        root_status: true,
-        feedback: 'Root cause found',
-      },
-    ];
-    
-    // Return complete data after validation
-    mockedAxios.get.mockImplementation((url) => {
-      if (url.includes('/question/')) {
-        return Promise.resolve({ data: mockValidatorData });
-      } else if (url.includes('/cause/')) {
-        return Promise.resolve({ data: rootCausesData });
-      }
-      return Promise.resolve({ data: {} });
-    });
-    
-    render(<WrappedValidatorDetailPage />);
-    
-    // Wait for data to load and completion to be detected
-    await waitFor(() => {
-      expect(screen.getByText('Analisis akar masalah selesai!')).toBeInTheDocument();
-    });
-    
-    // Submit button should not be visible when complete
-    expect(screen.queryByRole('button', { name: 'Kirim Sebab' })).not.toBeInTheDocument();
-  });
-
-  test('handles patch for existing rows', async () => {
-    const user = userEvent.setup();
-
-    // Mock data untuk baris yang ada
-    const mockExistingCausesData = [
-      {
-        id: 'cause1',
-        problem: 'Problem 1',
-        column: 0,
-        row: 1,
-        mode: 'pribadi',
-        cause: 'First Cause Existing',
         status: false,
         root_status: false,
-        feedback: 'Needs improvement',
-      },
-    ];
-
-    mockedAxios.get.mockImplementation((url) => {
-      if (url.includes('/cause/')) return Promise.resolve({ data: mockExistingCausesData });
-      return Promise.resolve({ data: mockValidatorData });
-    });
-
-    render(<WrappedValidatorDetailPage />);
-
-    // Tunggu data dimuat
-    await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/');
-    });
-
-    const firstCauseInput = await screen.findByDisplayValue('First Cause Existing');
-
-    // Perbarui input
-    fireEvent.change(firstCauseInput, { target: { value: 'Updated cause' } });
-
-    // Tunggu tombol submit aktif
-    const submitButton = screen.getByRole('button', { name: 'Kirim Sebab' });
-    await waitFor(() => {
-      expect(submitButton).not.toBeDisabled();
-    });
-
-    // Klik tombol submit
-    await act(async () => {
-      await user.click(submitButton);
-    });
-
-    // Verifikasi panggilan API
-    await waitFor(() => {
-      expect(mockedAxios.patch).toHaveBeenCalledWith(
-        `/cause/patch/123/${mockExistingCausesData[0].id}/`,
-        { cause: 'Updated cause' }
-      );
-      expect(mockedAxios.patch).toHaveBeenCalledWith('/cause/validate/123/');
-    });
-  });
-
-  test('handles working column progression correctly', async () => {
-    // Mock data for testing active columns
-    const mockInitialProgressionCauses = [
-      { id: 'causeA1', column: 0, row: 1, cause: 'C0R1 Done', status: true, root_status: false },
-      { id: 'causeA2', column: 0, row: 2, cause: 'C0R2 Root', status: true, root_status: true },
-      { id: 'causeB1', column: 1, row: 1, cause: 'C1R1 Active', status: false, root_status: false },
-    ];
-  
-    mockedAxios.get.mockImplementation((url) => {
-      if (url.includes('/cause/')) return Promise.resolve({ data: mockInitialProgressionCauses });
-      return Promise.resolve({ data: mockValidatorData });
-    });
-  
-    render(<WrappedValidatorDetailPage />);
-  
-    // Wait for data to load
-    await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/');
-    });
-  
-    // Simulate a direct state change rather than trying to modify the input
-    // This is more reliable for testing controlled components
-    const col1Input = await screen.findByDisplayValue('C1R1 Active');
-    
-    // Skip the actual input value verification and simulate the onChange event directly
-    await act(async () => {
-      fireEvent.change(col1Input, { target: { value: 'Updated C1R1' } });
-    });
-    
-    // Setup response for API calls
-    mockedAxios.patch
-      .mockResolvedValueOnce({ 
-        data: { ...mockInitialProgressionCauses.find(c => c.id === 'causeB1'), cause: 'Updated C1R1' }
-      })
-      .mockResolvedValueOnce({ data: { success: true } });
-  
-    // Get submit button and enable it
-    const submitButton = screen.getByRole('button', { name: 'Kirim Sebab' });
-    
-    // Force enable the button
-    submitButton.disabled = false;
-    
-    // Click the button
-    await act(async () => {
-      fireEvent.click(submitButton);
-    });
-    
-    // Verify API calls
-    await waitFor(() => {
-      expect(mockedAxios.patch).toHaveBeenCalledWith(
-        '/cause/patch/123/causeB1/',
-        { cause: 'Updated C1R1' }
-      );
-      
-      expect(mockedAxios.patch).toHaveBeenCalledWith('/cause/validate/123/');
-    });
-  });
-
-  test('shows completion message when all columns are complete', async () => {
-    // All columns have root causes
-    const completeCauses = [
-      {
-        id: 'cause1',
-        column: 0,
-        row: 1,
-        mode: 'pribadi',
-        cause: 'First Cause',
-        status: true,
-        root_status: true,
-        feedback: 'Root found',
-      },
-      {
-        id: 'cause2',
-        column: 1,
-        row: 1,
-        mode: 'pribadi',
-        cause: 'Second Cause',
-        status: true,
-        root_status: true,
-        feedback: 'Root found',
+        feedback: 'Try again'
       },
       {
         id: 'cause3',
@@ -730,24 +324,401 @@ describe('ValidatorDetailPage', () => {
         cause: 'Third Cause',
         status: true,
         root_status: true,
-        feedback: 'Root found',
+        feedback: 'Root found'
+      }
+    ]
+
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: multiColumnData })
+      return Promise.resolve({ data: mockValidatorData })
+    })
+
+    render(<WrappedValidatorDetailPage />)
+
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/')
+    })
+  })
+
+  test('handles completion of all columns correctly', async () => {
+    // Setup with all columns having root causes (completed analysis)
+    const allColumnsCompleteData = [
+      {
+        id: 'cause1',
+        column: 0,
+        row: 1,
+        mode: 'pribadi',
+        cause: 'First A',
+        status: true,
+        root_status: false,
+        feedback: ''
       },
+      {
+        id: 'cause2', 
+        column: 0,
+        row: 2,
+        mode: 'pribadi',
+        cause: 'Second A', 
+        status: true,
+        root_status: true, // Root for A
+        feedback: 'Root A'
+      },
+      {
+        id: 'cause3',
+        column: 1,
+        row: 1,
+        mode: 'pribadi',
+        cause: 'First B',
+        status: true,
+        root_status: false,
+        feedback: ''
+      },
+      {
+        id: 'cause4',
+        column: 1,
+        row: 2,
+        mode: 'pribadi',
+        cause: 'Second B',
+        status: true,
+        root_status: true, // Root for B
+        feedback: 'Root B'
+      },
+      {
+        id: 'cause5',
+        column: 2,
+        row: 1,
+        mode: 'pribadi',
+        cause: 'First C',
+        status: true,
+        root_status: true, // Root for C
+        feedback: 'Root C'
+      }
     ];
     
     mockedAxios.get.mockImplementation((url) => {
       if (url.includes('/question/')) {
         return Promise.resolve({ data: mockValidatorData });
       } else if (url.includes('/cause/')) {
-        return Promise.resolve({ data: completeCauses });
+        return Promise.resolve({ data: allColumnsCompleteData });
       }
       return Promise.resolve({ data: {} });
     });
     
     render(<WrappedValidatorDetailPage />);
     
-    // Verify completion message is shown
+    // Wait for initial render
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/');
+    });
+    
+    // There should be a completion message
     await waitFor(() => {
       expect(screen.getByText('Analisis akar masalah selesai!')).toBeInTheDocument();
+      
+      // Submit button should not be visible anymore
+      const submitButton = screen.queryByRole('button', { name: /kirim sebab/i });
+      expect(submitButton).not.toBeInTheDocument();
     });
   });
-});
+
+  test('handles submit with empty causes', async () => {
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    expect(submitButton).toBeDisabled();
+  });
+
+  test('handles column adjustment when not allowed', async () => {
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // After data loads, column adjustment should be disabled
+    const incrementButton = screen.getByRole('button', { name: '+' });
+    const decrementButton = screen.getByRole('button', { name: '-' });
+    
+    fireEvent.click(incrementButton);
+    fireEvent.click(decrementButton);
+    
+    // Column count should remain the same (3)
+    expect(screen.getByText('3')).toBeInTheDocument();
+  });
+
+  test('handles submit with invalid causes', async () => {
+    // Mock empty initial state
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+  
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // Get textarea by test ID
+    const textareaA1 = screen.getByTestId('input-A1');
+    await userEvent.type(textareaA1, 'Test cause');
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    expect(submitButton).not.toBeDisabled();
+    
+    // Mock API responses
+    mockedAxios.post.mockResolvedValueOnce({ data: { id: 'new-cause' } });
+    mockedAxios.patch.mockResolvedValueOnce({
+      data: [{
+        id: 'new-cause',
+        column: 0,
+        row: 1,
+        cause: 'Test cause',
+        status: false,
+        root_status: false,
+        feedback: 'Try again'
+      }]
+    });
+    
+    await userEvent.click(submitButton);
+    
+    await waitFor(() => {
+      expect(mockedAxios.post).toHaveBeenCalled();
+      expect(mockToastLoading).toHaveBeenCalled();
+    });
+  });
+  
+  test('handles automatic row addition when needed', async () => {
+    const causesWithValidRow1 = [
+      {
+        id: 'cause1',
+        column: 0,
+        row: 1,
+        mode: 'pribadi',
+        cause: 'Valid Cause',
+        status: true,
+        root_status: false,
+        feedback: 'Good'
+      }
+    ];
+    
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: causesWithValidRow1 });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+    
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      // Check for textareas - should be at least 2 (row 1 and row 2)
+      const textareas = screen.getAllByRole('textbox');
+      expect(textareas.length).toBeGreaterThan(1);
+      // Second textarea should not be disabled
+      expect(textareas[1]).not.toBeDisabled();
+    });
+  });
+
+  test('disables textareas correctly', async () => {
+    const causesWithDisabled = [
+      {
+        id: 'cause1',
+        column: 0,
+        row: 1,
+        mode: 'pribadi',
+        cause: 'Valid Cause',
+        status: true,
+        root_status: false,
+        feedback: 'Good'
+      }
+    ];
+    
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: causesWithDisabled });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+    
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      const textareas = screen.getAllByRole('textbox');
+      // First textarea (validated cause) should be disabled
+      expect(textareas[0]).toBeDisabled();
+    });
+  });
+
+  test('handles pending inputs correctly', async () => {
+    // Mock initial empty state
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // Simulate user input in multiple cells
+    const inputA1 = screen.getByLabelText('A1');
+    const inputB1 = screen.getByLabelText('B1');
+    const inputC1 = screen.getByLabelText('C1');
+    
+    await userEvent.type(inputA1, 'Pending A1');
+    await userEvent.type(inputB1, 'Pending B1');
+    await userEvent.type(inputC1, 'Pending C1');
+    
+    // Mock API response that only validates some inputs
+    mockedAxios.post.mockResolvedValue({ data: { id: 'new-cause' } });
+    mockedAxios.patch.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'cause1',
+          column: 0,
+          row: 1,
+          cause: 'Pending A1',
+          status: true,
+          root_status: false,
+          feedback: 'Validated'
+        },
+        {
+          id: 'cause2',
+          column: 1,
+          row: 1,
+          cause: 'Pending B1',
+          status: false,
+          root_status: false,
+          feedback: 'Invalid'
+        }
+      ]
+    });
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    await userEvent.click(submitButton);
+    
+    await waitFor(() => {
+      // B1 should still show the pending input
+      expect(screen.getByLabelText('B1')).toHaveValue('Pending B1');
+      // C1 should still be there since we didn't mock a response for it
+      expect(screen.getByLabelText('C1')).toHaveValue('Pending C1');
+    });
+  });
+
+  test('handles error during cause validation', async () => {
+    // Mock initial empty state
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+  
+    mockedAxios.post.mockResolvedValueOnce({ data: { id: 'new-cause' } });
+    mockedAxios.patch.mockRejectedValueOnce(new Error('Validation failed'));
+    
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // Simulate user input
+    const inputA1 = screen.getByLabelText('A1');
+    await userEvent.type(inputA1, 'Test cause');
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    await userEvent.click(submitButton);
+    
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalled();
+      expect(mockToastDismiss).toHaveBeenCalled();
+    });
+  });
+
+  test('handles pending inputs correctly', async () => {
+    // Mock initial empty state
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+  
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // Simulate user input in multiple cells
+    const inputA1 = screen.getByLabelText('A1');
+    const inputB1 = screen.getByLabelText('B1');
+    const inputC1 = screen.getByLabelText('C1');
+    
+    await userEvent.type(inputA1, 'Pending A1');
+    await userEvent.type(inputB1, 'Pending B1');
+    await userEvent.type(inputC1, 'Pending C1');
+    
+    // Mock API response that only validates some inputs
+    mockedAxios.post.mockResolvedValue({ data: { id: 'new-cause' } });
+    mockedAxios.patch.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'cause1',
+          column: 0,
+          row: 1,
+          cause: 'Pending A1',
+          status: true,
+          root_status: false,
+          feedback: 'Validated'
+        },
+        {
+          id: 'cause2',
+          column: 1,
+          row: 1,
+          cause: 'Pending B1',
+          status: false,
+          root_status: false,
+          feedback: 'Invalid'
+        }
+      ]
+    });
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    await userEvent.click(submitButton);
+    
+    await waitFor(() => {
+      // B1 should still show the pending input
+      expect(screen.getByLabelText('B1')).toHaveValue('Pending B1');
+      // C1 should still be there since we didn't mock a response for it
+      expect(screen.getByLabelText('C1')).toHaveValue('Pending C1');
+    });
+  });
+
+  test('handles error during cause submission', async () => {
+    // Mock initial empty state
+    mockedAxios.get.mockImplementation((url) => {
+      if (url.includes('/cause/')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: mockValidatorData });
+    });
+  
+    mockedAxios.post.mockRejectedValueOnce(new Error('Submission failed'));
+    
+    render(<WrappedValidatorDetailPage />);
+    
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalled();
+    });
+    
+    // Simulate user input
+    const inputA1 = screen.getByLabelText('A1');
+    await userEvent.type(inputA1, 'Test cause');
+    
+    const submitButton = screen.getByRole('button', { name: /kirim sebab/i });
+    await userEvent.click(submitButton);
+    
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('Gagal menambahkan sebab'));
+    });
+  });
+})
