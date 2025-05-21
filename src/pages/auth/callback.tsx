@@ -19,6 +19,7 @@ const Callback = () => {
         await signIn('sso', {
           ticket: ticket,
           redirect: false,
+          callbackUrl: `${window.location.origin}/auth/callback`,
         });
         localStorage.setItem('loginMethod','sso')
         setIsVerifying(false);
