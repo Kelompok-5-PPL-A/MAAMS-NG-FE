@@ -7,7 +7,7 @@ COPY . .
 # Build with the specified environment or default to production
 ARG ENVIRONMENT=production
 RUN echo "Building for ${ENVIRONMENT} environment"
-RUN if [ "$ENVIRONMENT" = "staging" ]; then npm run build:staging; else npm run build:prod; fi
+RUN npm run build
 
 FROM nginx:alpine
 ARG ENVIRONMENT=production
