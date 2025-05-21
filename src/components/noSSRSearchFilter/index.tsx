@@ -1,0 +1,40 @@
+import React from 'react'
+import { SearchFilterProps } from '../types/searchFilter'
+
+const NoSSRSearchFilter: React.FC<SearchFilterProps> = ({ updateFilter, isAdmin, publicAnalyses }) => {
+  const filterValues = ['Semua', 'Pengguna', 'Judul', 'Topik']
+
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newFilter = e.target.value
+    updateFilter(newFilter)
+  }
+
+  return (
+    <div className='max-md:flex-wrap'>
+      <div className='h-full flex gap-0 self-stretch shadow-lg rounded-tl-[10px] bg-yellow-400 rounded-bl-[10px]'>
+        <select
+          data-testid='filter-select'
+          role='combobox'
+          className='rounded-bl-[10px] rounded-tl-[10px] px-4 py-3.5 flex bg-inherit justify-center items-center mr-3'
+          onChange={handleChange}
+        >
+          {filterValues.map((value, index) => {
+            if (value == 'Pengguna') {
+              if (!isAdmin || !publicAnalyses) {
+                return null
+              }
+            }
+            return (
+              <option className='bg-white' key={index} value={value}>
+                {value}
+              </option>
+            )
+          })}
+        </select>
+      </div>
+      <div data-testid='suggestion-list'></div>
+    </div>
+  )
+}
+
+export default NoSSRSearchFilter
