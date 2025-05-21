@@ -39,7 +39,7 @@ export const Row: React.FC<RowProps> = ({
 
   const shouldShowCell = (index: number): boolean => {
     // For row 1, always show columns A, B, C
-    if (rowNumber === 1 && index < 3) {
+    if (rowNumber === 1 && index < 5) {
       return true;
     }
     
