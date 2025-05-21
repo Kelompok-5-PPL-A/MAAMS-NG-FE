@@ -268,7 +268,7 @@ describe('ValidatorDetailPage', () => {
         feedback: 'Root found'
       }
     ]
-
+  
     mockedAxios.get.mockImplementation((url) => {
       if (url.includes('/cause/')) return Promise.resolve({ data: progressionData })
       return Promise.resolve({ data: mockValidatorData })
@@ -505,14 +505,14 @@ describe('ValidatorDetailPage', () => {
         feedback: 'Good'
       }
     ];
-    
+
     mockedAxios.get.mockImplementation((url) => {
       if (url.includes('/cause/')) return Promise.resolve({ data: causesWithValidRow1 });
       return Promise.resolve({ data: mockValidatorData });
     });
-    
+
     render(<WrappedValidatorDetailPage />);
-    
+
     await waitFor(() => {
       // Check for textareas - should be at least 2 (row 1 and row 2)
       const textareas = screen.getAllByRole('textbox');
@@ -556,9 +556,9 @@ describe('ValidatorDetailPage', () => {
       if (url.includes('/cause/')) return Promise.resolve({ data: [] });
       return Promise.resolve({ data: mockValidatorData });
     });
-
+  
     render(<WrappedValidatorDetailPage />);
-    
+  
     await waitFor(() => {
       expect(mockedAxios.get).toHaveBeenCalled();
     });
@@ -663,19 +663,19 @@ describe('ValidatorDetailPage', () => {
     mockedAxios.post.mockResolvedValue({ data: { id: 'new-cause' } });
     mockedAxios.patch.mockResolvedValueOnce({
       data: [
-        {
-          id: 'cause1',
-          column: 0,
-          row: 1,
+      {
+        id: 'cause1',
+        column: 0,
+        row: 1,
           cause: 'Pending A1',
-          status: true,
+        status: true,
           root_status: false,
           feedback: 'Validated'
-        },
-        {
-          id: 'cause2',
-          column: 1,
-          row: 1,
+      },
+      {
+        id: 'cause2',
+        column: 1,
+        row: 1,
           cause: 'Pending B1',
           status: false,
           root_status: false,
@@ -699,7 +699,7 @@ describe('ValidatorDetailPage', () => {
     // Mock initial empty state
     mockedAxios.get.mockImplementation((url) => {
       if (url.includes('/cause/')) return Promise.resolve({ data: [] });
-      return Promise.resolve({ data: mockValidatorData });
+        return Promise.resolve({ data: mockValidatorData });
     });
   
     mockedAxios.post.mockRejectedValueOnce(new Error('Submission failed'));
