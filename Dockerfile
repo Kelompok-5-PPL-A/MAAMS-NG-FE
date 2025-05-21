@@ -10,7 +10,7 @@ COPY yarn.lock ./
 COPY pnpm-lock.yaml ./
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 # Copy all files
 COPY . .
