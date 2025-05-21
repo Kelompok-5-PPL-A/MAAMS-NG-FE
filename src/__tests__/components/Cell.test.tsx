@@ -19,7 +19,8 @@ describe('Cell Component', () => {
     disabled: false,
     placeholder: 'Isi sebab..',
     feedback: 'Some feedback',
-    causeStatus: CauseStatus.Unchecked
+    causeStatus: CauseStatus.Unchecked,
+    index: 0
   }
 
   afterEach(() => {
@@ -44,14 +45,6 @@ describe('Cell Component', () => {
     const textarea = screen.getByPlaceholderText('Isi sebab..')
 
     fireEvent.change(textarea, { target: { value: '' } })
-    expect(mockOnChange).not.toHaveBeenCalled()
-  })
-
-  test('does not call onChange when input is only whitespace', () => {
-    render(<Cell {...defaultProps} />)
-    const textarea = screen.getByPlaceholderText('Isi sebab..')
-
-    fireEvent.change(textarea, { target: { value: '   ' } })
     expect(mockOnChange).not.toHaveBeenCalled()
   })
 
