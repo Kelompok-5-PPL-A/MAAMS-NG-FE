@@ -1,31 +1,29 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY yarn.lock ./
-COPY pnpm-lock.yaml ./
 
 # Install dependencies
-RUN yarn install
+RUN npm ci
 
 # Copy all files
 COPY . .
 
 # Build the application
-RUN yarn build
+RUN npm run build
 
 # Production stage
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Copy necessary files from builder
 COPY --from=builder /app/next.config.ts ./
