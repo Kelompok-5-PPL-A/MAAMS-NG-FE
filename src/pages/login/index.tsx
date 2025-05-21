@@ -16,7 +16,7 @@ const Login: React.FC = () => {
 
   const handleSSOLogin = async () => {
     setIsLoading(true);
-    const serviceUrl = encodeURIComponent(`${window.location.origin}/auth/callback`);
+    const serviceUrl = `${process.env.NEXTAUTH_URL}auth/callback`;
     window.location.href = `https://sso.ui.ac.id/cas2/login?service=${serviceUrl}`;
   };
 
