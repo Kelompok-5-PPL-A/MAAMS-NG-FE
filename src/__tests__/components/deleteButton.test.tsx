@@ -50,34 +50,52 @@ describe('DeleteButton', () => {
 
   it('should delete successfully', async () => {
     mockedAxios.delete.mockResolvedValue({ data: { message: 'Analisis berhasil dihapus' } })
-    jest.spyOn(localStorage.__proto__, 'getItem').mockReturnValueOnce('mockAccessToken')
+    
+    // Mock localStorage
+    const mockGetItem = jest.fn().mockReturnValue('mockAccessToken')
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: mockGetItem
+      },
+      writable: true
+    })
+
     const { getByTestId, getByText } = render(<DeleteButton idQuestion={idQuestion} pathname={pathname} />)
     
     fireEvent.click(getByTestId('toggle-open-button'))
-    fireEvent.click(getByTestId('delete-button'))
     fireEvent.click(getByText('Hapus'))
-
+    
     await waitFor(() => {
-        setTimeout(() => {
-          expect(toast.success).toHaveBeenCalledWith('Berhasil menghapus analisis')
-        }, 10000)
-      })
+      expect(mockedAxios.delete).toHaveBeenCalledWith(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/analysis/${idQuestion}`,
+        expect.any(Object)
+      )
+    })
   })
 
   it('should delete successfully from history page', async () => {
     mockedAxios.delete.mockResolvedValue({ data: { message: 'Analisis berhasil dihapus' } })
-    jest.spyOn(localStorage.__proto__, 'getItem').mockReturnValueOnce('mockAccessToken')
+    
+    // Mock localStorage
+    const mockGetItem = jest.fn().mockReturnValue('mockAccessToken')
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: mockGetItem
+      },
+      writable: true
+    })
+
     const { getByTestId, getByText } = render(<DeleteButton idQuestion={idQuestion} pathname='/history' />)
     
     fireEvent.click(getByTestId('toggle-open-button'))
-    fireEvent.click(getByTestId('delete-button'))
     fireEvent.click(getByText('Hapus'))
-
+    
     await waitFor(() => {
-        setTimeout(() => {
-          expect(toast.success).toHaveBeenCalledWith('Berhasil menghapus analisis')
-        }, 10000)
-      })      
+      expect(mockedAxios.delete).toHaveBeenCalledWith(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/analysis/${idQuestion}`,
+        expect.any(Object)
+      )
+    })
   })
 
   it('should show error message when deletion fails', async () => {
