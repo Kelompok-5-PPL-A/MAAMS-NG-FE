@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { CauseStatus } from '../../lib/enum'
 import { CellProps } from '../types/cell'
 
@@ -12,7 +12,13 @@ export const Cell: React.FC<CellProps> = ({
   feedback,
   index,
 }) => {
-  
+  const [inputValue, setInputValue] = useState(cause)
+  const [isFocused, setIsFocused] = useState(false)
+
+  useEffect(() => {
+    setInputValue(cause)
+  }, [cause])
+
   const getOutlineClass = (status: CauseStatus) => {
     switch (status) {
       case CauseStatus.Incorrect:
@@ -31,21 +37,16 @@ export const Cell: React.FC<CellProps> = ({
 
   const outlineClass = getOutlineClass(causeStatus)
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (!disabled) {
-      const value = e.target.value
-      // Only call onChange if the value is not empty or only whitespace
-      if (value.trim() !== '') {
-        onChange(value)
-      }
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value
+    setInputValue(newValue)
+    onChange(newValue)
   }
 
-  // Fungsi untuk menangani penghapusan (ketika input dikosongkan)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Backspace' || e.key === 'Delete') {
       if (e.currentTarget.value === '') {
-        onChange('') // Pastikan bisa menghapus sepenuhnya
+        onChange('')
       }
     }
   }
@@ -92,16 +93,18 @@ export const Cell: React.FC<CellProps> = ({
         {cellName}
       </div>
       <textarea
-        value={cause}
-        onChange={handleChange}
+        value={inputValue}
+        onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         rows={1}
         maxLength={500}
         className={`w-full h-22 text-xs resize-none flex pt-4 px-4 pb-16 items-center bg-[#ececec] border-solid border-2 ${outlineClass} relative z-[1]`}
         placeholder={placeholder}
         disabled={disabled}
-        aria-label={cellName} // Added for accessibility
-        data-testid={`input-${cellName}`} // Added for testing
+        aria-label={cellName}
+        data-testid={`input-${cellName}`}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
       ></textarea>
       {renderFeedback()}
     </div>

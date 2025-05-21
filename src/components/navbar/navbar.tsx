@@ -54,7 +54,7 @@ const Navbar = () => {
   const isAuthenticated = status === 'authenticated' && !!session;
 
   return (
-    <nav className="bg-[#FBC707] border-b-2 border-gray-200">
+    <nav className="bg-[#FBC707] border-b-2 border-gray-200" data-testid="navbar">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
           <Image src="/icons/maams.svg" className="h-8" alt="MAAMS Logo" width={81} height={81} />
@@ -68,6 +68,7 @@ const Navbar = () => {
               className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
               aria-controls="navbar-dropdown"
               aria-expanded={isMenuOpen ? 'true' : 'false'}
+              data-testid="menu-button"
             >
               <svg
                 className={`w-5 h-5 ${isDropdownOpen ? 'transform rotate-180' : ''}`}
@@ -91,6 +92,7 @@ const Navbar = () => {
                   <Link
                     href="/history"
                     className="block py-2 text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0"
+                    data-testid="history-link"
                   >
                     Riwayat
                   </Link>
@@ -100,6 +102,7 @@ const Navbar = () => {
                     <Link
                       href="/analisisPublik"
                       className="block py-2 text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0"
+                      data-testid="analisis-link"
                     >
                       Analisis Publik
                     </Link>
@@ -109,7 +112,8 @@ const Navbar = () => {
                   <button
                     onClick={toggleDropdown}
                     id="dropdownNavbarLink"
-                    className="flex md:items-center justify-between w-full py-2 md:px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0 md:w-auto "
+                    className="flex md:items-center justify-between w-full py-2 md:px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0 md:w-auto"
+                    data-testid="user-dropdown"
                   >
                     {userData?.username || 'User'}
                     <svg
@@ -131,7 +135,8 @@ const Navbar = () => {
                   {isDropdownOpen && (
                     <div
                       id="dropdownNavbar"
-                      className="absolute left-0 z-10 mt-2 w-44 font-semibold bg-white divide-y divide-gray-100 rounded-lg shadow "
+                      className="absolute left-0 z-10 mt-2 w-44 font-semibold bg-white divide-y divide-gray-100 rounded-lg shadow"
+                      data-testid="dropdown-menu"
                     >
                       <ul className="py-2 text-sm text-black">
                         {/* Dropdown menu */}
@@ -140,6 +145,7 @@ const Navbar = () => {
                         <button
                           onClick={logoutUser}
                           className='block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left'
+                          data-testid="logout-button"
                         >
                           Sign out
                         </button>
@@ -151,6 +157,7 @@ const Navbar = () => {
                   <Link
                     href="/validator"
                     className="md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-white text-gray-900 md:hover:bg-gray-100 md:border-0 md:p-2 md:rounded-xl"
+                    data-testid="validator-link"
                   >
                     Tambahkan Analisis
                     <div className="hidden md:flex bg-[#FBC707] rounded-full px-2">+</div>
@@ -167,6 +174,7 @@ const Navbar = () => {
               className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
               aria-controls="navbar-dropdown"
               aria-expanded={isMenuOpen ? 'true' : 'false'}
+              data-testid="menu-button"
             >
               <svg
                 className={`w-5 h-5 ${isDropdownOpen ? 'transform rotate-180' : ''}`}
@@ -190,6 +198,7 @@ const Navbar = () => {
                   <Link
                     href='/validator'
                     className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-white text-gray-900 md:hover:bg-gray-100 md:border-0 md:p-2 md:rounded-xl'
+                    data-testid="validator-link"
                   >
                     Tambahkan Analisis
                     <div className='hidden md:flex bg-[#FBC707] rounded-full px-2'>+</div>
@@ -199,6 +208,7 @@ const Navbar = () => {
                   <Link
                     href='/login'
                     className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-white text-gray-900 md:hover:bg-gray-100 md:border-0 md:px-12 md:py-2 md:rounded-xl'
+                    data-testid="login-link"
                   >
                     Login
                   </Link>

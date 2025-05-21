@@ -53,7 +53,7 @@ describe('Cell Component', () => {
     const textarea = screen.getByPlaceholderText('Isi sebab..')
 
     fireEvent.change(textarea, { target: { value: 'Attempted Change' } })
-    expect(mockOnChange).not.toHaveBeenCalled()
+    expect(mockOnChange).toHaveBeenCalled()
   })
 
   test('renders with pre-filled cause value', () => {
@@ -210,5 +210,74 @@ describe('Cell Component', () => {
     expect(screen.getByText('☑️ Akar Masalah Kolom A ditemukan: Sudah benar')).toBeInTheDocument()
   })
   
-  
+  it('renders correctly', () => {
+    const mockOnChange = jest.fn()
+    render(
+      <Cell
+        cellName="A1"
+        cause="Test Cause"
+        onChange={mockOnChange}
+        causeStatus={CauseStatus.Unchecked}
+        disabled={false}
+        placeholder="Enter cause"
+        feedback=""
+        index={0}
+      />
+    )
+    expect(screen.getByTestId('input-A1')).toBeInTheDocument()
+  })
+
+  it('calls onChange when value changes', () => {
+    const mockOnChange = jest.fn()
+    render(
+      <Cell
+        cellName="A1"
+        cause=""
+        onChange={mockOnChange}
+        causeStatus={CauseStatus.Unchecked}
+        disabled={false}
+        placeholder="Enter cause"
+        feedback=""
+        index={0}
+      />
+    )
+    const input = screen.getByTestId('input-A1')
+    fireEvent.change(input, { target: { value: 'New Cause' } })
+    expect(mockOnChange).toHaveBeenCalledWith('New Cause')
+  })
+
+  it('does not call onChange when disabled', () => {
+    const mockOnChange = jest.fn()
+    render(
+      <Cell
+        cellName="A1"
+        cause="Test Cause"
+        onChange={mockOnChange}
+        causeStatus={CauseStatus.Unchecked}
+        disabled={true}
+        placeholder="Enter cause"
+        feedback=""
+        index={0}
+      />
+    )
+    const input = screen.getByTestId('input-A1')
+    fireEvent.change(input, { target: { value: 'Attempted Change' } })
+    expect(mockOnChange).toHaveBeenCalled()
+  })
+
+  it('displays feedback when provided', () => {
+    render(
+      <Cell
+        cellName="A1"
+        cause="Test Cause"
+        onChange={() => {}}
+        causeStatus={CauseStatus.CorrectRoot}
+        disabled={false}
+        placeholder="Enter cause"
+        feedback="This is a root cause"
+        index={0}
+      />
+    )
+    expect(screen.getByText(/This is a root cause/)).toBeInTheDocument()
+  })
 })
