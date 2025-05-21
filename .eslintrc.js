@@ -3,7 +3,7 @@ module.exports = {
       browser: true,
       es2021: true
     },
-    extends: ['next', 'next/core-web-vitals', 'eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:react/recommended'],
+    extends: ['next', 'next/core-web-vitals', 'eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:react/recommended', 'plugin:security/recommended'],
     overrides: [
       {
         env: {
@@ -26,7 +26,7 @@ module.exports = {
       ecmaVersion: 'detect',
       sourceType: 'module'
     },
-    plugins: ['@typescript-eslint', 'react'],
+    plugins: ['@typescript-eslint', 'react', 'react-hooks', 'security'],
     settings: {
       react: {
         version: 'detect'
