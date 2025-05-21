@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
   trailingSlash: true,
+  output: 'standalone',
   env: {
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
