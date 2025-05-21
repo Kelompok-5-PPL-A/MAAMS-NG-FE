@@ -51,29 +51,33 @@ const Login: React.FC = () => {
 
   return (
     <MainLayout>
-      <Link href='/' className='mb-6 flex items-center justify-center'>
-        <Image src={maams.src} width={386} height={386} alt='Maams Auth' priority />
-      </Link>
-      <div className='flex flex-col items-center justify-center'>
-        <h1 className='text-2xl font-bold'>Masuk ke Akun</h1>
-      </div>
-      <div className='flex flex-col items-center justify-center mt-5'>
-        <button
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-black md:border-0 md:p-2 md:rounded-xl md:w-80'
-        >
-          <Image src={google.src} width={40} height={40} alt='Google Logo' /> {' '}
-          Masuk dengan Google
-        </button>
-        <div className='flex flex-col items-center justify-center mt-4'>
+      <div data-testid="login-page" className='flex flex-col items-center justify-center'>
+        <Link href='/' className='mb-6 flex items-center justify-center'>
+          <Image src={maams.src} width={386} height={386} alt='Maams Auth' priority />
+        </Link>
+        <div className='flex flex-col items-center justify-center'>
+          <h1 data-testid="login-title" className='text-2xl font-bold'>Masuk ke Akun</h1>
+        </div>
+        <div className='flex flex-col items-center justify-center mt-5'>
           <button
-            onClick={handleSSOLogin}
+            data-testid="google-login-button"
+            onClick={handleGoogleLogin}
             disabled={isLoading}
-            className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-black md:border-0 md:p-2 md:rounded-xl md:w-80'>
-            <Image src={ui.src} width={40} height={40} alt='UI Logo' /> {' '}
-            Masuk dengan SSO UI
+            className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-black md:border-0 md:p-2 md:rounded-xl md:w-80'
+          >
+            <Image src={google.src} width={40} height={40} alt='Google Logo' /> {' '}
+            Masuk dengan Google
           </button>
+          <div className='flex flex-col items-center justify-center mt-4'>
+            <button
+              data-testid="sso-login-button"
+              onClick={handleSSOLogin}
+              disabled={isLoading}
+              className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-black md:border-0 md:p-2 md:rounded-xl md:w-80'>
+              <Image src={ui.src} width={40} height={40} alt='UI Logo' /> {' '}
+              Masuk dengan SSO UI
+            </button>
+          </div>
         </div>
       </div>
     </MainLayout>
