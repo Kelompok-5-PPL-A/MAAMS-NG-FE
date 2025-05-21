@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 
 const DeveloperList = ({ developers }: { developers: string[] }) => {
   return (
@@ -37,7 +38,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-black flex flex-col lg:flex-row justify-between p-16">
-      <img src="/icons/maams-footer.svg" className="max-w-48" alt="MAAMS Logo" />
+      <Image src="/icons/maams-footer.svg" className="max-w-48" alt="MAAMS Logo" width={192} height={48} />
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-32 justify-between text-white mt-8 lg:mt-0">
         <div>
           <div className="font-bold mb-4">Researcher</div>

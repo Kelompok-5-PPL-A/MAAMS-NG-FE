@@ -2,6 +2,7 @@ import { CustomInput } from '../customInput'
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
+import Image from 'next/image'
 
 const CreateLanding = () => {
   const [question, setQuestion] = useState<string>('')
@@ -24,7 +25,7 @@ const CreateLanding = () => {
   return (
     <div className='flex flex-col lg:flex-row justify-between items-center gap-12 lg:mx-55'>
       <div className=''>
-        <img src='/icons/landing-icon.svg' alt='landing' className='' />
+        <Image src='/icons/landing-icon.svg' alt='landing' className='' width={500} height={500}/>
       </div>
       <div className=''>
           <div className='flex flex-col gap-8 mx-12'>
@@ -40,7 +41,7 @@ const CreateLanding = () => {
                   value={question}
                 />
                 <button className='' title='submit_button'>
-                  <img src='/icons/send-icon.svg' alt='search' className='bg-yellow-400 p-3 w-20 h-15 rounded-full' />
+                  <Image src='/icons/send-icon.svg' alt='search' width={60} height={48} className='bg-yellow-400 p-3 w-20 h-15 rounded-full' />
                 </button>
               </form>
             </div>
