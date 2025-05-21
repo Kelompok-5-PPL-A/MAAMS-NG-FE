@@ -123,7 +123,22 @@ jobs:
           name: security-test-results
           path: coverage/
           retention-days: 14
-  
+
+  cypress-run:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: npm install
+        
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          build: npm run build
+          start: npm start
+
   sonarqube-analysis:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
