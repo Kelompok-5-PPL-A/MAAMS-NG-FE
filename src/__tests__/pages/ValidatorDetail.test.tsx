@@ -392,6 +392,26 @@ describe('ValidatorDetailPage', () => {
         status: true,
         root_status: true, // Root for C
         feedback: 'Root C'
+      },
+      {
+        id: 'cause6',
+        column: 3,
+        row: 1,
+        mode: 'pribadi',
+        cause: 'First D',
+        status: true,
+        root_status: true, // Root for D
+        feedback: 'Root D'
+      },
+      {
+        id: 'cause7',
+        column: 4,
+        row: 1,
+        mode: 'pribadi',
+        cause: 'First E',
+        status: true,
+        root_status: true, // Root for E
+        feedback: 'Root E'
       }
     ];
     
@@ -413,7 +433,8 @@ describe('ValidatorDetailPage', () => {
     
     // There should be a completion message
     await waitFor(() => {
-      expect(screen.getByText('Analisis akar masalah selesai!')).toBeInTheDocument();
+      const completionMessage = screen.getByText(/Analisis akar masalah selesai!/i);
+      expect(completionMessage).toBeInTheDocument();
       
       // Submit button should not be visible anymore
       const submitButton = screen.queryByRole('button', { name: /kirim sebab/i });
