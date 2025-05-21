@@ -657,10 +657,10 @@ const ValidatorDetailPage: React.FC = () => {
   
     const updateActiveColumns = (causesData: Cause[]): number[] => {
         // Always keep the first three columns active
-        const result = [0, 1, 2];
+        const result = [0, 1, 2, 3, 4];
         
         // Add next columns if previous columns have root causes
-        for (let col = 3; col < columnCount; col++) {
+        for (let col = 5; col < columnCount; col++) {
             const previousColumnsHaveRoots = Array(col)
                 .fill(0)
                 .map((_, i) => i)
