@@ -10,23 +10,22 @@ const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, children, title }) => 
         onClose()
       }
     }
-    
+
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown)
       document.body.style.overflow = 'hidden'
+      
       if (dialogRef.current?.showModal) {
         dialogRef.current.showModal()
       } else if (dialogRef.current) {
         dialogRef.current.setAttribute('open', 'true')
       }
-    } else {
-      if (dialogRef.current?.close) {
-        dialogRef.current.close()
-      } else if (dialogRef.current) {
-        dialogRef.current.removeAttribute('open')
-      }
+    } else if (dialogRef.current?.close) {
+      dialogRef.current.close()
+    } else if (dialogRef.current) {
+      dialogRef.current.removeAttribute('open')
     }
-    
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = 'unset'
@@ -53,4 +52,4 @@ const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, children, title }) => 
   )
 }
 
-export default Dialog 
+export default Dialog

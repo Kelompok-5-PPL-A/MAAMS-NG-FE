@@ -1,119 +1,153 @@
-import React from 'react'
-import { render, fireEvent, act } from '@testing-library/react'
-import Navbar from '../../components/navbar/navbar'
-import '@testing-library/jest-dom'
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import Navbar from '../../components/navbar/navbar';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 
-const sampleUserData = {
-  uuid: '123e4567-e89b-12d3-a456-426614174000',
-  date_joined: '2024-04-27T08:00:00Z',
-  is_active: true,
-  is_staff: true,
-  name: 'John Doe',
-  email: 'john.doe@gmail.com',
-  given_name: 'John',
-  family_name: 'Doe',
-  picture: 'https://gmail.com/avatar.jpg',
-  googleId: '1234567890'
-}
+// Mock next-auth
+jest.mock('next-auth/react', () => ({
+  useSession: jest.fn(),
+  signOut: jest.fn()
+}));
 
-const nonStaffUserData = {
-  ...sampleUserData,
-  is_staff: false
-}
+// Mock next/router
+jest.mock('next/router', () => ({
+  useRouter: jest.fn()
+}));
 
-describe('Navbar component additional tests', () => {
+describe('Navbar Component', () => {
+  const mockRouter = {
+    push: jest.fn(),
+    pathname: '/'
+  };
+
   beforeEach(() => {
-    localStorage.clear();
+    // Reset all mocks before each test
     jest.clearAllMocks();
+    (useRouter as jest.Mock).mockReturnValue(mockRouter);
+    localStorage.clear();
   });
 
-  test('handles case when userData is not in localStorage', () => {
-    localStorage.setItem('isLoggedIn', 'true');
+  // Positive Cases
+  describe('Positive Cases', () => {
+    it('renders correctly for unauthenticated users', () => {
+      (useSession as jest.Mock).mockReturnValue({
+        data: null,
+        status: 'unauthenticated'
+      });
 
-    const { queryByText } = render(<Navbar />);
-    
-    expect(queryByText('Name')).toBeInTheDocument();
+      render(<Navbar />);
+      expect(screen.getByText('Login')).toBeInTheDocument();
+      expect(screen.getByText('Tambahkan Analisis')).toBeInTheDocument();
+    });
+
+    it('renders correctly for authenticated users', () => {
+      (useSession as jest.Mock).mockReturnValue({
+        data: {
+          user: {
+            email: 'test@example.com',
+            username: 'testuser',
+            role: 'user'
+          }
+        },
+        status: 'authenticated'
+      });
+
+      render(<Navbar />);
+      expect(screen.getByText('testuser')).toBeInTheDocument();
+      expect(screen.getByText('Riwayat')).toBeInTheDocument();
+    });
+
+    it('shows admin menu for admin users', () => {
+      (useSession as jest.Mock).mockReturnValue({
+        data: {
+          user: {
+            email: 'admin@example.com',
+            username: 'admin',
+            role: 'admin'
+          }
+        },
+        status: 'authenticated'
+      });
+
+      render(<Navbar />);
+      expect(screen.getByText('Analisis Publik')).toBeInTheDocument();
+    });
   });
 
-  test('handles case when user is logged in but not staff', () => {
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userData', JSON.stringify(nonStaffUserData));
-    
-    const { queryByText } = render(<Navbar />);
-    
-    expect(queryByText('Analisis Publik')).not.toBeInTheDocument();
-    expect(queryByText('Riwayat')).toBeInTheDocument();
-    expect(queryByText('John Doe')).toBeInTheDocument();
+  // Negative Cases
+  describe('Negative Cases', () => {
+    it('handles missing user data gracefully', () => {
+      (useSession as jest.Mock).mockReturnValue({
+        data: {
+          user: null
+        },
+        status: 'authenticated'
+      });
+
+      render(<Navbar />);
+      expect(screen.getByText('User')).toBeInTheDocument();
+    });
+
+    it('handles missing role gracefully', () => {
+      (useSession as jest.Mock).mockReturnValue({
+        data: {
+          user: {
+            email: 'test@example.com',
+            username: 'testuser'
+          }
+        },
+        status: 'authenticated'
+      });
+
+      render(<Navbar />);
+      expect(screen.queryByText('Analisis Publik')).not.toBeInTheDocument();
+    });
   });
 
-  test('opens and closes dropdown when clicking the dropdown button', () => {
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userData', JSON.stringify(sampleUserData));
-    
-    const { getByRole, queryByText } = render(<Navbar />);
-    const dropdownButton = getByRole('button', { name: /John Doe/i });
+  // Edge Cases
+  describe('Edge Cases', () => {
+    it('handles empty username', () => {
+      (useSession as jest.Mock).mockReturnValue({
+        data: {
+          user: {
+            email: 'test@example.com',
+            username: '',
+            role: 'user'
+          }
+        },
+        status: 'authenticated'
+      });
 
-    fireEvent.click(dropdownButton);
-    expect(queryByText('Sign out')).toBeInTheDocument();
-    
-    fireEvent.click(dropdownButton);
-    expect(queryByText('Sign out')).not.toBeInTheDocument();
-  });
+      render(<Navbar />);
+      expect(screen.getByText('User')).toBeInTheDocument();
+    });
 
-  test('toggles menu open and closed for logged-in users on mobile', () => {
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userData', JSON.stringify(sampleUserData));
-    
-    const { container } = render(<Navbar />);
-    const menuButton = container.querySelector('button[aria-controls="navbar-dropdown"]');
-    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
-    
-    if (menuButton) {
-      fireEvent.click(menuButton);
-    }
+    it('handles very long username', () => {
+      const longUsername = 'a'.repeat(100);
+      (useSession as jest.Mock).mockReturnValue({
+        data: {
+          user: {
+            email: 'test@example.com',
+            username: longUsername,
+            role: 'user'
+          }
+        },
+        status: 'authenticated'
+      });
 
-    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
-   
-    if (menuButton) {
-      fireEvent.click(menuButton);
-    }
+      render(<Navbar />);
+      expect(screen.getByText(longUsername)).toBeInTheDocument();
+    });
 
-    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
-  });
+    it('handles session loading state', () => {
+      (useSession as jest.Mock).mockReturnValue({
+        data: null,
+        status: 'loading'
+      });
 
-  test('toggles menu open and closed for non-logged-in users on mobile', () => {
-    localStorage.setItem('isLoggedIn', 'false');
-    
-    const { container } = render(<Navbar />);
-    const menuButton = container.querySelector('button[aria-controls="navbar-dropdown"]');
-    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
-    
-    if (menuButton) {
-      fireEvent.click(menuButton);
-    }
-    
-    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
-    
-    if (menuButton) {
-      fireEvent.click(menuButton);
-    }
-
-    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
-  });
-
-  test('initializes from localStorage correctly on mount', () => {
-    localStorage.setItem('isLoggedIn', 'false');
-    
-    const { rerender, queryByText } = render(<Navbar />);
-    expect(queryByText('Riwayat')).not.toBeInTheDocument();
-    
-    rerender(<></>);
-    
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userData', JSON.stringify(sampleUserData));
-    
-    rerender(<Navbar />);
-    
-    expect(queryByText('Analisis Publik')).toBeInTheDocument();
+      render(<Navbar />);
+      expect(screen.getByText('Login')).toBeInTheDocument();
+    });
   });
 });
