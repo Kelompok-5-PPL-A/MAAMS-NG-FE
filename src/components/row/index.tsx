@@ -11,7 +11,7 @@ export const Row: React.FC<RowProps> = ({
   disabledCells,
   onCauseAndStatusChanges,
   feedbacks,
-  activeColumns = [0, 1, 2],
+  activeColumns = [0, 1, 2, 3, 4],
   currentWorkingColumn = 0
 }) => {
   const alphabet = 'ABCDE'

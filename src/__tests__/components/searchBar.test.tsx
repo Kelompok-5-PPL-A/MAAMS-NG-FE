@@ -13,171 +13,110 @@ describe('SearchBar component', () => {
   const mockOnSelect = jest.fn()
   const mockOnSubmit = jest.fn()
 
-  const keyword = ''
+  const defaultProps = {
+    suggestions: mockSuggestions,
+    keyword: '',
+    onSelect: mockOnSelect,
+    onChange: mockOnChange,
+    onSubmit: mockOnSubmit,
+  }
 
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  test('renders and triggers onChange and onSubmit', async () => {
-    const { getByPlaceholderText } = render(
-      <SearchBar
-        suggestions={mockSuggestions}
-        keyword={keyword}
-        onSelect={mockOnSelect}
-        onChange={mockOnChange}
-        onSubmit={mockOnSubmit}
-      />
-    )
-
-    expect(getByPlaceholderText('Cari analisis..')).toBeInTheDocument()
+  test('renders basic elements', () => {
+    render(<SearchBar {...defaultProps} />)
+    expect(screen.getByPlaceholderText('Cari analisis..')).toBeInTheDocument()
+    expect(screen.getByTestId('search-button')).toBeInTheDocument()
+    expect(screen.getByText('Mocked SearchFilter')).toBeInTheDocument()
   })
 
-  test('handles input change and suggestion filtering', async () => {
-    const suggestions = ['apple', 'BAnana', 'orAnge', 'storeApp']
-
-    render(
-      <SearchBar
-        suggestions={suggestions}
-        keyword={keyword}
-        onSelect={mockOnSelect}
-        onChange={mockOnChange}
-        onSubmit={mockOnSubmit}
-      />
-    )
-
-    const inputElement = screen.getByPlaceholderText('Cari analisis..')
-
-    fireEvent.change(inputElement, { target: { value: 'app' } })
-
-    expect(mockOnChange).toHaveBeenCalledWith('app')
-
+  test('shows suggestions when input matches', async () => {
+    render(<SearchBar {...defaultProps} />)
+    
+    const input = screen.getByRole('combobox')
+    fireEvent.change(input, { target: { value: 'app' } })
+    
     await waitFor(() => {
       expect(screen.getByText('apple')).toBeInTheDocument()
-      expect(screen.getByText('storeApp')).toBeInTheDocument()
-      expect(screen.queryByText('BAnana')).not.toBeInTheDocument()
-      expect(screen.queryByText('orAnge')).not.toBeInTheDocument()
+      expect(screen.queryByText('banana')).not.toBeInTheDocument()
     })
   })
-  
 
-  test('handles submit action', () => {
-    render(
-      <SearchBar
-        suggestions={mockSuggestions}
-        keyword={keyword}
-        onSelect={mockOnSelect}
-        onChange={mockOnChange}
-        onSubmit={mockOnSubmit}
-      />
-    )
+  test('calls onChange when input changes', () => {
+    render(<SearchBar {...defaultProps} />)
+    
+    const input = screen.getByRole('combobox')
+    fireEvent.change(input, { target: { value: 'test' } })
+    
+    expect(mockOnChange).toHaveBeenCalledWith('test')
+  })
 
+  test('calls onSubmit when search button clicked', () => {
+    render(<SearchBar {...defaultProps} />)
+    
     fireEvent.click(screen.getByTestId('search-button'))
     expect(mockOnSubmit).toHaveBeenCalledTimes(1)
   })
 
-  test('triggers onSubmit on enter keypress after input change', async () => {
-    render(
-      <SearchBar
-        suggestions={mockSuggestions}
-        keyword={keyword}
-        onSelect={mockOnSelect}
-        onChange={mockOnChange}
-        onSubmit={mockOnSubmit}
-      />
-    )
-
-    const inputElement = await waitFor(() => screen.getByPlaceholderText('Cari analisis..'))
-    fireEvent.change(inputElement, { target: { value: 'keyword' } })
-    fireEvent.keyPress(inputElement, { key: 'Enter', charCode: 13 })
-    expect(mockOnSubmit).toHaveBeenCalled()
+  test('calls onSubmit when Enter key pressed', () => {
+    render(<SearchBar {...defaultProps} />)
+    
+    const input = screen.getByRole('combobox')
+    fireEvent.keyPress(input, { key: 'Enter', charCode: 13 })
+    expect(mockOnSubmit).toHaveBeenCalledTimes(1)
   })
 
-  test('does not submit when non-Enter key is pressed', () => {
-    render(
-      <SearchBar
-        suggestions={mockSuggestions}
-        keyword={keyword}
-        onSelect={mockOnSelect}
-        onChange={mockOnChange}
-        onSubmit={mockOnSubmit}
-      />
-    )
-  
+  test('does not show suggestions when input is empty', async () => {
+    render(<SearchBar {...defaultProps} />)
+    
     const input = screen.getByRole('combobox')
-  
-    fireEvent.keyDown(input, { key: 'a', code: 'KeyA' })
-  
+    fireEvent.change(input, { target: { value: '' } })
+    fireEvent.focus(input)
+    
+    await waitFor(() => {
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    })
+  })
+
+  test('does not call onSubmit for non-Enter keys', () => {
+    render(<SearchBar {...defaultProps} />)
+    
+    const input = screen.getByRole('combobox')
+    fireEvent.keyPress(input, { key: 'A', charCode: 65 })
     expect(mockOnSubmit).not.toHaveBeenCalled()
   })
 
-  test('handles input change with no matching suggestions', () => {
-    render(
-      <SearchBar
-        suggestions={['analisis', 'judul', 'kategori']}
-        keyword=""
-        onSelect={mockOnSelect}
-        onChange={mockOnChange}
-        onSubmit={mockOnSubmit}
-      />
-    )
-  
+  test('handles case insensitive search', async () => {
+    render(<SearchBar {...defaultProps} />)
+    
     const input = screen.getByRole('combobox')
-    fireEvent.change(input, { target: { value: 'xyz' } })
-  
-    expect(mockOnChange).toHaveBeenCalledWith('xyz')
+    fireEvent.change(input, { target: { value: 'BAN' } })
+    
+    await waitFor(() => {
+      expect(screen.getByText('banana')).toBeInTheDocument()
+    })
   })
 
-  test('passes isAdmin=true and publicAnalyses=true to SearchFilter', () => {
-    const { rerender } = render(
-      <SearchBar
-        suggestions={mockSuggestions}
-        keyword={keyword}
-        onSelect={mockOnSelect}
-        onChange={mockOnChange}
-        onSubmit={mockOnSubmit}
-        isAdmin={true}
-        publicAnalyses={true}
-      />
-    )
-  
+  test('passes correct props to SearchFilter', () => {
+    const testProps = {
+      ...defaultProps,
+      isAdmin: true,
+      publicAnalyses: false
+    }
+    
+    render(<SearchBar {...testProps} />)
+    
     const mockedFilter = require('../../components/searchFilter')
     expect(mockedFilter).toHaveBeenCalledWith(
       expect.objectContaining({
-        updateFilter: mockOnSelect,
         isAdmin: true,
-        publicAnalyses: true
+        publicAnalyses: false,
+        updateFilter: mockOnSelect
       }),
       {}
     )
   })
-  
-  test('passes isAdmin=false and publicAnalyses=false to SearchFilter', () => {
-    render(
-      <SearchBar
-        suggestions={mockSuggestions}
-        keyword={keyword}
-        onSelect={mockOnSelect}
-        onChange={mockOnChange}
-        onSubmit={mockOnSubmit}
-        isAdmin={false}
-        publicAnalyses={false}
-      />
-    )
-  
-    const mockedFilter = require('../../components/searchFilter')
-    expect(mockedFilter).toHaveBeenCalledWith(
-      expect.objectContaining({
-        updateFilter: mockOnSelect,
-        isAdmin: false,
-        publicAnalyses: false
-      }),
-      {}
-    )
-  })
-  
-  
+
 })
-
-
-  

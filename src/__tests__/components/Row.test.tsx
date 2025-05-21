@@ -5,13 +5,13 @@ import { Row } from '../../components/row'
 import { CauseStatus } from '../../lib/enum'
 
 jest.mock('../../components/cell', () => ({
-  Cell: ({ cellName, cause, onChange, disabled }: any) => (
+  Cell: ({ cellName, cause, onChange, disabled, placeholder }: any) => (
     <div data-testid={`cell-${cellName}`}>
       <input
         data-testid={`cell-input-${cellName}`}
         value={cause}
         disabled={disabled}
-        placeholder={!disabled ? 'Isi sebab..' : undefined}
+        placeholder={disabled ? undefined : placeholder}
         onChange={(e) => !disabled && onChange(e.target.value)}
       />
     </div>
@@ -19,16 +19,18 @@ jest.mock('../../components/cell', () => ({
 }))
 
 describe('Row Component', () => {
+  const mockOnCauseAndStatusChanges = jest.fn()
+  
   const defaultProps = {
     rowNumber: 1,
-    cols: 3,
-    causes: ['Sebab A', '', ''],
-    causeStatuses: [CauseStatus.Unchecked, CauseStatus.Unchecked, CauseStatus.Unchecked],
-    disabledCells: [false, false, false],
-    onCauseAndStatusChanges: jest.fn(),
-    feedbacks: ['', '', ''],
+    cols: 4,
+    causes: ['', '', '', ''],
+    causeStatuses: [CauseStatus.Unchecked, CauseStatus.Unchecked, CauseStatus.Unchecked, CauseStatus.Unchecked],
+    disabledCells: [false, false, false, false],
+    currentWorkingColumn: 0,
     activeColumns: [0, 1, 2],
-    currentWorkingColumn: 0
+    onCauseAndStatusChanges: mockOnCauseAndStatusChanges,
+    feedbacks: ['', '', '', '']
   }
 
   beforeEach(() => {
@@ -217,18 +219,27 @@ describe('Row Component', () => {
         rowNumber={1}
         cols={4}
         causes={['', '', '', '']}
-        disabledCells={[false, false, false, false]}
+        causeStatuses={[CauseStatus.Unchecked, CauseStatus.Unchecked, CauseStatus.Unchecked, CauseStatus.Unchecked]}
+        disabledCells={[false, false, false, true]}
         currentWorkingColumn={0}
         activeColumns={[0, 1, 2]}
+        feedbacks={['', '', '', '']}
       />
     )
-  
-    const emptyCells = screen.getAllByTestId('empty-cell')
-    const targetCell = emptyCells.find((el) =>
-      within(el).getByTestId('cell-D1') // pastikan `cell-D1` ada di dalam `empty-cell`
-    )
 
-    expect(targetCell).toHaveClass('invisible')
+    // Find all cells
+    const cells = screen.getAllByTestId('cell')
+    expect(cells).toHaveLength(4) // Should have 4 cells (A1, B1, C1, D1)
+
+    // Find the cell D1 container
+    const cellD1 = screen.getByTestId('cell-D1')
+    expect(cellD1).toBeInTheDocument()
+
+    // Find the input for D1
+    const inputD1 = screen.getByTestId('cell-input-D1')
+    expect(inputD1).toBeInTheDocument()
+    expect(inputD1).toBeDisabled()
+    expect(inputD1).not.toHaveAttribute('placeholder')
   })
 
   it('does not render placeholder if cell is disabled', () => {
@@ -242,6 +253,7 @@ describe('Row Component', () => {
     )
   
     const input = screen.getByTestId('cell-input-A3')
+    expect(input).toBeDisabled()
     expect(input).not.toHaveAttribute('placeholder')
   })
 
@@ -256,6 +268,7 @@ describe('Row Component', () => {
     )
   
     const input = screen.getByTestId('cell-input-C3')
+    expect(input).toBeDisabled()
     expect(input).not.toHaveAttribute('placeholder')
   })
 

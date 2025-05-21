@@ -6,6 +6,8 @@ import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 const Login: React.FC = () => {
   const router = useRouter();
@@ -49,29 +51,33 @@ const Login: React.FC = () => {
 
   return (
     <MainLayout>
-      <a href='/' className='mb-6 flex items-center justify-center'>
-        <img src={maams.src} className='h-386 w-386' alt='Maams Auth' loading='lazy' />
-      </a>
-      <div className='flex flex-col items-center justify-center'>
-        <h1 className='text-2xl font-bold'>Masuk ke Akun</h1>
-      </div>
-      <div className='flex flex-col items-center justify-center mt-5'>
-        <button
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-white md:border-0 md:p-2 md:rounded-xl md:w-80'
-        >
-          <img src={google.src} alt='Google Logo' className='w-10 h-10' loading='lazy' />{' '}
-          Masuk dengan Google
-        </button>
-        <div className='flex flex-col items-center justify-center mt-4'>
+      <div data-testid="login-page" className='flex flex-col items-center justify-center'>
+        <Link href='/' className='mb-6 flex items-center justify-center'>
+          <Image src={maams.src} width={386} height={386} alt='Maams Auth' priority />
+        </Link>
+        <div className='flex flex-col items-center justify-center'>
+          <h1 data-testid="login-title" className='text-2xl font-bold'>Masuk ke Akun</h1>
+        </div>
+        <div className='flex flex-col items-center justify-center mt-5'>
           <button
-            onClick={handleSSOLogin}
+            data-testid="google-login-button"
+            onClick={handleGoogleLogin}
             disabled={isLoading}
-            className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-white md:border-0 md:p-2 md:rounded-xl md:w-80'>
-            <img src={ui.src} alt='UI Logo' className='w-10 h-10' loading='lazy' />{' '}
-            Masuk dengan SSO UI
+            className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-black md:border-0 md:p-2 md:rounded-xl md:w-80'
+          >
+            <Image src={google.src} width={40} height={40} alt='Google Logo' /> {' '}
+            Masuk dengan Google
           </button>
+          <div className='flex flex-col items-center justify-center mt-4'>
+            <button
+              data-testid="sso-login-button"
+              onClick={handleSSOLogin}
+              disabled={isLoading}
+              className='md:flex md:gap-2 md:items-center md:justify-center block py-2 bg-yellow-500 text-black md:border-0 md:p-2 md:rounded-xl md:w-80'>
+              <Image src={ui.src} width={40} height={40} alt='UI Logo' /> {' '}
+              Masuk dengan SSO UI
+            </button>
+          </div>
         </div>
       </div>
     </MainLayout>
