@@ -18,8 +18,8 @@ export default function App({ Component, pageProps }: AppProps) {
       <Toaster />
       <SessionProvider session={pageProps.session}>
         <Suspense fallback={<div>Loading...</div>}>
-          {router.pathname === '/login' ? <Login /> : <Component {...pageProps} />}
-        </Suspense>
+        {router.pathname === '/login' ? <Login /> : <Component {...pageProps} />}
+      </Suspense>
       </SessionProvider>
     </ChakraProvider>
   )

@@ -1,21 +1,37 @@
-FROM node:20-alpine AS build
+# Stage 1: Build Next.js app
+FROM node:18-alpine AS builder
+
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm ci
+
 COPY . .
 
-# Build with the specified environment or default to production
-ARG ENVIRONMENT=production
-RUN echo "Building for ${ENVIRONMENT} environment"
 RUN npm run build
 
+# Stage 2: Nginx untuk serving static files
 FROM nginx:alpine
-ARG ENVIRONMENT=production
-COPY nginx.${ENVIRONMENT}.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
 
-# Create environment indicator file for debugging
-RUN echo "Environment: ${ENVIRONMENT}" > /usr/share/nginx/html/env.txt
+RUN apk update && apk upgrade
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+COPY --from=builder /app/.next /usr/share/nginx/html/.next
+COPY --from=builder /app/public /usr/share/nginx/html/public
+COPY --from=builder /app/package.json /usr/share/nginx/html/package.json
+
+RUN adduser -D -H -u 101 -s /sbin/nologin nginx && \
+    chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /etc/nginx/conf.d && \
+    touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid
+
+USER nginx
 
 EXPOSE 80
+
 CMD ["nginx", "-g", "daemon off;"]

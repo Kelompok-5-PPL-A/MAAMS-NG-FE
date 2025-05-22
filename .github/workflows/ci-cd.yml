@@ -5,15 +5,11 @@ on:
     branches:
       - main
       - staging
-      - development
-      - ci-cd
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
       - main
       - staging
-      - development
-      - ci-cd
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -22,39 +18,30 @@ env:
 
 jobs:
   build:
-    name: Build Next.js App
+    name: Build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: package-lock.json
-      
-      - name: Install Dependencies
-        run: npm install
-      
-      - name: Build Application
-        run: npm run build
-        env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: nextjs-app
-          path: .next/
-  
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
   test:
     name: Run Frontend Tests with Coverage
     runs-on: ubuntu-latest
@@ -154,55 +141,44 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         continue-on-error: true
 
-  build_docker:
-    name: Build and Push Docker Image to GCR
+  deploy:
+    name: Deploy
     runs-on: ubuntu-latest
-    needs: [test, sonarqube-analysis]
-    if: github.ref == 'refs/heads/main'
+    needs: test
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    outputs:
+      image_tag: ${{ steps.build.outputs.image_tag }}
+      revision_name: ${{ steps.deploy.outputs.revision_name }}
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
       
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
-
+      
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
       
-      - name: Configure Docker for GCR
+      - name: Configure Docker
         run: gcloud auth configure-docker
       
-      - name: Determine Environment Suffix
-        id: env_suffix
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "ENV_SUFFIX=prod" >> $GITHUB_OUTPUT
-          else
-            echo "ENV_SUFFIX=staging" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Build and Push Docker Image to GCR
+      - name: Build and Push Docker Image
         id: build
         run: |
           VERSION="$(git rev-parse --short HEAD)"
-          ENV_SUFFIX="prod"  # Always prod for main branch
+          echo "Version: $VERSION"
           
+          ENV_SUFFIX="${{ github.ref == 'refs/heads/main' && 'prod' || 'staging' }}"
           IMAGE_TAG="gcr.io/$PROJECT_ID/maams-ng-fe-$ENV_SUFFIX:$VERSION"
           
           docker build \
             --build-arg VERSION="$VERSION" \
             --build-arg BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
             --build-arg GIT_COMMIT="$(git rev-parse HEAD)" \
-            --build-arg NEXT_PUBLIC_API_BASE_URL="${{ secrets.NEXT_PUBLIC_API_BASE_URL }}" \
-            --build-arg NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}" \
-            --build-arg NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
-            --build-arg GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
-            --build-arg GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
             -t "$IMAGE_TAG" \
             -t "gcr.io/$PROJECT_ID/maams-ng-fe-$ENV_SUFFIX:latest" \
             .
@@ -216,78 +192,61 @@ jobs:
       - name: Upload Image Tag as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: fe-image-tag
+          name: image-tag
           path: image_tag.txt
           retention-days: 1
 
-  deploy_netlify_staging:
-    name: Deploy to Netlify Staging
-    runs-on: ubuntu-latest
-    needs: [test, sonarqube-analysis]
-    
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/staging')
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Deploy to Cloud Run
+        id: deploy
+        run: |
+          ENV_SUFFIX="${{ github.ref == 'refs/heads/main' && 'prod' || 'staging' }}"
+          SERVICE_NAME="maams-ng-fe-$ENV_SUFFIX"
+          IMAGE_TAG="$(cat image_tag.txt)"
+          
+          REVISION_NAME=$(gcloud run deploy $SERVICE_NAME \
+            --image "$IMAGE_TAG" \
+            --platform managed \
+            --region $REGION \
+            --allow-unauthenticated \
+            --memory 256Mi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 10 \
+            --concurrency 80 \
+            --timeout 300 \
+            --port 80 \
+            --set-env-vars "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" \
+            --set-env-vars "NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}" \
+            --set-env-vars "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" \
+            --set-env-vars "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" \
+            --set-env-vars "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+            --format='value(status.latestCreatedRevisionName)')
+          
+          echo "revision_name=$REVISION_NAME" >> $GITHUB_OUTPUT
+          
+          METADATA='{
+            "version": "'$VERSION'",
+            "timestamp": "'$(date -u +'%Y-%m-%dT%H:%M:%SZ')'",
+            "git_commit": "'${{ github.sha }}'",
+            "deployed_by": "'${{ github.actor }}'",
+            "revision_name": "'$REVISION_NAME'",
+            "environment": "'${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}'"
+          }'
+          
+          echo "$METADATA" > deployment-metadata.json
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Upload Deployment Metadata
+        uses: actions/upload-artifact@v4
         with:
-          node-version: '20'
-      
-      - name: Install Dependencies
-        run: npm install
-      
-      - name: Build
-        run: npm run build
-        env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-        
-      - name: Install Netlify CLI
-        run: npm install -g netlify-cli
-      
-      - name: Deploy to Netlify (Staging)
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: netlify deploy --dir=.next --message "Deploy from GitHub Actions"
+          name: deployment-metadata-$ENV_SUFFIX-$VERSION
+          path: deployment-metadata.json
+          retention-days: 30
 
-  deploy_netlify_production:
-    name: Deploy to Netlify Production
-    runs-on: ubuntu-latest
-    needs: [test, sonarqube-analysis]
-    
-    if: false
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-      
-      - name: Install Dependencies
-        run: npm install
-      
-      - name: Build
-        run: npm run build
-        env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-        
-      - name: Install Netlify CLI
-        run: npm install -g netlify-cli
-      
-      - name: Deploy to Netlify (Production)
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: netlify deploy --dir=.next --prod --message "Production deploy from GitHub Actions"
+      - name: Update Domain Mapping
+        if: github.ref == 'refs/heads/main'
+        run: |
+          gcloud beta run domain-mappings create \
+            --service maams-ng-fe-prod \
+            --domain maams.fisip.ui.ac.id \
+            --region $REGION \
+            --force-override
