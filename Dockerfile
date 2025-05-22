@@ -1,4 +1,4 @@
-# Stage 1: Build Next.js app
+# Build stage
 FROM node:18-alpine AS builder
 
 WORKDIR /app
@@ -10,27 +10,23 @@ COPY . .
 
 RUN npm run build
 
-# Stage 2: Nginx untuk serving static files
-FROM nginx:alpine
+# Production stage
+FROM node:18-alpine
 
-RUN apk update && apk upgrade
+WORKDIR /app
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy necessary files from builder
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
 
-COPY --from=builder /app/.next /usr/share/nginx/html/.next
-COPY --from=builder /app/public /usr/share/nginx/html/public
-COPY --from=builder /app/package.json /usr/share/nginx/html/package.json
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
 
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d && \
-    touch /var/run/nginx.pid && \
-    chown -R nginx:nginx /var/run/nginx.pid
+# Expose the port
+EXPOSE 3000
 
-USER nginx
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+# Start the application
+CMD ["npm", "start"]
