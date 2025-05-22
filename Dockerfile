@@ -21,8 +21,7 @@ COPY --from=builder /app/.next /usr/share/nginx/html/.next
 COPY --from=builder /app/public /usr/share/nginx/html/public
 COPY --from=builder /app/package.json /usr/share/nginx/html/package.json
 
-RUN adduser -D -H -u 101 -s /sbin/nologin nginx && \
-    chown -R nginx:nginx /usr/share/nginx/html && \
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx && \
     chown -R nginx:nginx /var/log/nginx && \
