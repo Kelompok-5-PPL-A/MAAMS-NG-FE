@@ -99,8 +99,8 @@ describe('LastWeek Page', () => {
     renderWithSession(<LastWeek />)
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/question/history/'))
-      expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/question/history/?filter'))
+      expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('api/v1/question/history/'))
+      expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('api/v1/question/history/?filter'))
       expect(screen.getByTestId('search-bar')).toBeInTheDocument()
       expect(screen.getByTestId('section')).toBeInTheDocument()
     })
@@ -188,7 +188,7 @@ describe('LastWeek Page', () => {
     }
   
     mockedAxios.get.mockImplementation((url) => {
-      if (url.startsWith('/question/last_week')) {
+      if (url.startsWith('api/v1/question/last_week')) {
         return Promise.resolve({
           data: {
             processedData: [],
@@ -196,7 +196,7 @@ describe('LastWeek Page', () => {
           },
         })
       }
-      if (url.startsWith('/question/filter/')) {
+      if (url.startsWith('api/v1/question/filter/')) {
         return Promise.resolve({ data: filterDataMock })
       }
       return Promise.reject(new Error('Unexpected URL'))
@@ -219,7 +219,7 @@ describe('LastWeek Page', () => {
     fireEvent.change(select, { target: { value: 'Topik' } })
   
     // Optional: cek bahwa axios.get dipanggil minimal sekali untuk filter
-    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('/question/history/?filter'))
+    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('api/v1/question/history/?filter'))
   })
   
 
@@ -284,7 +284,7 @@ describe('LastWeek Page', () => {
           data: { processedData: [], count: 5 },
         })
       }
-      if (url.includes('/question/history/filter/')) {
+      if (url.includes('api/v1/question/history/filter/')) {
         return Promise.resolve({
           data: { judul: ['A'], pengguna: ['B'], topik: ['C'] },
         })
@@ -296,7 +296,7 @@ describe('LastWeek Page', () => {
   
     await waitFor(() => {
         expect(mockedAxios.get).toHaveBeenCalledWith(
-          `/question/history/search/?filter=semua&count=5&keyword=dummy&p=1&time_range=last_week`
+          `api/v1/question/history/search/?filter=semua&count=5&keyword=dummy&p=1&time_range=last_week`
         )  
     })
   })

@@ -56,7 +56,7 @@ describe('fetchQuestions', () => {
     const time_range = 'last_week'
     const additional_param = '?param1=value1'
 
-    const expectedUrl = `/question/history/${additional_param}&time_range=${time_range}`
+    const expectedUrl = `api/v1/question/history/${additional_param}&time_range=${time_range}`
 
     mock.onGet(expectedUrl).reply(200, mockApiResponse)
 

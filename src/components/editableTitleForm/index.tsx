@@ -63,13 +63,13 @@ export const EditableTitleForm: React.FC<EditableTitleFormProps> = ({ title, id,
     try {
       setIsLoading(true)
       if (session) {
-        await axiosInstance.patch(`/question/ubah/judul/${id}/`, {
+        await axiosInstance.patch(`api/v1/question/ubah/judul/${id}/`, {
           title: titleInput
         })
         toast.success('Judul analisis berhasil diubah')
         onTitleChange(titleInput)
       } else {
-        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/ubah/judul/${id}/`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/question/ubah/judul/${id}/`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json'

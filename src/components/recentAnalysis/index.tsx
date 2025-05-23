@@ -25,7 +25,7 @@ const RecentAnalysis: React.FC = () => {
     if (session?.accessToken) {
       const fetchRecentAnalysis = async () => {
         try {
-          const response = await axiosInstance.get(`/question/recent/`)
+          const response = await axiosInstance.get(`api/v1/question/recent/`)
           const receivedData: ValidatorData = response.data
           setRecentData(receivedData)
         } catch {

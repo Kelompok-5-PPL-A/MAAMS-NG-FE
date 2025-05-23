@@ -29,7 +29,7 @@ describe('fetchFilters', () => {
       topik: ['Topik X', 'Topik Y']
     }
 
-    mock.onGet('/question/history/field-values/').reply((config) => {
+    mock.onGet('api/v1/question/history/field-values/').reply((config) => {
       return [200, mockResponse]
     })
 
@@ -45,7 +45,7 @@ describe('fetchFilters', () => {
   })
 
   it('should throw error on network failure', async () => {
-    mock.onGet('/question/history/field-values/').networkError()
+    mock.onGet('api/v1/question/history/field-values/').networkError()
 
     await expect(fetchFilters()).rejects.toThrow()
   })

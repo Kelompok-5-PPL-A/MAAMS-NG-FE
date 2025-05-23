@@ -128,7 +128,7 @@ describe('QuestionAddPage', () => {
 
     await waitFor(() => {
       expect(axiosInstance.post).toHaveBeenCalledTimes(1)
-      expect(axiosInstance.post).toHaveBeenCalledWith('/question/submit/', {
+      expect(axiosInstance.post).toHaveBeenCalledWith('api/v1/question/submit/', {
         title: 'Sample Title',
         question: 'Sample Question',
         mode: 'PRIBADI',
@@ -408,7 +408,7 @@ describe('QuestionAddPage', () => {
     fireEvent.click(submitButton)
 
     await waitFor(() => expect(axiosInstance.post).toHaveBeenCalledTimes(1))
-    expect(axiosInstance.post).toHaveBeenCalledWith('/question/submit/', {
+    expect(axiosInstance.post).toHaveBeenCalledWith('api/v1/question/submit/', {
       title: 'Sample Title',
       question: 'Sample Question',
       mode: 'PRIBADI',

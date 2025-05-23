@@ -2,7 +2,7 @@ import { FilterData } from '../components/types/filterData'
 import axiosInstance from '@/services/axiosInstance'
 
 export const fetchFilters = async () => {
-  const url = `/question/history/field-values/`
+  const url = `api/v1/question/history/field-values/`
 
   const response = await axiosInstance.get(url)
 

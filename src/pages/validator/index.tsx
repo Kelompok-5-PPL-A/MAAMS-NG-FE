@@ -112,12 +112,12 @@ const QuestionAddPage: React.FC = () => {
     try {
       let response;
       if (session) {
-        response = await axiosInstance.post('/question/submit/', payload);
+        response = await axiosInstance.post('api/v1/question/submit/', payload);
         toast.success('Analisis berhasil ditambahkan');
         router.push(`/validator/${response.data.id}`);
       } else {
         if(mode === Mode.pribadi) {
-          const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/submit/`, {
+          const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/question/submit/`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

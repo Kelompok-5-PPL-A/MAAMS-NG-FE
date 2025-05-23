@@ -159,7 +159,7 @@ describe('PastWeek Page', () => {
     }
   
     mockedAxios.get.mockImplementation((url) => {
-      if (url.startsWith('/question/history')) {
+      if (url.startsWith('api/v1/question/history')) {
         return Promise.resolve({
           data: {
             processedData: [],
@@ -167,7 +167,7 @@ describe('PastWeek Page', () => {
           },
         })
       }
-      if (url.startsWith('/question/history/?filter')) {
+      if (url.startsWith('api/v1/question/history/?filter')) {
         return Promise.resolve({ data: filterDataMock })
       }
       return Promise.reject(new Error('Unexpected URL'))
@@ -190,7 +190,7 @@ describe('PastWeek Page', () => {
     fireEvent.change(select, { target: { value: 'Topik' } })
   
     // Optional: cek bahwa axios.get dipanggil minimal sekali untuk filter
-    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining(`/question/history/?filter`))
+    expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining(`api/v1/question/history/?filter`))
   })
 
   it('mengatur suggestion menjadi kosong untuk filter lainnya', async () => {
@@ -261,7 +261,7 @@ describe('PastWeek Page', () => {
       
         expect(calls).toEqual(
           expect.arrayContaining([
-            '/question/history/search/?filter=semua&count=5&keyword=dummy&p=1&time_range=older'
+            'api/v1/question/history/search/?filter=semua&count=5&keyword=dummy&p=1&time_range=older'
           ])
         );
       });      

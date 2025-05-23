@@ -166,8 +166,8 @@ describe('ValidatorDetailPage', () => {
     render(<WrappedValidatorDetailPage />)
     
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/question/123')
-      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/')
+      expect(mockedAxios.get).toHaveBeenCalledWith('api/v1/question/123')
+      expect(mockedAxios.get).toHaveBeenCalledWith('api/v1/cause/123/')
     })
   })
 
@@ -241,7 +241,7 @@ describe('ValidatorDetailPage', () => {
     render(<WrappedValidatorDetailPage />)
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/')
+      expect(mockedAxios.get).toHaveBeenCalledWith('api/v1/cause/123/')
     })
   })
 
@@ -277,7 +277,7 @@ describe('ValidatorDetailPage', () => {
     render(<WrappedValidatorDetailPage />)
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/')
+      expect(mockedAxios.get).toHaveBeenCalledWith('api/v1/cause/123/')
     })
   })
 
@@ -290,7 +290,7 @@ describe('ValidatorDetailPage', () => {
     render(<WrappedValidatorDetailPage />)
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/')
+      expect(mockedAxios.get).toHaveBeenCalledWith('api/v1/cause/123/')
     })
   })
 
@@ -336,7 +336,7 @@ describe('ValidatorDetailPage', () => {
     render(<WrappedValidatorDetailPage />)
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/')
+      expect(mockedAxios.get).toHaveBeenCalledWith('api/v1/cause/123/')
     })
   })
 
@@ -428,7 +428,7 @@ describe('ValidatorDetailPage', () => {
     
     // Wait for initial render
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/cause/123/');
+      expect(mockedAxios.get).toHaveBeenCalledWith('api/v1/cause/123/');
     });
     
     // There should be a completion message
