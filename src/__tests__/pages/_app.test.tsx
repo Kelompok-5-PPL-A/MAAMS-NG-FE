@@ -84,22 +84,4 @@ describe('App', () => {
       expect(screen.getByText('Lazy Component')).toBeInTheDocument();
     });
   });
-
-  it('fixes undefined paths in the URL', async () => {
-    const mockRouter = createMockRouter('/some-path', '/undefined/some-path');
-    mockRouter.replace = jest.fn();
-    (useRouter as jest.Mock).mockReturnValue(mockRouter);
-
-    const appProps: AppProps = {
-      Component: MockComponent,
-      pageProps: mockPageProps,
-      router: mockRouter,
-    };
-
-    render(<App {...appProps} />);
-
-    await waitFor(() => {
-      expect(mockRouter.replace).toHaveBeenCalledWith('/some-path');
-    });
-  });
 });

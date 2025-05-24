@@ -10,7 +10,7 @@ interface historyData {
 }
 
 export const fetchQuestions = async (time_range?: string, additional_param?: string) => {
-  let url = `/question/history/${additional_param}&time_range=${time_range}`
+  let url = `api/v1/question/history/${additional_param}&time_range=${time_range}`
 
   const response = await axiosInstance.get(url)
 

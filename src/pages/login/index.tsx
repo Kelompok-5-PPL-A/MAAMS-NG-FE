@@ -16,8 +16,10 @@ const Login: React.FC = () => {
 
   const handleSSOLogin = async () => {
     setIsLoading(true);
-    const serviceUrl = encodeURIComponent(`${window.location.origin}/auth/callback`);
-    window.location.href = `https://sso.ui.ac.id/cas2/login?service=${serviceUrl}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+    const serviceUrl = `${baseUrl}/auth/callback`;
+    const encodedServiceUrl = encodeURIComponent(serviceUrl);
+    window.location.href = `https://sso.ui.ac.id/cas2/login?service=${encodedServiceUrl}`;
   };
 
   const handleGoogleLogin = async () => {

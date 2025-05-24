@@ -13,18 +13,27 @@ const Callback = () => {
   // Handle SSO ticket verification
   useEffect(() => {
     const verifyTicket = async () => {
-      if (!ticket) return;
+      if (!ticket) {
+        toast.error('No ticket provided');
+        router.push('/login');
+        return;
+      }
       
       try {
-        await signIn('sso', {
-          ticket: ticket,
+        const result = await signIn('sso', {
+          ticket: ticket as string,
           redirect: false,
         });
-        localStorage.setItem('loginMethod','sso')
+
+        if (result?.error) {
+          throw new Error(result.error);
+        }
+
+        localStorage.setItem('loginMethod', 'sso');
         setIsVerifying(false);
       } catch (err) {
         console.error('SSO verification error:', err);
-        toast.error('Gagal login lewat SSO UI');
+        toast.error('Failed to login with SSO UI. Please try again.');
         router.push('/login');
       }
     };
@@ -49,7 +58,7 @@ const Callback = () => {
   // Show loading message
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <p className="text-center text-lg">Memverifikasi login dari SSO UI...</p>
+      <p className="text-center text-lg">Verifying SSO UI login...</p>
       <div className="mt-4 animate-spin w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full"></div>
     </div>
   );

@@ -60,12 +60,12 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
           setMode(validatorData?.mode || pendingMode)
         } else {
           if (session) {
-            const { data } = await axiosInstance.patch(`/question/ubah/${id}/`, {
+            const { data } = await axiosInstance.patch(`api/v1/question/ubah/${id}/`, {
               mode: pendingMode
             })
             setMode(data.mode)
           } else {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/ubah/${id}/`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/question/ubah/${id}/`, {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
@@ -102,14 +102,14 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
 
     try {
       if (session) {
-        const { data } = await axiosInstance.post('/question/submit/', {
+        const { data } = await axiosInstance.post('api/v1/question/submit/', {
           mode: mode,
           question: question
         })
         toast.success('Analisis berhasil ditambahkan')
         router.push(`/validator/${data.id}`)
       } else {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/submit/`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/question/submit/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -147,7 +147,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
     
     try {
       if (session) {
-        const { data } = await axiosInstance.patch(`/question/ubah/tags/${id}/`, {
+        const { data } = await axiosInstance.patch(`api/v1/question/ubah/tags/${id}/`, {
           tags: tagsModal
         })
         setTags(data.tags)
@@ -155,7 +155,7 @@ export const ValidatorQuestionForm: React.FC<ValidatorQuestionFormProps> = ({ id
         setIsTagsChangeModalOpen(false)
         toast.success('Berhasil mengubah kategori')
       } else {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}question/ubah/tags/${id}/`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/question/ubah/tags/${id}/`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',

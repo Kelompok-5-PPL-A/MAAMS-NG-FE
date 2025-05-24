@@ -19,6 +19,7 @@
     "@chakra-ui/system": "^2.6.2",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
+    "@netlify/plugin-nextjs": "^5.11.2",
     "@next/third-parties": "^15.2.3",
     "@react-oauth/google": "^0.12.1",
     "@sentry/nextjs": "^9.5.0",

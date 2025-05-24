@@ -1,21 +1,32 @@
-FROM node:20-alpine AS build
+# Build stage
+FROM node:18-alpine AS builder
+
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm ci
+
 COPY . .
 
-# Build with the specified environment or default to production
-ARG ENVIRONMENT=production
-RUN echo "Building for ${ENVIRONMENT} environment"
 RUN npm run build
 
-FROM nginx:alpine
-ARG ENVIRONMENT=production
-COPY nginx.${ENVIRONMENT}.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+# Production stage
+FROM node:18-alpine
 
-# Create environment indicator file for debugging
-RUN echo "Environment: ${ENVIRONMENT}" > /usr/share/nginx/html/env.txt
+WORKDIR /app
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Copy necessary files from builder
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Expose the port
+EXPOSE 3000
+
+# Start the application
+CMD ["npm", "start"]

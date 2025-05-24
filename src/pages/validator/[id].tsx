@@ -142,7 +142,7 @@ const ValidatorDetailPage: React.FC = () => {
     const getQuestionData = async () => {
         if (!id) return
         try {
-          const response = await axiosInstance.get(`/question/${id}`)
+          const response = await axiosInstance.get(`api/v1/question/${id}`)
           const receivedData: ValidatorData = response.data
           setValidatorData(receivedData)
         } catch (error: any) {
@@ -356,7 +356,7 @@ const ValidatorDetailPage: React.FC = () => {
                 })
                 .map((data) => {
                     // Final logging before API call
-                    return axiosInstance.post(`/cause/`, data);
+                    return axiosInstance.post(`api/v1/cause/`, data);
                 });
                 
             if (createPromises.length === 0) {
@@ -413,7 +413,7 @@ const ValidatorDetailPage: React.FC = () => {
                     const colLabel = ['A', 'B', 'C', 'D', 'E'][index];
                     addDebugMessage(`Patching ${colLabel}${rowNumber} with value: "${cause}"`);
                 }
-                return axiosInstance.patch(`/cause/patch/${id}/${row.causesId[index]}/`, { cause });
+                return axiosInstance.patch(`api/v1/cause/patch/${id}/${row.causesId[index]}/`, { cause });
             }
             return null;
         }).filter(promise => promise !== null);
@@ -442,7 +442,7 @@ const ValidatorDetailPage: React.FC = () => {
                 addDebugMessage(`${columnLabel}${row.id} is pending validation with text: "${row.causes[currentWorkingColumn]}"`);
             });
 
-            const response = await axiosInstance.patch(`/cause/validate/${id}/`);
+            const response = await axiosInstance.patch(`api/v1/cause/validate/${id}/`);
             
             if (response?.data && Array.isArray(response.data)) {
                 addDebugMessage(`Received validation response with ${response.data.length} causes`);
@@ -543,7 +543,7 @@ const ValidatorDetailPage: React.FC = () => {
         if (!id) return []
     
         try {
-          const response = await axiosInstance.get(`/cause/${id}/`)
+          const response = await axiosInstance.get(`api/v1/cause/${id}/`)
           const tempCauses: Cause[] = response.data ?? []
           
           // Debug response data
