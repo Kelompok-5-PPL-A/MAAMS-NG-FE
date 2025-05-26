@@ -43,6 +43,8 @@ const Footer = () => {
         <div>
           <div className="font-bold mb-4">Researcher</div>
           <div>Ari Harsono</div>
+          <div className="font-bold mb-4 my-5">Contact</div>
+          <div>ariharsono@yahoo.com</div>
         </div>
         <div>
           <div className="font-bold mb-4">Developers</div>

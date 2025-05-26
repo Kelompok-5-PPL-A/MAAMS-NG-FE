@@ -15,6 +15,10 @@ describe('Footer Component', () => {
     const researcherName = getByText('Ari Harsono')
     expect(researcherName).toBeInTheDocument()
 
+    // Check if researcher email is rendered
+    const researcherEmail = getByText('ariharsono@yahoo.com')
+    expect(researcherEmail).toBeInTheDocument()
+
     // Check if developers' names are rendered
     const developers = [
       'Muhammad Hilal Darul Fauzan',
